@@ -36,10 +36,10 @@ export default function About() {
       <div className="max-w-7xl mx-auto px-6 lg:flex lg:items-center lg:justify-between gap-12">
         {/* left column */}
         <motion.div variants={child} className="lg:w-1/2">
-          <h2 className="text-4xl font-bold mb-6">About LOGIN</h2>
+          <h2 className="text-2xl lg:text-4xl font-bold mb-6">About LOGIN</h2>
 
           {/* 90 %-opacity white now uses slash-opacity utility */}
-          <p className="text-lg leading-7 font-montserrat text-neutral-white/90 space-y-4">
+          <p className="text-md text-pretty  lg:text-lg leading-7 font-montserrat text-neutral-white/90 space-y-4">
             LOGIN, an esteemed international technical symposium now in its 34<sup>th</sup>{' '}
             edition, is proudly presented by the Computer Applications Association.
             <br />

@@ -34,7 +34,7 @@ export default {
                     'accent-cyan': '#68e2e2',
                 },
                 background: {
-                    DEFAULT: '#140b29e7',
+                    DEFAULT: '#0d0718',
                     dark: '#140b29e7',
                 },
                 foreground: {
