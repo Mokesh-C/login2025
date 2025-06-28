@@ -9,13 +9,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 type NavItem =
   | { id: 'home'; label: string; icon: React.ComponentType<any>; href?: never }
-  | { id: 'events' | 'timeline' | 'teams'; label: string; icon: React.ComponentType<any>; href: string }
+  | { id: 'events' | 'timeline'|'profile' | 'teams'; label: string; icon: React.ComponentType<any>; href: string }
 
 const navItems: NavItem[] = [
   { id: 'home',     label: 'Home',     icon: Home },
   { id: 'events',   label: 'Events',   icon: Calendar, href: '/events' },
   { id: 'timeline', label: 'Timeline', icon: Calendar, href: '/timeline' },
   { id: 'teams',    label: 'Teams',    icon: Users,    href: '/teams' },
+  { id: 'profile',    label: 'profile',    icon: Users,    href: '/profile' },
 ]
 
 export default function Header() {

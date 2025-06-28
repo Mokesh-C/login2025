@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Hero   from '@/components/Hero'
 import About  from '@/components/About'
 import Footer from '@/components/Footer'
+import Profile from '@/components/Profile'
 
 const Section = ({ id, title, bg }: { id: string; title: string; bg: string }) => (
   <motion.section
