@@ -31,7 +31,7 @@ export default function About() {
       variants={parent}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, amount: 0.3 }}
+      viewport={{ once: true, amount: 0.15 }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:flex lg:items-center lg:justify-between gap-12">
         {/* left column */}

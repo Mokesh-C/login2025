@@ -1,3 +1,4 @@
+import { Geist, Plus_Jakarta_Sans } from 'next/font/google'
 import type { Config } from 'tailwindcss'
 
 export default {
@@ -48,10 +49,11 @@ export default {
                 'gradient-orange': 'linear-gradient(180deg, #ff6651 0%, #ffffff 100%)',
             },
             fontFamily: {
-                metrophobic: ['Metrophobic', 'sans-serif'],
                 montserrat: ['Montserrat', 'sans-serif'],
                 manrope: ['Manrope', 'sans-serif'],
-                satoshi:['Satoshi', 'sans-serif'],
+                satoshi: ['Satoshi', 'sans-serif'],
+                baloo:['Baloo 2', 'sans-serif'],
+                inter:['Inter', 'sans-serif'],
             },
         },
     },

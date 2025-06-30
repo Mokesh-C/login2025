@@ -9,7 +9,7 @@
 
 
 body {
-    @apply font-satoshi bg-background text-foreground;
+    @apply font-baloo bg-background text-foreground;
 }
 
 html {

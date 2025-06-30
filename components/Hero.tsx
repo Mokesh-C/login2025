@@ -2,185 +2,219 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { useEffect, useState, useRef } from 'react'
+import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 
 export default function Hero() {
+  /* ── COUNTDOWN LOGIC ───────────────────────── */
   const targetDate = new Date('2025-09-21T00:00:00')
 
-  const calculateTimeLeft = () => {
-    const now        = Date.now()
-    const timeDiff   = targetDate.getTime() - now
-    const totalSecs  = Math.max(0, Math.floor(timeDiff / 1000))
-
-    const days    = Math.floor(totalSecs / 86_400)
-    const hours   = Math.floor((totalSecs % 86_400) / 3_600)
-    const minutes = Math.floor((totalSecs % 3_600) / 60)
-    const seconds = totalSecs % 60
-
-    return { days, hours, minutes, seconds }
+  const calcTimeLeft = () => {
+    const diff = Math.max(0, targetDate.getTime() - Date.now())
+    const s = Math.floor(diff / 1000)
+    return {
+      days: Math.floor(s / 86400),
+      hours: Math.floor((s % 86400) / 3600),
+      minutes: Math.floor((s % 3600) / 60),
+      seconds: s % 60,
+    }
   }
 
-  const [timeLeft,      setTimeLeft]      = useState(calculateTimeLeft())
-  const [counterValue,  setCounterValue]  = useState(0)
-  const  counterRef                       = useRef<HTMLDivElement | null>(null)
-
-  /* live countdown */
+  const [timeLeft, setTimeLeft] = useState(calcTimeLeft())
   useEffect(() => {
-    const id = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000)
+    const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000)
     return () => clearInterval(id)
   }, [])
 
-  /* animated ₹100 000 counter */
+  /* ── PRIZE COUNTER LOGIC ───────────────────── */
+  const [prize, setPrize] = useState(0)
+  const [hasAnimated, setHasAnimated] = useState(false)
+  const prizeRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
-    const startValue = 0
-    const endValue   = 100_000
-    const duration   = 1500
+    const easeOutExpo = (t: number) => (t === 1 ? 1 : 1 - 2 ** (-10 * t))
 
-    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
-
-    const animateCounter = (startTime: number) => {
-      const update = (timestamp: number) => {
-        const elapsed   = timestamp - startTime
-        const progress  = Math.min(elapsed / duration, 1)
-        const eased     = easeOutCubic(progress)
-        const value     = Math.floor(startValue + (endValue - startValue) * eased)
-        setCounterValue(value)
-
-        if (elapsed < duration) requestAnimationFrame(update)
-      }
-      requestAnimationFrame(update)
+    const animate = (start: number) => {
+      const dur = 2000,
+        end = 100000,
+        tick = (now: number) => {
+          const p = Math.min((now - start) / dur, 1)
+          setPrize(Math.floor(end * easeOutExpo(p)))
+          if (p < 1) requestAnimationFrame(tick)
+        }
+      requestAnimationFrame(tick)
     }
 
-    /** start only when visible */
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && animateCounter(performance.now())),
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting && !hasAnimated) {
+          setHasAnimated(true)
+          animate(performance.now())
+        }
+      },
       { threshold: 0.5 }
     )
+    if (prizeRef.current) io.observe(prizeRef.current)
+    return () => io.disconnect()
+  }, [hasAnimated])
 
-    if (counterRef.current) observer.observe(counterRef.current)
-    return () => observer.disconnect()
-  }, [])
-
+  /* ── MARKUP ─────────────────────────────────── */
   return (
-    <section
-      id="home"
-      className="relative lg:h-screen scroll-mt-24 flex flex-col justify-between bg-primary text-neutral-white"
-    >
-      {/* ── Top: two-column layout ───────────────────────── */}
-      <div className="flex flex-col justify-center lg:flex-row flex-grow overflow-hidden">
-        {/* Left 60 % */}
-        <motion.div
-          className="lg:w-[60%] w-full flex flex-col justify-center items-center bg-primary relative px-6 py-5 "
-          initial={{ opacity: 0, x: -60 }}
-          animate={{ opacity: 1,  x:   0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="absolute w-72 h-72 bg-accent/20 blur-[100px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0" />
+    <>
+      {/* ───────── HERO (TOP) ───────── */}
+      <section className="flex flex-col lg:flex-row bg-primary text-neutral-white lg:min-h-[calc(100vh-5rem)]">
+        <div className="container mx-auto flex flex-col lg:flex-row w-full px-6 py-5">
+          {/* LEFT */}
+          <motion.div
+            initial={{ opacity: 0, x: -60 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative lg:w-[60%] w-full flex flex-col items-center justify-center"
+          >
+            <div className="absolute w-72 h-72 bg-accent/20 blur-[100px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <div className="z-10 flex flex-col items-center gap-6">
+              {/* Crest + titles */}
+              <div className="flex items-center gap-1 md:gap-4">
+                <Image src="/PSGCTlogo.png" alt="PSG Crest" width={40} height={40} />
+                <div className="text-center sm:text-left">
+                  <p className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl">
+                    PSG COLLEGE OF TECHNOLOGY
+                  </p>
+                  <p className="text-gray-300 font-bold text-xs sm:text-sm md:text-base">
+                    Computer Applications Association
+                  </p>
+                </div>
+              </div>
 
-          <div className="z-10 w-full flex flex-col gap-6 items-center ">
-            <div className="text-neutral-white text-md md:text-2xl pt-8 lg:pt-0 font-bold leading-relaxed space-y-2 text-center">
-              <p>PSG COLLEGE OF TECHNOLOGY</p>
-              <p>COMPUTER APPLICATIONS ASSOCIATION</p>
-              <p className="text-gradient pt-4 text-sm md:text-lg">Proudly Present</p>
+              <p className="text-gradient font-bold text-sm md:text-lg">Proudly Presents</p>
+
+              {/* Logo + year */}
+              <div className="flex items-center gap-3 sm:gap-6">
+                <Image
+                  src="/logo.png"
+                  alt="Login Logo"
+                  width={480}
+                  height={240}
+                  className="w-60 sm:w-72 md:w-80 lg:w-[28rem]"
+                />
+                <span className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gradient">
+                  2025
+                </span>
+              </div>
+
+              <p className="italic font-semibold text-gradient text-sm md:text-xl -mt-4 text-center">
+                The perfect fusion of Masterminds
+              </p>
             </div>
+          </motion.div>
 
-            <div className="flex sm:flex-row items-center gap-3 sm:gap-6 mt-4 mb-6">
-              <Image
-                src="/logo.png"
-                alt="Logo"
-                width={500}
-                height={250}
-                sizes="(max-width: 640px) 150px,
-                       (max-width: 768px) 200px,
-                       250px"
-                className="w-40 sm:w-52 md:w-64 lg:w-[85%] xl:w-80 h-auto object-contain"
-              />
-              <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gradient">
-                2025
+          {/* RIGHT */}
+          <motion.div
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="lg:w-[40%] w-full mt-10 lg:mt-0 flex flex-col justify-center items-center text-center"
+          >
+            <div className="flex flex-col gap-6 max-w-md">
+              {/* Date + tagline */}
+              <div className="flex flex-col gap-3">
+                <p className="text-4xl font-bold font-satoshi text-gradient p-2">
+                  September&nbsp;21, 22
+                </p>
+                <h3 className="text-base text-gray-300 sm:text-lg">
+                  Experience the 34<sup>th</sup> International Inter‑Collegiate Tech‑Symposium
+                  where innovation meets reality in the digital realm.
+                </h3>
+              </div>
+
+              {/* Stats */}
+              <div className="flex justify-around font-extrabold text-2xl text-gradient-1">
+                <div>
+                  <p>
+                    10<span className="text-purple-500">+</span>
+                  </p>
+                  <p className="text-sm font-medium text-slate-300">EVENTS</p>
+                </div>
+                <div>
+                  <p>
+                    500<span className="text-purple-500">+</span>
+                  </p>
+                  <p className="text-sm font-medium text-slate-300">PARTICIPANTS</p>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
 
-        {/* Right 40 % */}
-        <motion.div
-          className="
-            lg:w-[40%] w-full lg:bg-primary flex flex-col justify-center items-center relative px-6 py-5"
-          initial={{ opacity: 0, x: 60 }}
-          animate={{ opacity: 1,  x: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="absolute inset-0 opacity-10 z-0" />
-
-          <div className="z-10 text-center flex flex-col  md:gap-2 items-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-accent-cyan mb-2">
-              Cash Prize&nbsp;Worth
-            </h2>
-
-            <div
-              ref={counterRef}
-              className="text-4xl md:text-6xl font-extrabold text-gradient mb-6"
-            >
-              ₹&nbsp;{counterValue.toLocaleString('en-IN')}
+            {/* CTA buttons */}
+            <div className="pt-6 flex gap-4">
+              <Link
+                href="/register"
+                className="bg-accent hover:bg-accent-hover text-white px-5 py-2 rounded-full font-semibold shadow transition"
+              >
+                Register
+              </Link>
+              <Link
+                href="/events"
+                className="flex items-center gap-1 border-2 border-accent text-gradient px-5 py-2 rounded-full font-semibold shadow hover:bg-purple-600 hover:text-white transition"
+              >
+                Explore Events <span className="text-xl">→</span>
+              </Link>
             </div>
+          </motion.div>
+        </div>
+      </section>
 
-            <h2 className="text-xl pt-6 font-bold text-gradient-1 mb-4">Countdown&nbsp;Begins</h2>
-
-            <div className="grid grid-cols-4 gap-4 mb-8">
-              {(['Days', 'Hours', 'Minutes', 'Seconds'] as const).map((label, i) => (
-                <TimeBox key={label} label={label} value={Object.values(timeLeft)[i]} />
-              ))}
-            </div>
-
-            <div className="flex justify-center gap-6">
-              <StatBox label="Events"        value="10+"  />
-              <StatBox label="Participants"  value="500+" />
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ── Bottom subtitle ──────────────────────────────── */}
-      <motion.div
-        className="mx-auto mt-6 mb-4 font-montserrat"
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
+      {/* ───────── PRIZE‑POOL (BOTTOM) ───────── */}
+      <section
+        ref={prizeRef}
+        className="relative min-h-[60vh] flex flex-col items-center justify-center bg-primary text-white overflow-hidden px-4"
       >
-        <p className="text-sm px-1 md:text-xl text-gradient-1 font-bold pb-4 text-center">
-          International Inter-Collegiate Tech-Symposium for PG&nbsp;Students
-        </p>
-        <p className="text-sm px-1 md:text-lg font-medium pb-8 text-center">
-          <span className="text-accent-cyan font-bold">Note:&nbsp;</span>
-          <span className="text-gradient font-bold">
-            Only M.E., MCA, M.Sc., M.Tech., M.Com., and M.A. students can register and participate.
-          </span>
-        </p>
-      </motion.div>
-    </section>
+        {/* Confetti backdrop (replace with real animation if you like) */}
+    
+
+        {/* Main block */}
+        <div className="absolute w-72 h-52 bg-accent/20 blur-[100px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={hasAnimated ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1 }}
+          className="z-10 text-center max-w-3xl"
+        >
+          <h1 className="leading-tight font-extrabold text-gray-400 text-4xl sm:text-5xl md:text-6xl">
+            CASH PRIZE WORTH <br/>
+            <span className="text-white">
+              ₹ {prize.toLocaleString('en-IN')}
+            </span>
+          </h1>
+
+
+          {/* Countdown */}
+          <div className="mt-6 flex flex-wrap justify-center gap-4 font-semibold text-xl">
+            <TimeBox label="DAYS" value={timeLeft.days} />
+            <TimeBox label="HRS" value={timeLeft.hours} />
+            <TimeBox label="MIN" value={timeLeft.minutes} />
+            <TimeBox label="SEC" value={timeLeft.seconds} />
+          </div>
+
+          {/* NEW text block */}
+          <div className='pb-8'>
+          <p className="mt-10 text-gradient-1 text-lg sm:text-xl font-medium">
+            International Inter‑Collegiate Tech‑Symposium for PG Students
+          </p>
+          <p className="mt-2 text-gradient sm:text-lg">
+            <span className="text-accent-cyan font-semibold">Note:</span>{' '}
+            Only M.E., MCA, M.Sc., M.Tech., M.Com., and M.A. students can register and participate.
+          </p>
+          </div>
+        </motion.div>
+      </section>
+    </>
   )
 }
 
-/* ────────────────────────────────────────────────────────── */
-/* Helper sub-components                                      */
-
+/* Utility for countdown squares */
 const TimeBox = ({ label, value }: { label: string; value: number }) => (
-  <div
-    className="
-      flex flex-col items-center p-3 rounded-b-lg shadow backdrop-blur
-      bg-gradient-to-b from-accent/60 to-transparent
-      border-t-4 border-accent
-    "
-  >
+  <div className="flex flex-col items-center bg-gradient-to-b from-accent/60 to-transparent text-neutral-white font-semibold border-t-4 border-violet-500 px-5 py-2 ">
     <span className="text-2xl font-bold">{value.toString().padStart(2, '0')}</span>
-    <span className="text-xs text-accent-cyan uppercase mt-1">{label}</span>
-  </div>
-)
-
-const StatBox = ({ label, value }: { label: string; value: string }) => (
-  <div className="text-center">
-    <p className="text-xl font-bold text-gradient">{value}</p>
-    <p className="text-sm text-slate-400 uppercase">{label}</p>
+    <span className="text-xs uppercase mt-1 text-accent-cyan">{label}</span>
   </div>
 )
