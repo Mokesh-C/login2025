@@ -202,7 +202,7 @@ export default function Hero() {
           </p>
           <p className="mt-2 text-gradient sm:text-lg">
             <span className="text-accent-cyan font-semibold">Note:</span>{' '}
-            Only M.E., MCA, M.Sc., M.Tech., M.Com., and M.A. students can register and participate.
+            Only M.E., MCA, MBA, M.Sc., M.Tech., M.Com., andM.A. students can register and participate.
           </p>
           </div>
         </motion.div>

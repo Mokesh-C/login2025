@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
+import Image from 'next/image'
 
 const OTP_LENGTH = 4
 const OTP_TIMEOUT = 60
@@ -99,8 +100,13 @@ export default function LoginPage() {
     <div className="relative flex min-h-screen bg-gradient-to-br from-primary to-primary-100 text-white">
       {/* LEFT SIDE */}
       <div className="hidden md:flex w-1/2 flex-col items-center justify-center px-10">
-        <img src="/logo.png" alt="Login Logo" className="w-[300px] mb-6" />
-        <h1 className="mb-4 text-center text-4xl font-extrabold leading-tight">
+        <Image
+          src="/logo.png"
+          alt="Login Logo"
+          width={480}
+          height={240}
+          className="mb-6"
+        />        <h1 className="mb-4 text-center text-4xl font-extrabold leading-tight">
           Welcome back to LOGIN 2025
         </h1>
         <p className="max-w-md text-center text-lg text-white/80">
@@ -154,13 +160,16 @@ export default function LoginPage() {
               <div className="flex justify-between gap-2">
                 {otp.map((digit, i) => (
                   <input
-                    key={i}
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(i, e.target.value)}
-                    ref={(el) => (otpInputsRef.current[i] = el)}
-                    className="h-14 w-14 rounded bg-white text-center text-xl text-black"
-                  />
+                  key={i}
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  ref={(el) => {
+                    otpInputsRef.current[i] = el!
+                  }}
+                  className="h-14 w-14 rounded bg-white text-center text-xl text-black"
+                />
+                
                 ))}
               </div>
 
@@ -220,9 +229,9 @@ function ErrorToast({
 
   return (
     <motion.div
-      initial={{ x: 300, y: -100, opacity: 0 }}
+      initial={{ x: 300, y: 0, opacity: 0 }}
       animate={{ x: 0, y: 0, opacity: 1 }}
-      exit={{ x: 300, y: -100, opacity: 0, transition: { duration: 0.4 } }}
+      exit={{ x: 300, y: 0, opacity: 0, transition: { duration: 0.4 } }}
       className="fixed right-4 top-4 z-50 w-full max-w-sm rounded-lg  bg-purple-300 px-4 py-3 text-black shadow-xl backdrop-blur-md"
     >
       <div className="flex items-start justify-between gap-3">

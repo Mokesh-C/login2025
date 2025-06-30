@@ -215,7 +215,7 @@ function ErrorToast({
 
   return (
     <motion.div
-      initial={{ x: 300, y: -100, opacity: 0 }}
+      initial={{ x: 300, y: 0, opacity: 0 }}
       animate={{
         x: 0,
         y: 0,
@@ -224,7 +224,7 @@ function ErrorToast({
       }}
       exit={{
         x: 300,
-        y: -100,
+        y: 0,
         opacity: 0,
         transition: { duration: 0.4, ease: 'easeIn' },
       }}

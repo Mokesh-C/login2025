@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,42 +51,16 @@ const Profile: React.FC = () => {
   ];
 
   const registeredEvents: Event[] = [
-    {
-      id: "1",
-      name: "Code Sprint",
-      date: "Aug 16",
-      time: "9:30 AM - 4:30 PM",
-      hasCertificate: false
-    },
-    {
-      id: "2",
-      name: "Witty Minds",
-      date: "Aug 15",
-      time: "9:30 AM - 4:30 PM",
-      hasCertificate: true
-    },
-    {
-      id: "3",
-      name: "Quiz",
-      date: "Aug 15",
-      time: "9:30 AM - 12:30 PM",
-      hasCertificate: true
-    }
+    { id: "1", name: "Code Sprint", date: "Aug 16", time: "9:30 AM - 4:30 PM", hasCertificate: false },
+    { id: "2", name: "Witty Minds", date: "Aug 15", time: "9:30 AM - 4:30 PM", hasCertificate: true },
+    { id: "3", name: "Quiz", date: "Aug 15", time: "9:30 AM - 12:30 PM", hasCertificate: true }
   ];
 
-  const TabButton: React.FC<{ 
-    tab: string; 
-    icon: React.ReactNode; 
-    label: string; 
-    isActive: boolean; 
-    onClick: () => void;
-  }> = ({ icon, label, isActive, onClick }) => (
+  const TabButton: React.FC<{ tab: string; icon: React.ReactNode; label: string; isActive: boolean; onClick: () => void; }> = ({ icon, label, isActive, onClick }) => (
     <button
       onClick={onClick}
       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left ${
-        isActive 
-          ? 'bg-[#7c3aed] text-white shadow-sm' 
-          : 'text-[#8B949E] hover:bg-[#1b1333]'
+        isActive ? 'bg-accent/80 text-white shadow-lg backdrop-blur-md' : 'text-white/60 hover:bg-white/5'
       }`}
     >
       {icon}
@@ -100,8 +74,8 @@ const Profile: React.FC = () => {
         <div className="space-y-4">
           {['Name', 'Login Id', 'Email', 'Phone', 'College'].map((field, index) => (
             <div key={index}>
-              <label className="block text-sm font-medium text-[#8B949E] mb-1">{field}</label>
-              <p className="font-medium text-[#ededed]">
+              <label className="block text-sm font-medium text-white/60 mb-1">{field}</label>
+              <p className="font-medium text-white/90">
                 {studentData[field.toLowerCase().replace(' ', '') as keyof typeof studentData]}
               </p>
             </div>
@@ -114,76 +88,56 @@ const Profile: React.FC = () => {
   const renderTransactionsSection = () => (
     <div className="space-y-6">
       {transactions.map((transaction) => (
-        <div key={transaction.id} className="bg-[#1b1333] rounded-lg p-6 shadow-sm border border-gray-700">
+        <div key={transaction.id} className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-xl">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-[#8B949E]">Transaction ID: {transaction.id}</p>
+                <p className="text-sm text-white/60">Transaction ID: {transaction.id}</p>
                 <p className="font-medium text-green-400">{transaction.description}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-[#8B949E]">{transaction.date}</p>
-              <p className="text-sm text-[#8B949E]">{transaction.time}</p>
+              <p className="text-sm text-white/60">{transaction.date}</p>
+              <p className="text-sm text-white/60">{transaction.time}</p>
               <p className="text-xl font-bold text-green-400">Rs. {transaction.amount}</p>
             </div>
           </div>
         </div>
       ))}
-
-      <div className="bg-[#1b1333] rounded-lg p-6">
-        <p className="text-[#ededed] mb-4">
-          If you have any problems with the Transactions, Please fill out this forms !
-        </p>
-        <button className="bg-[#7c3aed] text-white px-6 py-2 rounded-lg hover:bg-[#8b5cf6] transition-colors">
-          Forms
-        </button>
-      </div>
     </div>
   );
 
   const renderEventsSection = () => (
     <div className="space-y-6">
       {registeredEvents.map((event) => (
-        <div key={event.id} className="bg-[#1b1333] rounded-lg p-6 shadow-sm border border-gray-700">
+        <div key={event.id} className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[#8B949E] mb-1">{event.date}</p>
-              <h3 className="text-lg font-semibold text-[#ededed] mb-1">{event.name}</h3>
-              <p className="text-[#8B949E]">{event.time}</p>
+              <p className="text-sm text-white/60 mb-1">{event.date}</p>
+              <h3 className="text-lg font-semibold text-white/90 mb-1">{event.name}</h3>
+              <p className="text-white/60">{event.time}</p>
             </div>
             {event.hasCertificate && (
-              <button className="bg-[#7c3aed] text-white px-4 py-2 rounded-lg hover:bg-[#8b5cf6] transition-colors">
+              <button className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition-colors">
                 Download Certificate
               </button>
             )}
           </div>
         </div>
       ))}
-
-      <div className="bg-[#1b1333] rounded-lg p-6">
-        <p className="text-[#ededed] mb-4">
-          Join our College Ambassador Program for Kriya 2025, invite friends using your unique referral code, and earn exciting rewards!
-        </p>
-        <button className="bg-[#7c3aed] text-white px-6 py-2 rounded-lg hover:bg-[#8b5cf6] transition-colors">
-          Forms
-        </button>
-      </div>
     </div>
   );
 
   const renderWorkshopsSection = () => (
     <div className="space-y-6">
-      <div className="bg-[#1b1333] rounded-lg p-8 text-center">
-        <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-[#ededed] mb-4">
-          Uh oh! You haven't registered for any workshops yet !
-        </p>
-        <button className="bg-[#7c3aed] text-white px-6 py-2 rounded-lg hover:bg-[#8b5cf6] transition-colors">
-          Register for workshops here ! →
+      <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-8 text-center">
+        <Calendar className="w-12 h-12 text-white/40 mx-auto mb-4" />
+        <p className="text-white/90 mb-4">You haven't registered for any workshops yet!</p>
+        <button className="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-hover transition-colors">
+          Register for workshops here →
         </button>
       </div>
     </div>
@@ -191,12 +145,10 @@ const Profile: React.FC = () => {
 
   const renderPapersSection = () => (
     <div className="space-y-6">
-      <div className="bg-[#1b1333] rounded-lg p-8 text-center">
-        <Presentation className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-[#ededed] mb-4">
-          No paper presentations registered yet.
-        </p>
-        <button className="bg-[#7c3aed] text-white px-6 py-2 rounded-lg hover:bg-[#8b5cf6] transition-colors">
+      <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-8 text-center">
+        <Presentation className="w-12 h-12 text-white/40 mx-auto mb-4" />
+        <p className="text-white/90 mb-4">No paper presentations registered yet.</p>
+        <button className="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-hover transition-colors">
           Submit Paper Presentation
         </button>
       </div>
@@ -204,30 +156,25 @@ const Profile: React.FC = () => {
   );
 
   const sectionVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
+    exit: { opacity: 0, y: -20, scale: 0.95, transition: { duration: 0.3 } },
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={pageLoaded ? { opacity: 1 } : {}}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[#0d0718] text-[#ededed]"
-    >
-      <div className="bg-black mb-6"></div>
+    <motion.div initial={{ opacity: 0 }} animate={pageLoaded ? { opacity: 1 } : {}} transition={{ duration: 0.5 }} className="min-h-screen bg-[#0d0718] text-white">
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent blur-3xl opacity-50" />
 
-      <div className="max-w-7xl mx-auto px-4 mt-6 relative z-10">
-        <div className="bg-[#1b1333] rounded-lg shadow-sm p-6 mb-6">
+      <div className="max-w-7xl  mx-auto px-4 pt-12 relative z-10">
+        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center">
-                <User className="w-12 h-12 text-[#ededed]" />
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+                <User className="w-12 h-12 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold">{studentData.name}</h1>
-                <p className="text-[#8B949E]">PROFILE</p>
+                <p className="text-white/60">PROFILE</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-green-400">
@@ -239,7 +186,7 @@ const Profile: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <div className="bg-[#1b1333] rounded-lg shadow-sm p-4 space-y-2">
+            <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-4 space-y-2 shadow-xl">
               <TabButton tab="about" icon={<User className="w-5 h-5" />} label="About" isActive={activeTab === 'about'} onClick={() => setActiveTab('about')} />
               <TabButton tab="transactions" icon={<ArrowRightLeft className="w-5 h-5" />} label="Transactions" isActive={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} />
               <TabButton tab="events" icon={<Trophy className="w-5 h-5" />} label="Registered Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} />
@@ -249,14 +196,14 @@ const Profile: React.FC = () => {
           </div>
 
           <div className="lg:col-span-3">
-            <div className="bg-[#1b1333] rounded-lg shadow-sm p-6">
+            <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
                 {activeTab === 'about' && <User className="w-6 h-6" />}
                 {activeTab === 'transactions' && <ArrowRightLeft className="w-6 h-6" />}
                 {activeTab === 'events' && <Trophy className="w-6 h-6" />}
                 {activeTab === 'workshops' && <Calendar className="w-6 h-6" />}
                 {activeTab === 'papers' && <Presentation className="w-6 h-6" />}
-                <h2 className="text-xl font-semibold capitalize">{activeTab.replace(/^\w/, c => c.toUpperCase()).replace(/([A-Z])/g, ' $1').trim()}</h2>
+                <h2 className="text-xl font-semibold capitalize">{activeTab.replace(/\b\w/g, l => l.toUpperCase()).replace(/([A-Z])/g, ' $1').trim()}</h2>
               </div>
 
               <AnimatePresence mode="wait">
@@ -273,10 +220,7 @@ const Profile: React.FC = () => {
         </div>
       </div>
 
-      <button 
-        className="fixed bottom-6 right-6 w-14 h-14 bg-[#7c3aed] hover:bg-[#8b5cf6] text-white rounded-full shadow-lg flex items-center justify-center transition-colors"
-        aria-label="Open chat"
-      >
+      <button className="fixed bottom-6 right-6 w-14 h-14 bg-accent hover:bg-accent-hover text-white rounded-full shadow-lg flex items-center justify-center transition-colors" aria-label="Open chat">
         <MessageCircle className="w-6 h-6" />
       </button>
     </motion.div>

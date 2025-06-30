@@ -232,7 +232,7 @@ export default function ParticipantRegister() {
                 name="degree"
                 value={form.degree}
                 onChange={handleChange}
-                options={['M.E.', 'MCA', 'M.Sc.', 'M.Tech.', 'M.Com.', 'M.A.']}
+                options={['M.E.', 'MCA', 'MBA', 'M.Sc.', 'M.Tech.', 'M.Com.', 'M.A.']}
                 placeholder="Select Degree"
               />
 
@@ -414,9 +414,9 @@ function ErrorToast({
 
   return (
     <motion.div
-      initial={{ x: 300, y: -100, opacity: 0 }}
+      initial={{ x: 300, y: -0, opacity: 0 }}
       animate={{ x: 0, y: 0, opacity: 1, transition: { type: 'spring', stiffness: 700, damping: 30 } }}
-      exit={{ x: 300, y: -100, opacity: 0, transition: { duration: 0.4, ease: 'easeIn' } }}
+      exit={{ x: 300, y: 0, opacity: 0, transition: { duration: 0.4, ease: 'easeIn' } }}
       className="fixed right-4 top-4 z-50 w-full max-w-sm rounded-lg  bg-purple-300 px-4 py-3 text-black shadow-xl backdrop-blur-md"
     >
       <div className="flex items-start justify-between gap-3">
