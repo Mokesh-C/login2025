@@ -164,8 +164,8 @@ export default function LoginPage() {
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handleOtpChange(i, e.target.value)}
-                  ref={(el) => {
-                    otpInputsRef.current[i] = el!
+                  ref={el => {
+                    otpInputsRef.current[i] = el!;
                   }}
                   className="h-14 w-14 rounded bg-white text-center text-xl text-black"
                 />
@@ -213,39 +213,42 @@ function GlassInput(props: InputProps) {
 }
 
 /* ───── Error Toast ───── */
-function ErrorToast({
-  id,
-  message,
-  onClose,
-}: {
-  id: number
-  message: string
-  onClose: () => void
-}) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 4000)
-    return () => clearTimeout(t)
-  }, [onClose])
-
-  return (
-    <motion.div
-      initial={{ x: 300, y: 0, opacity: 0 }}
-      animate={{ x: 0, y: 0, opacity: 1 }}
-      exit={{ x: 300, y: 0, opacity: 0, transition: { duration: 0.4 } }}
-      className="fixed right-4 top-4 z-50 w-full max-w-sm rounded-lg  bg-purple-300 px-4 py-3 text-black shadow-xl backdrop-blur-md"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <span className="text-sm font-medium">{message}</span>
-        <button aria-label="Close" onClick={onClose} className="text-black/60 hover:text-black">
-          <X size={16} />
-        </button>
-      </div>
+function ErrorToast({ id, message, onClose }: {
+    id: number
+    message: string
+    onClose: () => void
+  }) {
+    useEffect(() => {
+      const t = setTimeout(onClose, 4_000)
+      return () => clearTimeout(t)
+    }, [onClose])
+  
+    return (
       <motion.div
-        initial={{ width: '0%' }}
-        animate={{ width: '100%' }}
-        transition={{ duration: 4, ease: 'linear' }}
-        className="mt-2 h-1 rounded bg-black/20"
-      />
-    </motion.div>
-  )
-}
+        initial={{ x: 300, opacity: 0 }}
+        animate={{ x: 0, opacity: 1, transition: { type: 'spring', stiffness: 700, damping: 30 } }}
+        exit={{ x: 300, opacity: 0, transition: { duration: .4, ease: 'easeIn' } }}
+        /* ↓ 90 % width on phones, then cap at 20 rem on ≥ sm screens */
+        className="fixed right-4 top-4 z-50 w-[90%] sm:w-full sm:max-w-sm rounded-lg
+                   bg-purple-300 px-4 py-3 text-black shadow-xl backdrop-blur-md"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-sm font-medium break-words">{message}</span>
+          <button
+            aria-label="Close"
+            onClick={onClose}
+            className="text-black/60 hover:text-black"
+          >
+            <X size={16} />
+          </button>
+        </div>
+  
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: '100%' }}
+          transition={{ duration: 4, ease: 'linear' }}
+          className="mt-2 h-1 rounded bg-black/20"
+        />
+      </motion.div>
+    )
+  }

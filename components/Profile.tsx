@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, ArrowRightLeft, Trophy, Calendar, Presentation, CheckCircle, MessageCircle } from 'lucide-react';
+import type { Easing } from 'framer-motion';
+
 
 interface Transaction {
   id: string;
@@ -156,9 +158,29 @@ const Profile: React.FC = () => {
   );
 
   const sectionVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
-    exit: { opacity: 0, y: -20, scale: 0.95, transition: { duration: 0.3 } },
+    hidden: {
+      opacity: 0,
+      y: 20,
+      scale: 0.95
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: [0.25, 0.1, 0.25, 1] as Easing // ✅ Cast properly
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+      scale: 0.95,
+      transition: {
+        duration: 0.3,
+        ease: [0.42, 0, 1, 1] as Easing // ✅ Cast properly
+      }
+    }
   };
 
   return (
