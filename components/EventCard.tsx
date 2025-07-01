@@ -32,7 +32,7 @@ const cardVariants: Variants = {
 const imageVariants: Variants = {
   rest: { rotate: 0 },
   hover: {
-    rotate: 360,
+    rotate: 720,
     transition: { duration: 0.6, ease: 'easeInOut' },
   },
 }
@@ -66,21 +66,22 @@ export default function EventCard({ event }: { event: EventCardProps }) {
             {/* Outer ring */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-accent-cyan/30 to-accent-violet/30 blur-sm" />
 
-            {/* Rotating inner logo */}
+            {/* Rotating inner logo - controlled by parent card hover */}
             <motion.div
-              variants={imageVariants}
-              initial="rest"
-              animate="rest"
-              whileHover="hover"
               className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-accent-cyan/40 bg-primary"
             >
-              <Image
-                src={event.image}
-                alt={event.title}
-                width={40}
-                height={40}
-                className="object-contain brightness-110"
-              />
+              <motion.div
+                variants={imageVariants}
+                className="flex h-16 w-16 items-center justify-center"
+              >
+                <Image
+                  src={event.image}
+                  alt={event.title}
+                  width={40}
+                  height={40}
+                  className="object-contain brightness-110"
+                />
+              </motion.div>
             </motion.div>
           </div>
         </div>
