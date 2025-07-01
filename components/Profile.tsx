@@ -61,7 +61,7 @@ const Profile: React.FC = () => {
   const TabButton: React.FC<{ tab: string; icon: React.ReactNode; label: string; isActive: boolean; onClick: () => void; }> = ({ icon, label, isActive, onClick }) => (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full text-left ${
+      className={`flex items-center gap-3 px-4 py-3 rounded-md transition-colors w-full text-left ${
         isActive ? 'bg-accent/80 text-white shadow-lg backdrop-blur-md' : 'text-white/60 hover:bg-white/5'
       }`}
     >
@@ -90,7 +90,7 @@ const Profile: React.FC = () => {
   const renderTransactionsSection = () => (
     <div className="space-y-6">
       {transactions.map((transaction) => (
-        <div key={transaction.id} className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-xl">
+        <div key={transaction.id} className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-6 shadow-xl">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -115,7 +115,7 @@ const Profile: React.FC = () => {
   const renderEventsSection = () => (
     <div className="space-y-6">
       {registeredEvents.map((event) => (
-        <div key={event.id} className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-xl">
+        <div key={event.id} className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-6 shadow-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-white/60 mb-1">{event.date}</p>
@@ -123,7 +123,7 @@ const Profile: React.FC = () => {
               <p className="text-white/60">{event.time}</p>
             </div>
             {event.hasCertificate && (
-              <button className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover transition-colors">
+              <button className="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent-hover transition-colors">
                 Download Certificate
               </button>
             )}
@@ -135,10 +135,10 @@ const Profile: React.FC = () => {
 
   const renderWorkshopsSection = () => (
     <div className="space-y-6">
-      <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-8 text-center">
+      <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-8 text-center">
         <Calendar className="w-12 h-12 text-white/40 mx-auto mb-4" />
         <p className="text-white/90 mb-4">You haven't registered for any workshops yet!</p>
-        <button className="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-hover transition-colors">
+        <button className="bg-accent text-white px-6 py-2 rounded-md hover:bg-accent-hover transition-colors">
           Register for workshops here →
         </button>
       </div>
@@ -147,10 +147,10 @@ const Profile: React.FC = () => {
 
   const renderPapersSection = () => (
     <div className="space-y-6">
-      <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-8 text-center">
+      <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-8 text-center">
         <Presentation className="w-12 h-12 text-white/40 mx-auto mb-4" />
         <p className="text-white/90 mb-4">No paper presentations registered yet.</p>
-        <button className="bg-accent text-white px-6 py-2 rounded-lg hover:bg-accent-hover transition-colors">
+        <button className="bg-accent text-white px-6 py-2 rounded-md hover:bg-accent-hover transition-colors">
           Submit Paper Presentation
         </button>
       </div>
@@ -188,7 +188,7 @@ const Profile: React.FC = () => {
       <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent blur-3xl opacity-50" />
 
       <div className="max-w-7xl  mx-auto px-4 pt-12 relative z-10">
-        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl p-6 mb-6">
+        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
@@ -208,7 +208,7 @@ const Profile: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-4 space-y-2 shadow-xl">
+            <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-4 space-y-2 shadow-xl">
               <TabButton tab="about" icon={<User className="w-5 h-5" />} label="About" isActive={activeTab === 'about'} onClick={() => setActiveTab('about')} />
               <TabButton tab="transactions" icon={<ArrowRightLeft className="w-5 h-5" />} label="Transactions" isActive={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} />
               <TabButton tab="events" icon={<Trophy className="w-5 h-5" />} label="Registered Events" isActive={activeTab === 'events'} onClick={() => setActiveTab('events')} />
@@ -218,7 +218,7 @@ const Profile: React.FC = () => {
           </div>
 
           <div className="lg:col-span-3">
-            <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-2xl p-6 shadow-xl">
+            <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-6">
                 {activeTab === 'about' && <User className="w-6 h-6" />}
                 {activeTab === 'transactions' && <ArrowRightLeft className="w-6 h-6" />}

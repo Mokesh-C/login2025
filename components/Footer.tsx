@@ -7,17 +7,13 @@ export default function Footer() {
   return (
     <footer
       id="footer-section"
-      className="
-        /* --- background & glass effect --- */
-        bg-gradient-to-br from-[#251840] to-[#140b29]
+      className="        
         bg-white/5
         backdrop-blur-sm
         shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
-
-        /* --- text & border colours from Tailwind palette --- */
         text-neutral-white
-        border-t border-neutral-muted  /* first colour */
-        border border-white/10         /* final colour (matches old override) */
+        border-t border-neutral-muted
+        border border-white/10
 
       "
     >

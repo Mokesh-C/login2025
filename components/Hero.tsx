@@ -26,43 +26,51 @@ export default function Hero() {
     return () => clearInterval(id)
   }, [])
 
-  /* ── PRIZE COUNTER LOGIC ───────────────────── */
+  /* ── PRIZE COUNTER LOGIC (ease-out cubic, repeatable) ───── */
   const [prize, setPrize] = useState(0)
-  const [hasAnimated, setHasAnimated] = useState(false)
   const prizeRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    const easeOutExpo = (t: number) => (t === 1 ? 1 : 1 - 2 ** (-10 * t))
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+    const duration = 1500
+    const startValue = prize
+    const endValue = 100000
 
-    const animate = (start: number) => {
-      const dur = 2000,
-        end = 100000,
-        tick = (now: number) => {
-          const p = Math.min((now - start) / dur, 1)
-          setPrize(Math.floor(end * easeOutExpo(p)))
-          if (p < 1) requestAnimationFrame(tick)
+    const animateCounter = (startTime: number) => {
+      const tick = (now: number) => {
+        const elapsed = now - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        const eased = easeOutCubic(progress)
+        const value = Math.floor(startValue + (endValue - startValue) * eased)
+        setPrize(value)
+        if (progress < 1) {
+          requestAnimationFrame(tick)
+        } else {
+          setPrize(endValue)
         }
+      }
       requestAnimationFrame(tick)
     }
 
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting && !hasAnimated) {
-          setHasAnimated(true)
-          animate(performance.now())
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setPrize(0) // reset
+          animateCounter(performance.now())
         }
       },
       { threshold: 0.5 }
     )
-    if (prizeRef.current) io.observe(prizeRef.current)
-    return () => io.disconnect()
-  }, [hasAnimated])
+
+    if (prizeRef.current) observer.observe(prizeRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   /* ── MARKUP ─────────────────────────────────── */
   return (
     <>
       {/* ───────── HERO (TOP) ───────── */}
-      <section className="flex flex-col lg:flex-row bg-primary text-neutral-white lg:min-h-[calc(100vh-5rem)]">
+      <section className="flex flex-col lg:flex-row  text-neutral-white lg:min-h-[calc(100vh-5rem)]">
         <div className="container mx-auto flex flex-col lg:flex-row w-full px-6 py-5">
           {/* LEFT */}
           <motion.div
@@ -72,8 +80,7 @@ export default function Hero() {
             className="relative lg:w-[60%] w-full flex flex-col items-center justify-center"
           >
             <div className="absolute w-72 h-72 bg-accent/20 blur-[100px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-            <div className="z-10 flex flex-col items-center gap-6">
-              {/* Crest + titles */}
+            <div className="z-10 flex flex-col items-center gap-10">
               <div className="flex items-center gap-1 md:gap-4">
                 <Image src="/PSGCTlogo.png" alt="PSG Crest" width={40} height={40} />
                 <div className="text-center sm:text-left">
@@ -85,10 +92,7 @@ export default function Hero() {
                   </p>
                 </div>
               </div>
-
               <p className="text-gradient font-bold text-sm md:text-lg">Proudly Presents</p>
-
-              {/* Logo + year */}
               <div className="flex items-center gap-3 sm:gap-6">
                 <Image
                   src="/logo.png"
@@ -101,7 +105,6 @@ export default function Hero() {
                   2025
                 </span>
               </div>
-
               <p className="italic font-semibold text-gradient text-sm md:text-xl -mt-4 text-center">
                 The perfect fusion of Masterminds
               </p>
@@ -115,8 +118,7 @@ export default function Hero() {
             transition={{ duration: 0.8 }}
             className="lg:w-[40%] w-full mt-10 lg:mt-0 flex flex-col justify-center items-center text-center"
           >
-            <div className="flex flex-col gap-6 max-w-md">
-              {/* Date + tagline */}
+            <div className="flex flex-col gap-10 max-w-md">
               <div className="flex flex-col gap-3">
                 <p className="text-4xl font-bold font-satoshi text-gradient p-2">
                   September&nbsp;21, 22
@@ -126,8 +128,6 @@ export default function Hero() {
                   where innovation meets reality in the digital realm.
                 </h3>
               </div>
-
-              {/* Stats */}
               <div className="flex justify-around font-extrabold text-2xl text-gradient-1">
                 <div>
                   <p>
@@ -143,18 +143,18 @@ export default function Hero() {
                 </div>
               </div>
             </div>
-
-            {/* CTA buttons */}
-            <div className="pt-6 flex gap-4">
+            <div className="pt-10 flex gap-6">
               <Link
                 href="/register"
-                className="bg-accent hover:bg-accent-hover text-white px-5 py-2 rounded-full font-semibold shadow transition"
+                className="bg-accent hover:bg-accent-hover text-white px-5 py-2 rounded-md font-semibold shadow transition"
               >
                 Register
               </Link>
               <Link
                 href="/events"
-                className="flex items-center gap-1 border-2 border-accent text-gradient px-5 py-2 rounded-full font-semibold shadow hover:bg-purple-600 hover:text-white transition"
+                className="border-2 border-accent text-gradient px-5 py-2 rounded-md
+        font-semibold shadow transition-colors
+        hover:bg-violet-500 hover:text-white"
               >
                 Explore Events <span className="text-xl">→</span>
               </Link>
@@ -166,28 +166,21 @@ export default function Hero() {
       {/* ───────── PRIZE‑POOL (BOTTOM) ───────── */}
       <section
         ref={prizeRef}
-        className="relative min-h-[60vh] flex flex-col items-center justify-center bg-primary text-white overflow-hidden px-4"
+        className="relative min-h-[60vh] flex flex-col items-center justify-center  text-white overflow-hidden px-4"
       >
-        {/* Confetti backdrop (replace with real animation if you like) */}
-    
-
-        {/* Main block */}
-        <div className="absolute w-72 h-52 bg-accent/20 blur-[100px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         <motion.div
           initial={{ opacity: 0, y: 40 }}
-          animate={hasAnimated ? { opacity: 1, y: 0 } : {}}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
           className="z-10 text-center max-w-3xl"
         >
-          <h1 className="leading-tight font-extrabold text-gray-400 text-4xl sm:text-5xl md:text-6xl">
-            CASH PRIZE WORTH <br/>
-            <span className="text-white">
+          <h1 className="leading-tight font-extrabold text-gray-300 text-4xl sm:text-5xl md:text-6xl">
+            CASH PRIZE WORTH <br />
+            <span className="text-gradient">
               ₹ {prize.toLocaleString('en-IN')}
             </span>
           </h1>
 
-
-          {/* Countdown */}
           <div className="mt-6 flex flex-wrap justify-center gap-4 font-semibold text-xl">
             <TimeBox label="DAYS" value={timeLeft.days} />
             <TimeBox label="HRS" value={timeLeft.hours} />
@@ -195,15 +188,14 @@ export default function Hero() {
             <TimeBox label="SEC" value={timeLeft.seconds} />
           </div>
 
-          {/* NEW text block */}
-          <div className='pb-8'>
-          <p className="mt-10 text-gradient-1 text-lg sm:text-xl font-medium">
-            International Inter‑Collegiate Tech‑Symposium for PG Students
-          </p>
-          <p className="mt-2 text-gradient sm:text-lg">
-            <span className="text-accent-cyan font-semibold">Note:</span>{' '}
-            Only M.E., MCA, MBA, M.Sc., M.Tech., M.Com., andM.A. students can register and participate.
-          </p>
+          <div className="pb-8">
+            <p className="mt-10 text-gradient-1 text-lg sm:text-xl font-medium">
+              International Inter‑Collegiate Tech‑Symposium for PG Students
+            </p>
+            <p className="mt-2 text-gradient sm:text-lg">
+              <span className="text-accent-cyan font-semibold">Note:</span>{' '}
+              Only M.E., MCA, MBA, M.Sc., M.Tech., M.Com., and M.A. students can register and participate.
+            </p>
           </div>
         </motion.div>
       </section>

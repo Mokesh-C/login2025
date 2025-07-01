@@ -24,8 +24,7 @@ export default function About() {
       id="about"
       className="
         scroll-mt-24 w-full min-h-screen
-        bg-gradient-to-br from-primary to-primary-100   /* ⬅︎ new gradient colours */
-        text-neutral-white                               /* ⬅︎ neutral.white */
+        text-neutral-white
         py-16
       "
       variants={parent}

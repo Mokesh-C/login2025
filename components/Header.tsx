@@ -63,7 +63,7 @@ export default function Header() {
          transition={{ duration: 0 }}
         className={`
           w-full z-40
-          bg-gradient-to-br from-primary to-primary-100 
+          bg-gradient-to-br  from-primary via-primary-100 to-primary
           backdrop-blur-lg shadow-md
           text-neutral-white
           transition-all duration-300
@@ -71,7 +71,7 @@ export default function Header() {
           h-20
         `}
       >
-        <div className="w-full md:max-w-[90%]  mx-auto px-5 sm:px-6 lg:px-8 font-ui flex items-center justify-between h-full">
+        <div className="w-full md:max-w-[95%]  mx-auto px-5 sm:px-6 lg:px-8 font-ui flex items-center justify-between h-full">
           <button onClick={scrollHome} className="flex items-center gap-2 ">
             {/* <Image src="/PSGCTlogo.png" alt="Logo" width={32} height={32} /> */}
             <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline">

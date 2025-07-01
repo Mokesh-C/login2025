@@ -1,0 +1,476 @@
+[
+    {
+        "title": "Algocode",
+        "tagline": "Code and Conquer",
+        "image": "/Algocode.png",
+        "description": "de and Conquer We present you with yet another excuse to code your brain and heart out - ALGOCODE. Stack skills and queue tricks up your sleeve! This event will surely provide you with an array of problems that will untangle your mind. Fire up your editor and compile your way through this event to reach the root of this tournament tree.",
+        "rounds": [
+          {
+            "name": "Round 1",
+            "details": [
+              "The first round is the preliminary round that contains a variety of questions that tests the students on their knowledge of analytical, problem-solving, and programming skills.",
+              "The round contains a mix of MCQ-type questions and subjective questions..",
+              "The participants that rank higher in this round advance to the next round."
+            ]
+          },{
+            "name": "Round 2",
+            "details": [
+              "The second round is the Final round of this competition, which presents the participants with a set of programming problems with various difficulty levels to compose an interesting competition.",
+              "TThe leaderboard is used to monitor the submissions of the participants. The team that solves the most problems will be announced as the winner.",
+              "If there is a draw then, the team that finished first wins."
+            ]
+          }
+        ],
+        "teamSize": "2",
+        "date": "21‑22 September 2024",
+        "contact": [
+          { "name": "TBA", "phone": "TBA" },
+          { "name": "TBA", "phone": "TBA" }
+        ],
+        "rules": [
+          "Each team must contain a maximum of 2 members.",
+          "The top 5 teams in Prelims will be selected for finals.",
+          "In case of a tie-breaker, the team that solves the problem first wins.",
+          "The leaderboard is used to determine the winner.",
+          "The participants should not involve in any unacceptable behavior, it will lead to the disqualification of the team",
+          "Question paper, pen, rough sheets for workout will be provided.",
+          "Smartphone usage is not allowed during the event."
+        ],
+        "emails": ["23mx321@psgtech.ac.in", "23mx228@psgtech.ac.in"]
+      },
+    {
+    "title": "Codesprint",
+    "tagline": "Code your way to Excellence!",
+    "image": "/CodeSprint.png",
+    "description": "Embark on a thrilling adventure of logic and innovation! Test your skills against the brightest minds with questions that challenge your grasp of programming concepts. Solve each puzzle quickly, but beware—the clock is ticking, and every decision counts.",
+    "rounds": [
+        {
+        "name": "Round 1",
+        "details": [
+            "This round will have 25 MCQs mainly based on topics like data structures and algorithms. The questions will also test the basic coding ability and programming‑language knowledge of the participant.",
+            "Up to 20 participants will be selected for the next round based on their scores."
+        ]
+        },
+        {
+        "name": "Round 2",
+        "details": [
+            "The winners of the first round will face two coding challenges held on online platforms.",
+            "The participant has to attempt to complete the challenges within the stipulated time.",
+            "A winner and a runner will be selected based on the points earned in the second round."
+        ]
+        }
+    ],
+    "teamSize": "1",
+    "date": "18‑19 September 2024",
+    "contact": [
+        { "name": "TBA", "phone": "TBA" },
+        { "name": "TBA", "phone": "TBA" }
+    ],
+    "rules": [
+        "Both the rounds will be hosted online at a convenient time.",
+        "Everyone must report (virtually) to the event on time. (Platforms will be specified later).",
+        "All participants must follow the proctoring guidelines and their activities will be monitored.",
+        "Malpractice will be strictly condemned."
+    ],
+    "emails": ["TBA"]
+      },
+    {
+        "title": "CrickBid Auction",
+        "tagline": "Pick Your Daring XI",
+        "image": "/CrickBidAuction.png",
+        "description": "Get ready to immerse yourself in the exhilarating CrickBid Auction, where strategy, cricket knowledge, and tactical expertise collide! Test your wits with questions that cover the entire cricketing spectrum—from historic milestones and player statistics to detailed rules and the latest updates. Each correct answer brings you closer to the ultimate cricketing showdown. The stakes are high, and every choice could be pivotal in your quest for victory.",
+        "rounds": [
+          {
+            "name": "Round 1 (Online)",
+            "details": [
+              "In the first round, teams will participate in a quiz competition to secure their spot in the subsequent player‑auction phase.",
+              "Each team will take an MCQ test conducted on an online platform, with questions covering cricket history, rules, player statistics, and current events.",
+              "The questions will test the team’s comprehensive knowledge and understanding of the sport."
+            ]
+          },
+          {
+            "name": "Round 2 (Offline)",
+            "details": [
+              "Teams will engage in a competitive bidding process to acquire desired players within their budget constraints, balancing skill, value, and team composition while adhering to player‑category limits.",
+              "At the conclusion of the auction, teams will be evaluated on adherence to player requirements and the cumulative points of their selected squad.",
+              "The team with the highest total points that meets all criteria will claim victory."
+            ]
+          }
+        ],
+        "teamSize": "3",
+        "date": "19‑21 September 2024",
+        "contact": [
+          { "name": "TBA", "phone": "TBA" },
+          { "name": "TBA", "phone": "TBA" }
+        ],
+        "rules": [
+          "Each team must consist of 3 members.",
+          "Ten teams will be shortlisted based on the MCQ scores in the first round.",
+          "A maximum of 4 overseas players is allowed per team.",
+          "Each team will have a purse of 70 crores to spend in the auction.",
+          "Each player appearing in the auction will have predefined points.",
+          "The team with the highest total points will be declared the winner.",
+          "If two teams have the same total points, the team with more money left in the purse wins."
+        ],
+        "emails": ["TBA"]
+      },
+    {
+        "title": "Datathon",
+        "tagline": "Insight Unleashed: Where Data Meets Brilliance!",
+        "image": "/Datathon.png",
+        "description": "Dive into the world of data with DATA‑THON 2024, where your analytical mind meets real‑world challenges. This exhilarating competition is designed exclusively for postgraduate students passionate about data science, analytics, and problem‑solving. As you tackle a complex problem statement, your team will analyze, innovate, and present cutting‑edge solutions. Prepare to showcase your skills, collaborate with like‑minded peers, and crunch your way to the top. Transform raw data into actionable insights and claim your spot as the ultimate data champion!",
+        "rounds": [
+          {
+            "name": "Round 1",
+            "details": [
+              "Participants will receive a problem statement. Teams will analyze the problem, derive insights from the provided data, develop a comprehensive solution, and submit their findings—including code, analysis, and visualizations—within the allotted time.",
+              "Submissions will be evaluated on creativity, various evaluation metrics, and overall effectiveness of the solution."
+            ]
+          },
+          {
+            "name": "Round 2",
+            "details": [
+              "Teams present their solutions in a concise presentation (maximum 10 minutes), clearly explaining how they addressed the problem statement.",
+              "A final evaluation will judge teams on effectiveness, creativity, and alignment with the problem’s objectives."
+            ]
+          }
+        ],
+        "teamSize": "2‑3",
+        "date": "21‑22 September 2024",
+        "contact": [
+          { "name": "TBA", "phone": "TBA" },
+          { "name": "TBA", "phone": "TBA" }
+        ],
+        "rules": [
+          "Each team must have a maximum of 3 members and a minimum of 2 members.",
+          "Participants must bring their own laptops, chargers, and any other necessary accessories.",
+          "All participants must be postgraduate students.",
+          "Participants must adhere to a professional code of conduct.",
+          "Plagiarism is strictly prohibited; all submitted work must be original and created by the team members.",
+          "Teams must submit their solutions by the deadline; late submissions will not be accepted.",
+          "Participants may contact organizers for any queries or clarifications."
+        ],
+        "emails": ["TBA"]
+      },
+    {
+        "title": "Last Stand",
+        "tagline": "Play or Be Played",
+        "image": "/LastStand.png",
+        "description": "One shot, one kill. No luck, all skill. Stay low, go fast. Enough of PUBG and the rest of those boring games. Prove your skill here as Last Stand is back this year, to test your speed, timing and accuracy.",
+        "rounds": [
+          {
+            "name": "Round-wise Description",
+            "details": [
+              "Single Elimination Knockouts",
+              "Valorant: 30–40 minutes per match",
+              "Racing: 5 minutes per match",
+              "No. of rounds: Multiple stages"
+            ]
+          }
+        ],
+        "teamSize": "Racing: 1, Valorant: 5",
+        "date": "21‑22 September 2024",
+        "contact": [
+          { "name": "TBA", "phone": "TBA" },
+          { "name": "TBA", "phone": "TBA" }
+        ],
+        "rules": [
+          "Teams must report to the venue 10 minutes prior to their allotted time slot.",
+          "Use of any unfair means will result in disqualification.",
+          "Participants must obey the event coordinator at all times. The coordinator’s decision is final.",
+          "Participants must not mishandle PCs and controllers; damages will be borne by the participant.",
+          "Teams will be paired for matches. The losing team will be eliminated.",
+          "Teams surviving multiple stages will move to the final round.",
+          "Teams registering for Valorant must bring their own gaming laptops, mouse, headphones, and accessories. Internet access will be provided (exceptions may be made).",
+          "All participants must join Last Stand’s Discord server for updates and instructions.",
+          "All event/game-related rules will be available in respective Discord channels."
+        ],
+        "emails": ["TBA"]
+      },
+    {
+    "title": "NETHUNT",
+    "tagline": "An Unsolved Mystery with the usual suspects!!!",
+    "image": "/Nethunt.png",
+    "description": "A picture can convey things that words alone cannot fully capture or clarify. However, images can also be misleading. Are you someone who pays close attention to every important detail? If yes, then we have a challenge for you. It's not a test of your thinking abilities, but one that will really make your brain work hard. Are you up for it? Here it is...!!!",
+    "rounds": [
+        {
+        "name": "Round 1",
+        "details": [
+            "Guess the computer-related technical term from the image displayed.",
+            "Clues are revealed after a set number of incorrect guesses (hits):",
+            "- First clue after 50 hits.",
+            "- Second clue after 100 hits.",
+            "Answers must be entered in the textbox without special characters.",
+            "Ignore spaces in answers. E.g., 'Net-Hunt' → 'nethunt', '1' → 'one'.",
+            "Scoring is negatively affected by the number of hits.",
+            "Two dedicated portals for participation:",
+            "- Candidates: https://nethunt.candidate.psglogin.in/login",
+            "- Alumni: https://nethunt.alumni.psglogin.in/login"
+        ]
+        }
+    ],
+    "teamSize": "1",
+    "date": "16‑20 September 2024",
+    "contact": [
+        { "name": "PREVARSHINI R J", "phone": "9789424077" },
+        { "name": "VIJAY KEERTHY S", "phone": "7806974480" }
+    ],
+    "rules": [
+        "In case of a tie, the winner is determined based on the number of tries.",
+        "If multiple top scorers are from the same college, only the one with fewer tries is considered.",
+        "Malpractice will result in disqualification at the organizer's discretion.",
+        "Selection is subject to student credential verification.",
+        "Invalid credentials lead to disqualification.",
+        "Winners will be announced during the valedictory ceremony."
+    ],
+    "emails": ["23mx321@psgtech.ac.in", "23mx228@psgtech.ac.in"]
+      },
+    {
+    "title": "PICTURE PERFECT",
+    "tagline": "Picture the Possibilities!!!",
+    "image": "/PicturePerfect.png",
+    "description": "Are you the one who captures the world through a different lens? If so, this is your moment to shine! We invite you to showcase your innovative photography with your unique vision. Join us in capturing the minds of people with your photos. Don't miss out on this chance to celebrate creative photography!",
+    "rounds": [
+        {
+        "name": "Round 1",
+        "mode": "ONLINE",
+        "details": [
+            "Participants must submit creative photos based on a given theme.",
+            "Each photo must include a geotag and a timestamp to verify location and capture time."
+        ]
+        },
+        {
+        "name": "Round 2",
+        "mode": "OFFLINE",
+        "details": [
+            "Shortlisted participants will receive three themes and must choose one.",
+            "Participants will click photos under that theme *inside the campus*.",
+            "Each photo must be presented with a corresponding quote."
+        ]
+        }
+    ],
+    "teamSize": "1",
+    "date": "14‑17 September 2024",
+    "contact": [
+        { "name": "VEERAMAHALAKSHMI M", "phone": "6374935130" },
+        { "name": "DHATCHANI R", "phone": "8438652232" }
+    ],
+    "rules": [
+        "Photos must contain a geotag and timestamp in Round 1.",
+        "Round 2 will be conducted inside the campus.",
+        "Photos should be captured only using mobile phones.",
+        "Copying or replicating images from external sources is strictly prohibited.",
+        "Participants must follow all the provided guidelines."
+    ],
+    "emails": ["23mx329@psgtech.ac.in", "23mx106@psgtech.ac.in"]
+      },
+    {
+        "title": "TECHIADZ",
+        "tagline": "Challenge the Known, Create the Unimaginable",
+        "image": "/Techiadz.png",
+        "description": "Techiadz is an innovative competition that puts participants' branding and marketing skills to the test. Teams will engage in tasks that challenge their ability to identify logos, create compelling content, and market unique products. With a focus on creativity and strategic thinking, Techiadz offers a platform for showcasing talent and pushing the boundaries of traditional marketing approaches.",
+        "rounds": [
+          {
+            "name": "Round 1",
+            "mode": "Offline",
+            "details": [
+              "Includes multiple-choice questions (MCQs) on logos and slogans.",
+              "Participants must write a 200–300 word essay on a given topic.",
+              "Five selected teams will move to the second round."
+            ]
+          },
+          {
+            "name": "Round 2",
+            "mode": "Offline",
+            "details": [
+              "2-3 members per team present onstage in a classroom.",
+              "Duration: 1 hour.",
+              "Teams must market an unusual product given by the organizers.",
+              "They must create a logo, slogan, and branding within the time limit.",
+              "Presentation should be 5–7 minutes long."
+            ]
+          }
+        ],
+        "teamSize": "2-3",
+        "date": "21–22 September 2024",
+        "contact": [
+          { "name": "KAVIN RATHINAM M", "phone": "8870834420" },
+          { "name": "SANJAY KARTHICK V", "phone": "9047421809" }
+        ],
+        "rules": [
+          "All team members must register for the event.",
+          "In Round 1, only two members participate; mobile phones are not allowed.",
+          "Five teams will advance to Round 2.",
+          "In Round 2, up to three members can present.",
+          "Teams must create a logo, slogan, and brand strategy for the given product.",
+          "Judging criteria: creativity, humor, skill, and marketing ethics.",
+          "Judges' and organizers' decisions are final."
+        ],
+        "emails": ["23mx211@psgtech.ac.in", "23mx224@psgtech.ac.in"]
+      },
+    {
+    "title": "THINKLYTICS",
+    "tagline": "Contemplate Data Differently!",
+    "image": "/Thinklytics.png",
+    "description": "Are you a Data Abstractor? Are you ready to measure and manage the data? Are you seeking a platform to boost your critical thinking? Here is a fascinating event to explore your analytical skills. Questions will get you answers; Thinklytics will help you reach unattainable heights of insight. Open your eyes and prepare yourself to make the right choice. Seize the moment, friends! If not analyzed now, then when?",
+    "rounds": [
+        {
+        "name": "Round 1",
+        "mode": "Offline",
+        "details": [
+            "Aptitude-based multiple choice questions.",
+            "Total Questions: 25",
+            "Duration: 40 minutes",
+            "Tests technical and analytical skills.",
+            "Top scorers will proceed to Round 2."
+        ]
+        },
+        {
+        "name": "Round 2",
+        "mode": "Offline",
+        "details": [
+            "Teams are given a dataset to interpret and visualize.",
+            "Participants may use their own laptops or provided systems.",
+            "Teams must submit a presentation with statistical analysis.",
+            "Minimum requirements: Mean, Median, Mode, Measures of dispersion, and at least 2 graphical representations (e.g. Bar graph, Pie chart, Histogram).",
+            "Duration: 120 minutes"
+        ]
+        }
+    ],
+    "teamSize": "1 or 2",
+    "date": "21–22 September 2024",
+    "contact": [
+        { "name": "HEMALATHA K", "phone": "7339003898" },
+        { "name": "DIVYASHRI M", "phone": "9345888393" }
+    ],
+    "rules": [
+        "Participation is open to individuals or teams of up to two members.",
+        "Using calculators or mobile phones is prohibited.",
+        "Any malpractice will lead to disqualification.",
+        "The decision of the judges is final."
+    ],
+    "emails": ["23mx204@psgtech.ac.in", "23mx109@psgtech.ac.in"]
+      },
+    {
+    "title": "TRIPLE TROUBLE",
+    "tagline": "Triple up the fun, with trouble on the run",
+    "image": "/TripleTrouble.png",
+    "description": "Get ready for Triple Trouble, an exhilarating event that combines teamwork, strategy, and agility across four thrilling challenges! Test your dexterity in the Balloon and Cup Challenge, your agility in Tic Tac Toe, your communication in Rat in a Maze, and your problem-solving in Riddle Rush. Join us for a day packed with excitement and competition!",
+    "rounds": [
+        {
+        "name": "Round 1",
+        "mode": "Offline",
+        "details": [
+            "Three preliminary challenges:",
+            "1. Balloon and Cup Challenge: Stack and unstack cups using only a balloon within 5 minutes.",
+            "2. Tic Tac Toe Challenge: Complete physical tasks to earn a move.",
+            "3. Rat in a Maze: Navigate a blindfolded teammate through a maze using communication.",
+            "Score and time will determine advancement."
+        ]
+        },
+        {
+        "name": "Round 2",
+        "mode": "Offline",
+        "details": [
+            "Escape and Hunt Adventure: Final round.",
+            "Teams are locked in a room and solve puzzles to begin the treasure hunt.",
+            "Each challenge gives puzzle pieces and clues to reach the next destination.",
+            "Completing all puzzles reveals the final destination."
+        ]
+        }
+    ],
+    "teamSize": "2-3",
+    "date": "21–22 September 2024",
+    "contact": [
+        { "name": "RASHMI N S", "phone": "9384133686" },
+        { "name": "JEEVICKHA K A", "phone": "9944082359" }
+    ],
+    "rules": [
+        "Each team can have a maximum of 3 members.",
+        "In case of a tie, the team that completes the challenge first wins.",
+        "Leaderboard standings determine winners."
+    ],
+    "emails": ["20pw28@psgtech.ac.in", "20pw12@psgtech.ac.in"]
+      },
+    {
+        "title": "WITTY MINDZ",
+        "tagline": "Expand Your Mental Horizons",
+        "image": "/WittyMindz.png",
+        "description": "WITTY MINDZ offers participants a platform to showcase their cognitive agility and problem‑solving skills through a series of engaging challenges. This event promises to test intellect and creativity, providing an exciting opportunity to demonstrate cognitive prowess.",
+        "rounds": [
+          {
+            "name": "Round 1: Mind Maze (Prelims)",
+            "details": [
+              "Solve a crossword puzzle using the provided clues.",
+              "Complete a technical word‑search, finding hidden computer‑related terms."
+            ]
+          },
+          {
+            "name": "Round 2: Memorize & Recall (Prelims)",
+            "details": [
+              "Memorize details from an image shown for a limited time.",
+              "Answer questions based on that image from memory."
+            ]
+          },
+          {
+            "name": "Round 3: Decode Drama (Finals)",
+            "details": [
+              "Crack a jumbled computer‑science word.",
+              "One teammate acts out the word (Dumb‑Charades style) while the other guesses."
+            ]
+          }
+        ],
+        "teamSize": "2",
+        "date": "21‑22 September 2024",
+        "contact": [
+          { "name": "HEMANTH KUMAR V", "phone": "7397268063" },
+          { "name": "MAHALAKSHMI R", "phone": "9498413977" }
+        ],
+        "rules": [
+          "Teams consist of 2 members; mobile phones are not allowed.",
+          "Round 1: 10‑minute limit.",
+          "Round 2: Top 15 teams from Round 1; 20‑minute limit.",
+          "Round 3: Top 7 teams from Round 2; 10‑minute limit per team.",
+          "Teams must adhere to time limits for each round.",
+          "Fair play and sportsmanship are expected.",
+          "Any misconduct results in immediate disqualification.",
+          "Judges’ decisions are final."
+        ],
+        "emails": ["23mx110@psgtech.ac.in", "23mx214@psgtech.ac.in"]
+      },  
+    {
+        "title": "STAR OF LOGIN",
+        "tagline": "Are you ready to win? Lace up for the grand finale!",
+        "image": "/StarOfLogin.png",
+        "description": "The ultimate showdown of champions! 'Star of Login' is where the finest come to compete, showcasing sharp minds and stage presence. This grand finale celebrates the best of LOGIN 2024, offering glory and the iconic title to the standout performer. It's time to shine!",
+        "rounds": [
+          {
+            "name": "Round 1",
+            "details": [
+              "Participants face a set of tricky, brain-teasing questions.",
+              "Only the smartest will be selected for the next round."
+            ]
+          },
+          {
+            "name": "Round 2",
+            "details": [
+              "Participants perform tasks given by judges on stage.",
+              "Each participant gets 15 minutes to present themselves and complete the task."
+            ]
+          }
+        ],
+        "teamSize": "1",
+        "date": "22 September 2024",
+        "contact": [
+          { "name": "BRINDHA S V", "phone": "9751902989" },
+          { "name": "GANGA SOWBHAKYA LAKSHMI.M", "phone": "8870085451" }
+        ],
+        "rules": [
+          "Only winners and runners-up of all other LOGIN 2024 events are eligible.",
+          "Latecomers will not be allowed to participate in the prelims.",
+          "Copying answers from external sources is strictly prohibited.",
+          "Judges' decisions are final and binding."
+        ],
+        "emails": ["23mx105@psgtech.ac.in", "23mx305@psgtech.ac.in"]
+      }
+  ]

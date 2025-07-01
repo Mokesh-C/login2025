@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, School, Image as ImageIcon, ShieldCheck } from 'lucide-react'
 import Image from 'next/image'
+import ToastCard from './ToastCard'
 
 /* ─── Types ─── */
 type ErrorMessage = { id: number; message: string }
@@ -179,11 +180,11 @@ export default function ParticipantRegister() {
         {/* ───── Error Toasts ───── */}
         <AnimatePresence>
           {errorList.map(e => (
-            <ErrorToast
+            <ToastCard
               key={e.id}
               id={e.id}
               message={e.message}
-              onClose={() => removeToast(e.id)}
+              onClose={() => removeToast(e.id)} textColor="text-red-500"
             />
           ))}
         </AnimatePresence>
@@ -194,7 +195,7 @@ export default function ParticipantRegister() {
           initial={{ opacity: 0, scale: 0.95, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="w-full max-w-md space-y-5 rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl shadow-2xl"
+          className="w-full max-w-md space-y-5 rounded-md border border-white/10 bg-white/10 p-8 backdrop-blur-xl shadow-2xl"
         >
           <h2 className="mb-3 text-center text-3xl font-extrabold">Participant Details</h2>
 
@@ -282,7 +283,7 @@ export default function ParticipantRegister() {
 
               <button
                 type="submit"
-                className="w-full rounded-lg bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
               >
                 Submit & Send OTP
               </button>
@@ -336,7 +337,7 @@ export default function ParticipantRegister() {
               <button
                 type="button"
                 onClick={verifyOtp}
-                className="w-full rounded-lg bg-green-600 py-3 font-semibold transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
+                className="w-full rounded-md bg-green-600 py-3 font-semibold transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
               >
                 Verify OTP & Submit
               </button>
@@ -413,43 +414,4 @@ function GlassSelect({ options, placeholder, ...rest }: SelectProps) {
     )
   }
 
-/* ─── Error Toast ─── */
-function ErrorToast({ id, message, onClose }: {
-    id: number
-    message: string
-    onClose: () => void
-  }) {
-    useEffect(() => {
-      const t = setTimeout(onClose, 4_000)
-      return () => clearTimeout(t)
-    }, [onClose])
-  
-    return (
-      <motion.div
-        initial={{ x: 300, opacity: 0 }}
-        animate={{ x: 0, opacity: 1, transition: { type: 'spring', stiffness: 700, damping: 30 } }}
-        exit={{ x: 300, opacity: 0, transition: { duration: .4, ease: 'easeIn' } }}
-        /* ↓ 90 % width on phones, then cap at 20 rem on ≥ sm screens */
-        className="fixed right-4 top-4 z-50 w-[90%] sm:w-full sm:max-w-sm rounded-lg
-                   bg-purple-300 px-4 py-3 text-black shadow-xl backdrop-blur-md"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <span className="text-sm font-medium break-words">{message}</span>
-          <button
-            aria-label="Close"
-            onClick={onClose}
-            className="text-black/60 hover:text-black"
-          >
-            <X size={16} />
-          </button>
-        </div>
-  
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: '100%' }}
-          transition={{ duration: 4, ease: 'linear' }}
-          className="mt-2 h-1 rounded bg-black/20"
-        />
-      </motion.div>
-    )
-  }
+

@@ -3,66 +3,83 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X } from 'lucide-react'
 import Image from 'next/image'
+import ToastCard from '@/components/ToastCard'
+import { X } from 'lucide-react'
+
+/* ------------------------------------------------------------------
+ * Constants & types
+ * ----------------------------------------------------------------*/
 
 const OTP_LENGTH = 4
 const OTP_TIMEOUT = 60
 
 type ErrorMessage = { id: number; message: string }
 
+/* ------------------------------------------------------------------
+ * Component
+ * ----------------------------------------------------------------*/
+
 export default function LoginPage() {
+  /* ---------------- State ---------------- */
   const [mobile, setMobile]       = useState('')
-  const [otp, setOtp]             = useState(Array(OTP_LENGTH).fill(''))
+  const [otp, setOtp]             = useState<string[]>(Array(OTP_LENGTH).fill(''))
   const [isOtpSent, setIsOtpSent] = useState(false)
   const [timer, setTimer]         = useState(OTP_TIMEOUT)
   const [errorList, setErrorList] = useState<ErrorMessage[]>([])
   const [errorId, setErrorId]     = useState(0)
 
+  /* ---------------- Refs & router -------- */
   const otpInputsRef = useRef<HTMLInputElement[]>([])
-  const router = useRouter()
+  const router       = useRouter()
 
+  /* ---------------- Effects -------------- */
   // OTP countdown
   useEffect(() => {
     if (isOtpSent && timer > 0) {
-      const t = setTimeout(() => setTimer(p => p - 1), 1000)
+      const t = setTimeout(() => setTimer((p) => p - 1), 1000)
       return () => clearTimeout(t)
     }
   }, [isOtpSent, timer])
 
-  // Error dismiss
+  // Auto‑dismiss errors
   useEffect(() => {
-    const timers = errorList.map(err =>
-      setTimeout(() => setErrorList(prev => prev.filter(e => e.id !== err.id)), 4000)
+    const timers = errorList.map((err) =>
+      setTimeout(
+        () => setErrorList((prev) => prev.filter((e) => e.id !== err.id)),
+        4000,
+      ),
     )
     return () => timers.forEach(clearTimeout)
   }, [errorList])
 
+  /* ---------------- Helpers -------------- */
   const showError = (msg: string) => {
-    setErrorList(prev => [...prev, { id: errorId, message: msg }])
-    setErrorId(prev => prev + 1)
+    setErrorList((prev) => [...prev, { id: errorId, message: msg }])
+    setErrorId((prev) => prev + 1)
   }
 
   const validateMobile = () => {
     if (!/^\d{10}$/.test(mobile)) {
-      showError('Enter a valid 10-digit mobile number')
+      showError('Enter a valid 10‑digit mobile number')
       return false
     }
     return true
   }
 
+  /* ---------------- Handlers ------------- */
   const handleSendOtp = async () => {
     if (!validateMobile()) return
 
     try {
       await fetch('http://localhost:3000/auth/sendMobileOTP', {
-        method : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ mobile }),
+        body: JSON.stringify({ mobile }),
       })
       setIsOtpSent(true)
       setTimer(OTP_TIMEOUT)
-    } catch {
+    } catch (err) {
       showError('Failed to send OTP')
     }
   }
@@ -78,62 +95,65 @@ export default function LoginPage() {
   const verifyOtp = async () => {
     const code = otp.join('')
     if (code.length < OTP_LENGTH) {
-      showError('Enter the full 4-digit OTP')
+      showError('Enter the full 4‑digit OTP')
       return
     }
 
     try {
       const res = await fetch('http://localhost:3000/auth/authMobile', {
-        method : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ mobile, otp: code }),
+        body: JSON.stringify({ mobile, otp: code }),
       })
       const data = await res.json()
       if (!res.ok || !data.refreshToken) throw new Error()
-      router.push('/') // go to home or dashboard
-    } catch {
+      router.push('/')
+    } catch (err) {
       showError('Invalid OTP or login failed')
     }
   }
 
+  /* ------------------------------------------------------------------
+   * Render
+   * ----------------------------------------------------------------*/
   return (
-    <div className="relative flex min-h-screen bg-gradient-to-br from-primary to-primary-100 text-white">
-      {/* LEFT SIDE */}
-      <div className="hidden md:flex w-1/2 flex-col items-center justify-center px-10">
-        <Image
-          src="/logo.png"
-          alt="Login Logo"
-          width={480}
-          height={240}
-          className="mb-6"
-        />        <h1 className="mb-4 text-center text-4xl font-extrabold leading-tight">
-          Welcome back to LOGIN 2025
+    <div className="relative flex min-h-[calc(100vh-5rem)] bg-gradient-to-br from-primary to-primary-100 text-white">
+      {/* ---------- LEFT PANEL (desktop only) ---------- */}
+      <div className="hidden w-1/2 flex-col items-center justify-center px-10 md:flex">
+        <Image src="/logo.png" alt="Login Logo" width={480} height={240} className="mb-6" />
+        <h1 className="mb-4 text-center text-4xl font-extrabold leading-tight">
+          Welcome back to LOGIN 2025
         </h1>
         <p className="max-w-md text-center text-lg text-white/80">
-          Enter your mobile number to get started. Login via secure OTP verification.
+          Enter your mobile number to get started. Secure OTP verification keeps your account safe.
         </p>
       </div>
 
-      {/* RIGHT SIDE */}
+      {/* ---------- RIGHT PANEL (form) ---------- */}
       <div className="relative flex w-full items-center justify-center px-4 py-12 sm:px-6 md:w-1/2">
-        {/* Error Toasts */}
+        {/* Error toasts */}
         <AnimatePresence>
-          {errorList.map(e => (
-            <ErrorToast key={e.id} id={e.id} message={e.message} onClose={() => {
-              setErrorList(prev => prev.filter(err => err.id !== e.id))
-            }} />
+          {errorList.map((e) => (
+            <ToastCard
+              key={e.id}
+              id={e.id}
+              message={e.message}
+              onClose={() => setErrorList((prev) => prev.filter((err) => err.id !== e.id))}
+              textColor="text-red-500"
+            />
           ))}
         </AnimatePresence>
 
-        {/* Login Box */}
+        {/* Login box */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="w-full max-w-md space-y-6 rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur-xl shadow-2xl"
+          className="w-full max-w-md space-y-6 rounded-md border border-white/10 bg-white/10 p-8 backdrop-blur-xl shadow-2xl"
         >
           <h2 className="text-center text-3xl font-extrabold">Login</h2>
 
+          {/* ------------- Step 1: Mobile number ------------- */}
           {!isOtpSent ? (
             <>
               <GlassInput
@@ -146,30 +166,30 @@ export default function LoginPage() {
               />
               <button
                 onClick={handleSendOtp}
-                className="w-full rounded-lg bg-accent py-3 font-semibold hover:bg-accent-hover"
+                className="w-full rounded-md bg-accent py-3 font-semibold hover:bg-accent-hover"
               >
                 Send OTP
               </button>
             </>
           ) : (
+            /* ------------- Step 2: OTP -------------------- */
             <>
               <p className="text-center text-sm">
-                Enter the 4-digit OTP sent to <strong>{mobile}</strong>
+                Enter the 4‑digit OTP sent to <strong>{mobile}</strong>
               </p>
 
               <div className="flex justify-between gap-2">
                 {otp.map((digit, i) => (
                   <input
-                  key={i}
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleOtpChange(i, e.target.value)}
-                  ref={el => {
-                    otpInputsRef.current[i] = el!;
-                  }}
-                  className="h-14 w-14 rounded bg-white text-center text-xl text-black"
-                />
-                
+                    key={i}
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    ref={(el) => {
+                      otpInputsRef.current[i] = el!
+                    }}
+                    className="h-14 w-14 rounded bg-white text-center text-xl text-black"
+                  />
                 ))}
               </div>
 
@@ -180,7 +200,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   disabled={timer > 0}
-                  className={timer > 0 ? 'opacity-50 cursor-not-allowed' : 'text-blue-400'}
+                  className={timer > 0 ? 'cursor-not-allowed opacity-50' : 'text-blue-400'}
                   onClick={handleSendOtp}
                 >
                   Resend OTP
@@ -189,66 +209,39 @@ export default function LoginPage() {
 
               <button
                 onClick={verifyOtp}
-                className="w-full rounded-lg bg-green-600 py-3 font-semibold hover:bg-green-700"
+                className="w-full rounded-md bg-green-600 py-3 font-semibold hover:bg-green-700"
               >
-                Verify OTP & Login
+                Verify OTP &amp; Login
               </button>
             </>
           )}
+
+          {/* --------- Account prompt --------- */}
+          <p className="pt-2 text-center text-sm text-white/70">
+           Don't have an account yet ? {' '}
+            <button
+              type="button"
+              onClick={() => router.push('/register')}
+              className="font-semibold text-gradient underline"
+            >
+              Register
+            </button>
+          </p>
         </motion.div>
       </div>
     </div>
   )
 }
 
-/* ───── GlassInput ───── */
+/* ------------------------------------------------------------------
+ * GlassInput (shared)                                                */
+
 type InputProps = React.InputHTMLAttributes<HTMLInputElement>
 function GlassInput(props: InputProps) {
   return (
     <input
       {...props}
-      className="w-full rounded-md bg-white/10 py-3 px-4 text-sm text-white placeholder:text-white/50 outline-none backdrop-blur-md transition focus:ring-2 focus:ring-accent"
+      className="w-full rounded-md bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none backdrop-blur-md transition focus:ring-2 focus:ring-accent"
     />
   )
 }
-
-/* ───── Error Toast ───── */
-function ErrorToast({ id, message, onClose }: {
-    id: number
-    message: string
-    onClose: () => void
-  }) {
-    useEffect(() => {
-      const t = setTimeout(onClose, 4_000)
-      return () => clearTimeout(t)
-    }, [onClose])
-  
-    return (
-      <motion.div
-        initial={{ x: 300, opacity: 0 }}
-        animate={{ x: 0, opacity: 1, transition: { type: 'spring', stiffness: 700, damping: 30 } }}
-        exit={{ x: 300, opacity: 0, transition: { duration: .4, ease: 'easeIn' } }}
-        /* ↓ 90 % width on phones, then cap at 20 rem on ≥ sm screens */
-        className="fixed right-4 top-4 z-50 w-[90%] sm:w-full sm:max-w-sm rounded-lg
-                   bg-purple-300 px-4 py-3 text-black shadow-xl backdrop-blur-md"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <span className="text-sm font-medium break-words">{message}</span>
-          <button
-            aria-label="Close"
-            onClick={onClose}
-            className="text-black/60 hover:text-black"
-          >
-            <X size={16} />
-          </button>
-        </div>
-  
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: '100%' }}
-          transition={{ duration: 4, ease: 'linear' }}
-          className="mt-2 h-1 rounded bg-black/20"
-        />
-      </motion.div>
-    )
-  }

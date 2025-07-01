@@ -55,6 +55,10 @@ export default {
                 baloo:['Baloo 2', 'sans-serif'],
                 inter:['Inter', 'sans-serif'],
             },
+            animation: {
+                pulse: 'pulse 4s infinite',
+                ping: 'ping 8s infinite',
+              },
         },
     },
     plugins: [],
