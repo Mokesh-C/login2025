@@ -97,17 +97,12 @@ export default function Hero() {
                 <Image
                   src="/logo.png"
                   alt="Login Logo"
-                  width={480}
+                  width={880}
                   height={240}
-                  className="w-60 sm:w-72 md:w-80 lg:w-[28rem]"
+                  className="w-60 sm:w-72 md:w-80 lg:w-[38rem]"
                 />
-                <span className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gradient">
-                  2025
-                </span>
+            
               </div>
-              <p className="italic font-semibold text-gradient text-sm md:text-xl -mt-4 text-center">
-                The perfect fusion of Masterminds
-              </p>
             </div>
           </motion.div>
 
