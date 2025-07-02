@@ -145,10 +145,10 @@ export default function Hero() {
             </div>
             <div className="pt-10 flex gap-6">
               <Link
-                href="/register"
+                href="/register/alumini"
                 className="bg-accent hover:bg-accent-hover text-white px-5 py-2 rounded-md font-semibold shadow transition"
               >
-                Register
+                Alumini Registration
               </Link>
               <Link
                 href="/events"
@@ -175,11 +175,11 @@ export default function Hero() {
           className="z-10 text-center max-w-3xl"
         >
           <h1 className="leading-tight font-extrabold text-gray-300 text-4xl sm:text-5xl md:text-6xl">
-            CASH PRIZE WORTH <br />
-            <span className="text-gradient">
-              ₹ {prize.toLocaleString('en-IN')}
-            </span>
+            CASH PRIZE WORTH
           </h1>
+          <h1 className="text-gradient font-extrabold py-4 text-4xl sm:text-5xl md:text-6xl">
+              ₹ {prize.toLocaleString('en-IN')}
+            </h1>
 
           <div className="mt-6 flex flex-wrap justify-center gap-4 font-semibold text-xl">
             <TimeBox label="DAYS" value={timeLeft.days} />
