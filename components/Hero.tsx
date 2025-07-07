@@ -70,7 +70,7 @@ export default function Hero() {
   return (
     <>
       {/* ───────── HERO (TOP) ───────── */}
-      <section className="flex flex-col lg:flex-row  text-neutral-white lg:min-h-[calc(100vh-5rem)]">
+      <section className="flex  flex-col lg:flex-row  text-neutral-white lg:min-h-[calc(100vh-5rem)]">
         <div className="container mx-auto flex flex-col lg:flex-row w-full px-6 py-5">
           {/* LEFT */}
           <motion.div
@@ -116,7 +116,7 @@ export default function Hero() {
             <div className="flex flex-col gap-10 max-w-md">
               <div className="flex flex-col gap-3">
                 <p className="text-4xl font-bold font-satoshi text-gradient p-2">
-                  September&nbsp;21, 22
+                  September&nbsp;20, 21
                 </p>
                 <h3 className="text-base text-gray-300 sm:text-lg">
                   Experience the 34<sup>th</sup> International Inter‑Collegiate Tech‑Symposium
@@ -169,9 +169,9 @@ export default function Hero() {
           transition={{ duration: 1 }}
           className="z-10 text-center max-w-3xl"
         >
-          <h1 className="leading-tight font-extrabold text-gray-300 text-4xl sm:text-5xl md:text-6xl">
+          <p className="leading-tight font-extrabold text-gray-300 text-2xl sm:text-5xl md:text-6xl">
             CASH PRIZE WORTH
-          </h1>
+          </p>
           <h1 className="text-gradient font-extrabold py-4 text-4xl sm:text-5xl md:text-6xl">
               ₹ {prize.toLocaleString('en-IN')}
             </h1>

@@ -28,7 +28,7 @@ export default function ToastCard({
       animate={{ x: 0, opacity: 1, transition: { type: 'spring', stiffness: 700, damping: 30 } }}
       exit={{ x: 300, opacity: 0, transition: { duration: 0.4, ease: 'easeIn' } }}
       className={`fixed right-4 top-4 z-50 w-[90%] sm:w-full sm:max-w-sm rounded-md
-                  bg-purple-300 px-4 py-3 shadow-xl backdrop-blur-md ${textColor}`}
+                  bg-white/50 px-4 py-3 shadow-xl backdrop-blur-md ${textColor}`}
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-sm font-medium break-words">{message}</span>

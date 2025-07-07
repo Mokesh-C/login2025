@@ -22,6 +22,9 @@ export default {
                     violet2: '#aa8dfd',
                     violet3: '#705df2',
                     cyan: '#68e2e2',
+                    conblue: '#6c63ff',
+                    frenchgray: '#b8bac0',
+                    mystic: '#e0e5ec',
                 },
                 neutral: {
                     white: '#ffffff',
