@@ -118,7 +118,7 @@ function TeamCard({
 
   if (isCardHovered) {
     profilePicClass +=
-      ' w-[100px] h-[100px] top-[20px] left-[20px] rounded-full border-[7px] border-[#b8bac0] z-30 shadow-[3px_3px_8px_#b8bac0,-3px_-3px_8px_#ffffff]'
+      ' w-[100px] h-[100px] top-[5.5%] left-[5.5%] rounded-full border-[7px] border-[#b8bac0] z-30 shadow-[3px_3px_8px_#b8bac0,-3px_-3px_8px_#ffffff]'
     if (isImgHovered) {
       profilePicClass += ' z-40'
       profilePicStyle = {
@@ -181,7 +181,7 @@ function TeamCard({
         shadow-[inset_2px_2px_8px_#b8bac0,inset_-2px_-2px_8px_#ffffff]
         overflow-hidden
         transition-all duration-500 ease-[cubic-bezier(0.645,0.045,0.355,1)]
-        ${isCardHovered ? 'top-[25%] rounded-[80px_29px_29px_29px]' : ''}`}
+        ${isCardHovered ? 'top-1/4 rounded-[80px_29px_29px_29px]' : ''}`}
       >
         <div className="absolute bottom-0 left-6 right-6 h-[160px]">
           <span className="block text-[1.2rem] text-[#444] mt-2 font-bold">{name}</span>
