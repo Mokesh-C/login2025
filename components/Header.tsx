@@ -10,13 +10,14 @@ import clsx from 'clsx'
 
 type NavItem = 
   | { id: 'home'; label: string; icon: React.ComponentType<any>; href?: never }
-  | { id: 'events' | 'timeline' | 'teams'; label: string; icon: React.ComponentType<any>; href: string }
+  | { id: 'events' | 'timeline' | 'teams' | 'sponsors'; label: string; icon: React.ComponentType<any>; href: string }
 
 const navItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'events', label: 'Events', icon: Calendar, href: '/events' },
   { id: 'timeline', label: 'Timeline', icon: Calendar, href: '/timeline' },
   { id: 'teams', label: 'Teams', icon: Users, href: '/teams' },
+  { id: 'sponsors', label: 'Sponsors', icon: Users, href: '/sponsors' },
 ]
 
 export default function Header() {

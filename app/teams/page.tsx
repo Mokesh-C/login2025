@@ -24,28 +24,28 @@ const OFFICE_BEARERS: TeamMember[] = [
   {
     name: 'Mohan Prasath',
     about: 'Secretary',
-    imageUrl: '/MohanPrasath.jpg',
+    imageUrl: '/coordinators/MohanPrasath.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Nivethithaa',
     about: 'Treasurer',
-    imageUrl: '/Nivethithaa.jpg',
+    imageUrl: '/coordinators/Nivethithaa.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Kalaivanan',
     about: 'Event Coordinator',
-    imageUrl: '/Kalaivanan.jpg',
+    imageUrl: '/coordinators/Kalaivanan.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Sanjay',
     about: 'Event Coordinator',
-    imageUrl: '/Sanjay.jpg',
+    imageUrl: '/coordinators/Sanjay.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
@@ -55,28 +55,28 @@ const DEV_TEAM: TeamMember[] = [
   {
     name: 'Praveen',
     about: 'Web Development Coordinator and Backend Developer.',
-    imageUrl: '/Praveen.jpg',
-    email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
-  },
-  {
-    name: 'Balaji',
-    about: 'Frontend Developer passionate about UI/UX and animation.',
-    imageUrl: '/Balaji.jpg',
-    email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
-  },
-  {
-    name: 'Mokesh',
-    about: 'Frontend Developer and UI Design',
-    imageUrl: '/Mokesh.jpg',
+    imageUrl: '/coordinators/Praveen.JPG',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Jeffry Patrick',
     about: 'Full Stack Developer',
-    imageUrl: '/Jeffrypatrick.jpg',
+    imageUrl: '/coordinators/Jeffrypatrick.jpg',
+    email: 'hello@example.com',
+    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+  },
+  {
+    name: 'Mokesh',
+    about: 'Frontend Developer and UI Design',
+    imageUrl: '/coordinators/Mokesh.jpg',
+    email: 'hello@example.com',
+    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+  },
+  {
+    name: 'Balaji',
+    about: 'Frontend Developer passionate about UI/UX and animation.',
+    imageUrl: '/coordinators/Balaji.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
@@ -118,7 +118,7 @@ function TeamCard({
 
   if (isCardHovered) {
     profilePicClass +=
-      ' w-[100px] h-[100px] top-[15px] left-[15px] rounded-full border-[7px] border-[#b8bac0] z-30 shadow-[3px_3px_8px_#b8bac0,-3px_-3px_8px_#ffffff]'
+      ' w-[100px] h-[100px] top-[20px] left-[20px] rounded-full border-[7px] border-[#b8bac0] z-30 shadow-[3px_3px_8px_#b8bac0,-3px_-3px_8px_#ffffff]'
     if (isImgHovered) {
       profilePicClass += ' z-40'
       profilePicStyle = {

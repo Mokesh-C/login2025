@@ -1,6 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+    images: {
+        // Allow external logo hosts
+        remotePatterns: [
+          {
+            protocol: 'https',
+            hostname: 'logo.clearbit.com',
+          },
+          {
+            protocol: 'https',
+            hostname: 'images.unsplash.com', // keep if you still use Unsplash demo images
+          },
+        ],
+      },
   /* config options here */
 };
 
