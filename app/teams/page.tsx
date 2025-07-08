@@ -181,7 +181,7 @@ function TeamCard({
         shadow-[inset_2px_2px_8px_#b8bac0,inset_-2px_-2px_8px_#ffffff]
         overflow-hidden
         transition-all duration-500 ease-[cubic-bezier(0.645,0.045,0.355,1)]
-        ${isCardHovered ? 'top-[25%] rounded-[80px_29px_29px_29px]' : ''}`}
+        ${isCardHovered ? 'top-1/4 rounded-[80px_29px_29px_29px]' : ''}`}
       >
         <div className="absolute bottom-0 left-6 right-6 h-[160px]">
           <span className="block text-[1.2rem] text-[#444] mt-2 font-bold">{name}</span>
