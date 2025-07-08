@@ -143,7 +143,7 @@ export default function Hero() {
                 href="/register/alumini"
                 className="bg-accent hover:bg-accent-hover text-white px-5 py-2 rounded-md font-semibold shadow transition"
               >
-                Alumini Registration
+                Alumni Registration
               </Link>
               <Link
                 href="/events"
