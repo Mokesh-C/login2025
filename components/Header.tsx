@@ -3,8 +3,8 @@
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, Home, Calendar, Users, LogIn, ChevronRight  } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Menu, X, Home, Calendar, Users, LogIn, ChevronRight, User, LogOut } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
 
@@ -23,17 +23,52 @@ const navItems: NavItem[] = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const router = useRouter()
+
+  // Check for JWT token in localStorage to determine login status
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const token = localStorage.getItem('refreshToken')
+      setIsLoggedIn(!!token)
+    }
+    checkLoginStatus() // Initial check
+    window.addEventListener('storageChange', checkLoginStatus)
+    return () => window.removeEventListener('storageChange', checkLoginStatus)
+  }, [])
 
   // Handle scroll event
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80) // Trigger after 50px scroll
+      setIsScrolled(window.scrollY > 80)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('accessToken');
+    setIsLoggedIn(false)
+    setProfileOpen(false)
+    window.dispatchEvent(new Event('storageChange'))
+    router.push('/login')
+  }
 
   /* ── Home-button behaviour ────────────────────────────── */
   const scrollHome = () => {
@@ -55,16 +90,14 @@ export default function Header() {
 
   return (
     <>
-          {/* Initial Header (visible before scroll, scrolls naturally) */}
-          
-      
+      {/* Initial Header (visible before scroll, scrolls naturally) */}
       <motion.header
-         initial={{ y: -80, opacity: 0 }}
-         animate={{ y: 0, opacity: 1 }}
-         transition={{ duration: 0 }}
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0 }}
         className={`
           w-full z-40
-          bg-gradient-to-br  from-primary via-primary-100 to-primary
+          bg-gradient-to-br from-primary via-primary-100 to-primary
           backdrop-blur-lg shadow-md
           text-neutral-white
           transition-all duration-300
@@ -72,15 +105,14 @@ export default function Header() {
           h-20
         `}
       >
-        <div className="w-full md:max-w-[95%]  mx-auto px-5 sm:px-6 lg:px-8 font-ui flex items-center justify-between h-full">
-          <button onClick={scrollHome} className="flex items-center gap-2 ">
-            {/* <Image src="/PSGCTlogo.png" alt="Logo" width={32} height={32} /> */}
+        <div className="w-full md:max-w-[95%] mx-auto px-5 sm:px-6 lg:px-8 font-ui flex items-center justify-between h-full">
+          <button onClick={scrollHome} className="flex items-center gap-2">
             <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline">
-            LOGIN 2025
-              </span>
-              <span className="text-xl pl-2 font-bold tracking-wide sm:hidden">
-                LOGIN 2025
-              </span>
+              LOGIN 2025
+            </span>
+            <span className="text-xl pl-2 font-bold tracking-wide sm:hidden">
+              LOGIN 2025
+            </span>
           </button>
           <nav className="hidden lg:flex flex-1 justify-center font-montserrat gap-6">
             {navItems.map((item) =>
@@ -106,15 +138,53 @@ export default function Header() {
             )}
           </nav>
           <div className="hidden lg:flex items-center space-x-4">
-            <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan font-medium">
-              <LogIn className="w-4 h-4" /> Login
-            </Link>
-            <Link
-              href="/register"
-              className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
-            >
-              Register Now
-            </Link>
+            {isLoggedIn ? (
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+                <AnimatePresence>
+                  {profileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-md shadow-lg border border-white/10"
+                    >
+                      <Link
+                        href="/profile"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-white/20"
+                      >
+                        <User className="w-4 h-4" /> Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-white/20"
+                      >
+                        <LogOut className="w-4 h-4" /> Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <>
+                <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan font-medium">
+                  <LogIn className="w-4 h-4" /> Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
+                >
+                  Register Now
+                </Link>
+              </>
+            )}
           </div>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden">
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -122,71 +192,89 @@ export default function Header() {
         </div>
       </motion.header>
 
-      {/* Mobile Drawer (unchanged) */}
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {mobileOpen && (
-            <>
+          <>
             <motion.div
-                className="fixed inset-0 bg-black/40 lg:hidden z-40" //-55 for back
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 bg-black/40 lg:hidden z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
             />
             <motion.div
-                initial={{ x: '-100%' }} // Changed from '100%' to '-100%' to start from the left
-                animate={{ x: 0 }}
-                exit={{ x: '-100%' }} // Exit back to the left
-                transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-                className="fixed top-0 left-0 h-screen w-64 z-50 flex flex-col pt-24 px-6 gap-6  bg-gradient-to-br from-brand-purple via-brand-pink to-brand-cyan
-    backdrop-blur-2xl  border-r border-white/10 shadow-lg" // Changed border-l to border-r
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 260, damping: 25 }}
+              className="fixed top-0 left-0 h-screen w-64 z-50 flex flex-col pt-24 px-6 gap-6 bg-gradient-to-br from-brand-purple via-follow-pink to-brand-cyan backdrop-blur-2xl border-r border-white/10 shadow-lg"
             >
-                <div className="absolute top-0 left-0 w-full flex items-center justify-between px-6 py-5">
-                    <h1 className="text-xl font-extrabold tracking-wide select-none">
-                    PSGCT
-                    </h1>
-
-                    <button
-                    aria-label="Close menu"
-                    onClick={() => setMobileOpen(false)}
-                    className="p-2 rounded-md hover:bg-white/10"
-                    >
-                    <X className="w-5 h-5" />
-                    </button>
-                </div>
-                {navItems.map((item) =>
+              <div className="absolute top-0 left-0 w-full flex items-center justify-between px-6 py-5">
+                <h1 className="text-xl font-extrabold tracking-wide select-none">
+                  PSGCT
+                </h1>
+                <button
+                  aria-label="Close menu"
+                  onClick={() => setMobileOpen(false)}
+                  className="p-2 rounded-md hover:bg-white/10"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              {navItems.map((item) =>
                 item.id === 'home' ? (
-                    <button
+                  <button
                     key={item.id}
                     onClick={() => {
-                        scrollHome()
-                        setMobileOpen(false)
+                      scrollHome()
+                      setMobileOpen(false)
                     }}
                     className={`${base} ${isActive(item) ? active : ''}`}
-                    >
+                  >
                     <item.icon className="w-5 h-5" />
                     {item.label}
-                    </button>
+                  </button>
                 ) : (
-                    <Link
+                  <Link
                     key={item.id}
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={`${base} ${isActive(item) ? active : ''}`}
-                    >
+                  >
                     <item.icon className="w-5 h-5" />
                     {item.label}
-                    </Link>
+                  </Link>
                 )
-                )}
-                <Link href="/login" className="flex items-center gap-2 px-4 hover:text-accent-cyan font-bold">
-                <LogIn className="w-5 h-5" /> Login
-                </Link>
-                <Link href="/register" className="bg-accent text-neutral-white text-center px-4 py-2 rounded">
-                Register Now
-                </Link>
+              )}
+              {isLoggedIn ? (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 px-4 hover:text-accent-cyan font-bold"
+                  >
+                    <User className="w-5 h-5" /> Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 hover:text-accent-cyan font-bold"
+                  >
+                    <LogOut className="w-5 h-5" /> Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="flex items-center gap-2 px-4 hover:text-accent-cyan font-bold">
+                    <LogIn className="w-5 h-5" /> Login
+                  </Link>
+                  <Link href="/register" className="bg-accent text-neutral-white text-center px-4 py-2 rounded">
+                    Register Now
+                  </Link>
+                </>
+              )}
             </motion.div>
-            </>
+          </>
         )}
       </AnimatePresence>
 
@@ -209,15 +297,14 @@ export default function Header() {
         )}>
           <div className={clsx(
             'flex items-center justify-between',
-            isScrolled ? 'h-16 bg-gradient-to-r from-stale-950/[0.2] to-violet-950/[0.05] via-80% backdrop-blur-lg rounded-[inherit] px-6' : 'h-20 px-4 sm:px-6 lg:px-8'
+            isScrolled ? 'h-16 bg-gradient-to-r from-stale-950/[0.2] to-violet-950/[0.05] via-80% backdrop-blur-2xl rounded-[inherit] px-6' : 'h-20 px-4 sm:px-6 lg:px-8'
           )}>
             <button onClick={scrollHome} className="flex items-center gap-2">
-              {/* <Image src="/PSGCTlogo.png" alt="Logo" width={32} height={32} /> */}
               <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline">
-              LOGIN 2025
+                LOGIN 2025
               </span>
               <span className="text-xl pl-2 font-bold tracking-wide sm:hidden">
-              LOGIN 2025
+                LOGIN 2025
               </span>
             </button>
             <nav className="hidden lg:flex flex-1 justify-center font-montserrat gap-6">
@@ -244,15 +331,53 @@ export default function Header() {
               )}
             </nav>
             <div className="hidden lg:flex items-center space-x-4">
-              <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan font-medium">
-                <LogIn className="w-4 h-4" /> Login
-              </Link>
-              <Link
-                href="/register"
-                className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
-              >
-                Register Now
-              </Link>
+              {isLoggedIn ? (
+                <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  >
+                    <User className="w-5 h-5" />
+                  </button>
+                  <AnimatePresence>
+                    {profileOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-md shadow-lg border border-white/10"
+                      >
+                        <Link
+                          href="/profile"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-white/20"
+                        >
+                          <User className="w-4 h-4" /> Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-white/20"
+                        >
+                          <LogOut className="w-4 h-4" /> Logout
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <>
+                  <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan font-medium">
+                    <LogIn className="w-4 h-4" /> Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
+                  >
+                    Register Now
+                  </Link>
+                </>
+              )}
             </div>
             <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden">
               {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

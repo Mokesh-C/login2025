@@ -90,6 +90,11 @@ export default function ParticipantRegister() {
     setErrorId(prev => prev + 1)
   }
 
+  const showSuccess = (msg: string) => {
+    setErrorList(prev => [...prev, { id: errorId, message: msg }])
+    setErrorId(prev => prev + 1)
+  }
+  
   /* ── validation per step ── */
   const validateGeneral = () => {
     const { name, email, mobile, gender } = form
@@ -145,12 +150,36 @@ export default function ParticipantRegister() {
   }
 
   const sendOtp = async () => {
-    await fetch('http://localhost:3000/auth/sendMobileOTP', {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({ mobile: form.mobile }),
-    })
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({
+          name  : form.name,
+          mobile: form.mobile,
+          email : form.email,
+          gender: form.gender,
+        }),
+      })
+  
+      const data = await res.json()
+  
+      if (!res.ok) {
+        showError(data?.message || 'Failed to send OTP')
+        return false
+      }
+      
+      // ✅ Success
+      showSuccess('OTP sent successfully')
+      return true
+  
+    } catch (err) {
+      console.error('❌ Error sending OTP:', err)
+      showError('Failed to send OTP')
+      return false
+    }
   }
+  
 
   /* ── step 0 submit → send OTP ── */
   const handleGeneralSubmit = async (e: React.FormEvent) => {
@@ -169,17 +198,28 @@ export default function ParticipantRegister() {
   const verifyOtp = async () => {
     const code = otp.join('')
     if (code.length < OTP_LENGTH) return showError('Enter full OTP')
+  
     try {
-      const r = await fetch('http://localhost:3000/auth/authMobile', {
+      const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/authMobile`, {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body   : JSON.stringify({ mobile: form.mobile, otp: code }),
       })
+  
       const j = await r.json()
-      if (!r.ok || !j.refreshToken) throw new Error()
+  
+      if (!r.ok || !j.refreshToken) {
+        showError(j?.message || 'Invalid OTP')
+        return
+      }
+  
+      // ✅ OTP Verified
+      showSuccess('OTP Verified Successfully')
       setStep(STEPS.DETAILS)
-    } catch {
-      showError('Invalid OTP')
+  
+    } catch (err) {
+      console.error('❌ Error verifying OTP:', err)
+      showError('Something went wrong while verifying OTP')
     }
   }
 
@@ -226,15 +266,20 @@ export default function ParticipantRegister() {
       <div className="relative flex w-full items-center justify-center px-4 py-12 sm:px-6 md:w-1/2">
         {/* Toasts */}
         <AnimatePresence>
-          {errorList.map(e => (
-            <ToastCard
-              key={e.id}
-              id={e.id}
-              message={e.message}
-              onClose={() => removeToast(e.id)}
-              textColor="text-red-500"
-            />
-          ))}
+            {errorList.map(e => (
+                <ToastCard
+                key={e.id}
+                id={e.id}
+                message={e.message}
+                onClose={() => removeToast(e.id)}
+                textColor={
+                    e.message.toLowerCase().includes('otp sent') ||
+                    e.message.toLowerCase().includes('success')
+                    ? 'text-green-400'
+                    : 'text-red-500'
+                }
+                />
+            ))}
         </AnimatePresence>
 
         {/* Glass card */}

@@ -75,7 +75,7 @@ const DEV_TEAM: TeamMember[] = [
   },
   {
     name: 'Balaji',
-    about: 'Frontend Developer passionate about UI/UX and animation.',
+    about: 'Frontend Developer',
     imageUrl: '/coordinators/Balaji.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },

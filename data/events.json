@@ -3,6 +3,7 @@
         "title": "Algocode",
         "tagline": "Code and Conquer",
         "image": "/AlgoCode.png",
+        "eventimage": "/event/1.png",
         "description": "de and Conquer We present you with yet another excuse to code your brain and heart out - ALGOCODE. Stack skills and queue tricks up your sleeve! This event will surely provide you with an array of problems that will untangle your mind. Fire up your editor and compile your way through this event to reach the root of this tournament tree.",
         "rounds": [
           {
@@ -42,6 +43,7 @@
     "title": "Codesprint",
     "tagline": "Code your way to Excellence!",
     "image": "/CodeSprint.png",
+    "eventimage": "/event/2.png",
     "description": "Embark on a thrilling adventure of logic and innovation! Test your skills against the brightest minds with questions that challenge your grasp of programming concepts. Solve each puzzle quickly, but beware—the clock is ticking, and every decision counts.",
     "rounds": [
         {
@@ -78,6 +80,7 @@
         "title": "CrickBid Auction",
         "tagline": "Pick Your Daring XI",
         "image": "/CrickBidAuction.png",
+        "eventimage": "/event/3.png",
         "description": "Get ready to immerse yourself in the exhilarating CrickBid Auction, where strategy, cricket knowledge, and tactical expertise collide! Test your wits with questions that cover the entire cricketing spectrum—from historic milestones and player statistics to detailed rules and the latest updates. Each correct answer brings you closer to the ultimate cricketing showdown. The stakes are high, and every choice could be pivotal in your quest for victory.",
         "rounds": [
           {
@@ -118,6 +121,7 @@
         "title": "Datathon",
         "tagline": "Insight Unleashed: Where Data Meets Brilliance!",
         "image": "/Datathon.png",
+        "eventimage": "/event/1.png",
         "description": "Dive into the world of data with DATA‑THON 2024, where your analytical mind meets real‑world challenges. This exhilarating competition is designed exclusively for postgraduate students passionate about data science, analytics, and problem‑solving. As you tackle a complex problem statement, your team will analyze, innovate, and present cutting‑edge solutions. Prepare to showcase your skills, collaborate with like‑minded peers, and crunch your way to the top. Transform raw data into actionable insights and claim your spot as the ultimate data champion!",
         "rounds": [
           {
@@ -156,6 +160,7 @@
         "title": "Last Stand",
         "tagline": "Play or Be Played",
         "image": "/LastStand.png",
+        "eventimage": "/event/2.png",
         "description": "One shot, one kill. No luck, all skill. Stay low, go fast. Enough of PUBG and the rest of those boring games. Prove your skill here as Last Stand is back this year, to test your speed, timing and accuracy.",
         "rounds": [
           {
@@ -191,6 +196,7 @@
     "title": "NETHUNT",
     "tagline": "An Unsolved Mystery with the usual suspects!!!",
     "image": "/NetHunt.png",
+    "eventimage": "/event/3.png",
     "description": "A picture can convey things that words alone cannot fully capture or clarify. However, images can also be misleading. Are you someone who pays close attention to every important detail? If yes, then we have a challenge for you. It's not a test of your thinking abilities, but one that will really make your brain work hard. Are you up for it? Here it is...!!!",
     "rounds": [
         {
@@ -229,6 +235,7 @@
     "title": "PICTURE PERFECT",
     "tagline": "Picture the Possibilities!!!",
     "image": "/PicturePerfect.png",
+    "eventimage": "/event/1.png",
     "description": "Are you the one who captures the world through a different lens? If so, this is your moment to shine! We invite you to showcase your innovative photography with your unique vision. Join us in capturing the minds of people with your photos. Don't miss out on this chance to celebrate creative photography!",
     "rounds": [
         {
@@ -268,6 +275,7 @@
         "title": "TECHIADZ",
         "tagline": "Challenge the Known, Create the Unimaginable",
         "image": "/Techiadz.png",
+        "eventimage": "/event/2.png",
         "description": "Techiadz is an innovative competition that puts participants' branding and marketing skills to the test. Teams will engage in tasks that challenge their ability to identify logos, create compelling content, and market unique products. With a focus on creativity and strategic thinking, Techiadz offers a platform for showcasing talent and pushing the boundaries of traditional marketing approaches.",
         "rounds": [
           {
@@ -312,6 +320,7 @@
     "title": "THINKLYTICS",
     "tagline": "Contemplate Data Differently!",
     "image": "/Thinklytics.png",
+    "eventimage": "/event/3.png",
     "description": "Are you a Data Abstractor? Are you ready to measure and manage the data? Are you seeking a platform to boost your critical thinking? Here is a fascinating event to explore your analytical skills. Questions will get you answers; Thinklytics will help you reach unattainable heights of insight. Open your eyes and prepare yourself to make the right choice. Seize the moment, friends! If not analyzed now, then when?",
     "rounds": [
         {
@@ -355,6 +364,7 @@
     "title": "TRIPLE TROUBLE",
     "tagline": "Triple up the fun, with trouble on the run",
     "image": "/TripleTrouble.png",
+    "eventimage": "/event/1.png",
     "description": "Get ready for Triple Trouble, an exhilarating event that combines teamwork, strategy, and agility across four thrilling challenges! Test your dexterity in the Balloon and Cup Challenge, your agility in Tic Tac Toe, your communication in Rat in a Maze, and your problem-solving in Riddle Rush. Join us for a day packed with excitement and competition!",
     "rounds": [
         {
@@ -396,6 +406,7 @@
         "title": "WITTY MINDZ",
         "tagline": "Expand Your Mental Horizons",
         "image": "/WittyMindz.png",
+        "eventimage": "/event/2.png",
         "description": "WITTY MINDZ offers participants a platform to showcase their cognitive agility and problem‑solving skills through a series of engaging challenges. This event promises to test intellect and creativity, providing an exciting opportunity to demonstrate cognitive prowess.",
         "rounds": [
           {
@@ -442,6 +453,7 @@
         "title": "STAR OF LOGIN",
         "tagline": "Are you ready to win? Lace up for the grand finale!",
         "image": "/StarOfLogin.png",
+        "eventimage": "/event/3.png",
         "description": "The ultimate showdown of champions! 'Star of Login' is where the finest come to compete, showcasing sharp minds and stage presence. This grand finale celebrates the best of LOGIN 2024, offering glory and the iconic title to the standout performer. It's time to shine!",
         "rounds": [
           {

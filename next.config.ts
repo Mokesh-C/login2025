@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
             protocol: 'https',
             hostname: 'images.unsplash.com', // keep if you still use Unsplash demo images
           },
+          
         ],
       },
   /* config options here */

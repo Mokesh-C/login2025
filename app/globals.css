@@ -51,3 +51,25 @@ html {
         -webkit-text-fill-color: transparent;
     }
 }
+.bg-animated-gradient {
+    background: linear-gradient(45deg,
+            #1e3a8a,
+            #3b82f6,
+            #1e3a8a,
+            #60a5fa);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+}
+
+@keyframes gradientFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    } }

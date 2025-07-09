@@ -58,6 +58,11 @@ export default function LoginPage() {
     setErrorList((prev) => [...prev, { id: errorId, message: msg }])
     setErrorId((prev) => prev + 1)
   }
+  
+  const showSuccess = (msg: string) => {
+    setErrorList(prev => [...prev, { id: errorId, message: msg }])
+    setErrorId(prev => prev + 1)
+  }
 
   const validateMobile = () => {
     if (!/^\d{10}$/.test(mobile)) {
@@ -70,19 +75,29 @@ export default function LoginPage() {
   /* ---------------- Handlers ------------- */
   const handleSendOtp = async () => {
     if (!validateMobile()) return
-
+  
     try {
-      await fetch('http://localhost:3000/auth/sendMobileOTP', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/sendMobileOTP`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile }),
       })
+      const data = await res.json()
+  
+      if (!res.ok) {
+        showError(data?.message || 'Failed to send OTP')
+        return
+      }
+      
+      showSuccess('OTP sent successfully')
       setIsOtpSent(true)
       setTimer(OTP_TIMEOUT)
     } catch (err) {
       showError('Failed to send OTP')
     }
   }
+  
+  
 
   const handleOtpChange = (i: number, val: string) => {
     if (!/^\d?$/.test(val)) return
@@ -93,25 +108,57 @@ export default function LoginPage() {
   }
 
   const verifyOtp = async () => {
-    const code = otp.join('')
+    const code = otp.join('');
     if (code.length < OTP_LENGTH) {
-      showError('Enter the full 4‑digit OTP')
-      return
+      showError('Enter the full 4-digit OTP');
+      return;
     }
-
+  
     try {
-      const res = await fetch('http://localhost:3000/auth/authMobile', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/authMobile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile, otp: code }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.refreshToken) throw new Error()
-      router.push('/')
+      });
+  
+      const data = await res.json();
+      if (!res.ok || !data.refreshToken) {
+        showError(data?.message || 'Invalid OTP or login failed');
+        return;
+      }
+  
+      const refreshToken = data.refreshToken;
+      localStorage.setItem('refreshToken', refreshToken);
+  
+      // Fetch access token using refresh token
+      const accessRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/accessToken`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${refreshToken}`,
+          Origin: 'http://localhost:3000',
+        },
+      });
+  
+      if (!accessRes.ok) {
+        const accessData = await accessRes.json();
+        showError(accessData?.message || 'Failed to get access token');
+        return;
+      }
+  
+      const accessData = await accessRes.json();
+      const accessToken = accessData.accessToken;
+      localStorage.setItem('accessToken', accessToken);
+  
+      window.dispatchEvent(new Event('storageChange'));
+      showSuccess('Login successful');
+      router.push('/');
     } catch (err) {
-      showError('Invalid OTP or login failed')
+      showError('Invalid OTP or login failed');
+      console.error('Login error details:', err);
     }
   }
+  
 
   /* ------------------------------------------------------------------
    * Render
@@ -133,16 +180,20 @@ export default function LoginPage() {
       <div className="relative flex w-full items-center justify-center px-4 py-12 sm:px-6 md:w-1/2">
         {/* Error toasts */}
         <AnimatePresence>
-          {errorList.map((e) => (
-            <ToastCard
-              key={e.id}
-              id={e.id}
-              message={e.message}
-              onClose={() => setErrorList((prev) => prev.filter((err) => err.id !== e.id))}
-              textColor="text-red-500"
-            />
-          ))}
+            {errorList.map(e => (
+                <ToastCard
+                key={e.id}
+                id={e.id}
+                message={e.message}
+                onClose={() => setErrorList(prev => prev.filter(err => err.id !== e.id))}
+                textColor={e.message.toLowerCase().includes('success') || e.message.toLowerCase().includes('otp sent')
+                    ? 'text-green-400'
+                    : 'text-red-500'}
+                />
+            ))}
         </AnimatePresence>
+        
+              
 
         {/* Login box */}
         <motion.div
