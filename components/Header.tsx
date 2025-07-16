@@ -181,7 +181,7 @@ export default function Header() {
                   href="/register"
                   className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
                 >
-                  Register Now
+                  Register
                 </Link>
               </>
             )}
@@ -212,7 +212,7 @@ export default function Header() {
             >
               <div className="absolute top-0 left-0 w-full flex items-center justify-between px-6 py-5">
                 <h1 className="text-xl font-extrabold tracking-wide select-none">
-                  PSGCT
+                  LOGIN 2025
                 </h1>
                 <button
                   aria-label="Close menu"
@@ -269,7 +269,7 @@ export default function Header() {
                     <LogIn className="w-5 h-5" /> Login
                   </Link>
                   <Link href="/register" className="bg-accent text-neutral-white text-center px-4 py-2 rounded">
-                    Register Now
+                    Register
                   </Link>
                 </>
               )}
@@ -374,7 +374,7 @@ export default function Header() {
                     href="/register"
                     className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
                   >
-                    Register Now
+                    Register
                   </Link>
                 </>
               )}

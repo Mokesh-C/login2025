@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
 import { X } from 'lucide-react'
+import axios from 'axios';
 
 /* ------------------------------------------------------------------
  * Constants & types
@@ -74,28 +75,29 @@ export default function LoginPage() {
 
   /* ---------------- Handlers ------------- */
   const handleSendOtp = async () => {
-    if (!validateMobile()) return
+    if (!validateMobile()) return;
   
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/sendMobileOTP`, {
-        method: 'POST',
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/sendMobileOTP`, {
+        mobile,
+      }, {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile }),
-      })
-      const data = await res.json()
+      });
+      const data = res.data;
   
-      if (!res.ok) {
-        showError(data?.message || 'Failed to send OTP')
-        return
+      if (res.status !== 200) {
+        showError(data?.message || 'Failed to send OTP');
+        return;
       }
-      
-      showSuccess('OTP sent successfully')
-      setIsOtpSent(true)
-      setTimer(OTP_TIMEOUT)
+  
+      showSuccess('OTP sent successfully');
+      setIsOtpSent(true);
+      setTimer(OTP_TIMEOUT);
     } catch (err) {
-      showError('Failed to send OTP')
+      const error = axios.isAxiosError(err) ? err.response?.data?.message || err.message : 'Failed to send OTP';
+      showError(error);
     }
-  }
+  };
   
   
 
@@ -115,14 +117,15 @@ export default function LoginPage() {
     }
   
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/authMobile`, {
-        method: 'POST',
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/authMobile`, {
+        mobile,
+        otp: code,
+      }, {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, otp: code }),
       });
+      const data = res.data;
   
-      const data = await res.json();
-      if (!res.ok || !data.refreshToken) {
+      if (res.status !== 200 || !data.refreshToken) {
         showError(data?.message || 'Invalid OTP or login failed');
         return;
       }
@@ -131,33 +134,34 @@ export default function LoginPage() {
       localStorage.setItem('refreshToken', refreshToken);
   
       // Fetch access token using refresh token
-      const accessRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/accessToken`, {
-        method: 'GET',
+      const accessRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/accessToken`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${refreshToken}`,
-          Origin: 'http://localhost:3000',
         },
       });
   
-      if (!accessRes.ok) {
-        const accessData = await accessRes.json();
-        showError(accessData?.message || 'Failed to get access token');
+      if (accessRes.status !== 200) {
+        showError(accessRes.data?.message || 'Failed to get access token');
         return;
       }
   
-      const accessData = await accessRes.json();
+      const accessData = accessRes.data;
       const accessToken = accessData.accessToken;
+      if (!accessToken) {
+        showError('Access token not received from server');
+        return;
+      }
       localStorage.setItem('accessToken', accessToken);
   
       window.dispatchEvent(new Event('storageChange'));
       showSuccess('Login successful');
       router.push('/');
     } catch (err) {
-      showError('Invalid OTP or login failed');
-      console.error('Login error details:', err);
+      const error = axios.isAxiosError(err) ? err.response?.data?.message || err.message : 'Invalid OTP or login failed';
+      showError(error);
     }
-  }
+  };
   
 
   /* ------------------------------------------------------------------

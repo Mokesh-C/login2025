@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import {
   User,
   ArrowRightLeft,
@@ -47,6 +48,7 @@ interface UserData {
     accommodation: number;
     foodPreference?: string;
   };
+    college: string;
 }
 
 interface ErrorMessage {
@@ -91,64 +93,54 @@ const Profile: React.FC = () => {
       try {
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) {
-          showError('No access token found. Please log in.');
           router.push('/login');
           return;
         }
   
-        // Step: Get user data using access token
-        const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
-          method: 'GET',
+        // Step: Get user data using access token with Axios
+        const userRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        if (!userRes.ok) {
-          const userData = await userRes.json();
-          showError(userData?.message || `Failed to fetch user data (Status: ${userRes.status})`);
-          if (userRes.status === 401) {
-            // Access token expired, try refreshing
-            const refreshToken = localStorage.getItem('refreshToken');
-            if (refreshToken) {
-              const accessRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/accessToken`, {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/json',
-                  Authorization: `Bearer ${refreshToken}`,
-                },
-              });
-              if (accessRes.ok) {
-                const accessData = await accessRes.json();
-                const newAccessToken = accessData.accessToken;
-                localStorage.setItem('accessToken', newAccessToken);
-                // Retry user data fetch with new token
-                const retryRes = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
-                  method: 'GET',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${newAccessToken}`,
-                  },
-                });
-                if (retryRes.ok) {
-                  const userData = await retryRes.json();
-                  setUserData(userData);
-                  return;
-                }
-              }
-            }
+        setUserData(userRes.data);
+      } catch (err) {
+          
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (!refreshToken) {
+            localStorage.removeItem('accessToken');
+            window.dispatchEvent(new Event('storageChange'));
+            router.push('/login');
+            return;
+          }
+  
+          try {
+            const accessRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/accessToken`, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${refreshToken}`,
+              },
+            });
+            const newAccessToken = accessRes.data.accessToken;
+            localStorage.setItem('accessToken', newAccessToken);
+  
+            // Retry user data fetch with new token
+            const retryRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${newAccessToken}`,
+              },
+            });
+            setUserData(retryRes.data);
+          } catch (refreshErr) {
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('accessToken');
             window.dispatchEvent(new Event('storageChange'));
             router.push('/login');
           }
-          return;
         }
-        const userData = await userRes.json();
-        setUserData(userData);
-      } catch (err) {
-        showError('Network error: Unable to fetch user data. Please check your connection.');
-        console.error('Fetch error details:', err);
       } finally {
         setLoading(false);
       }
@@ -184,41 +176,78 @@ const Profile: React.FC = () => {
     router.push('/login');
   };
 
-  const renderAboutSection = () => {
+//   const renderAboutSection = () => {
+//     if (loading) {
+//       return <p className="text-white/60 text-center">Loading user data...</p>;
+//     }
+//     if (!userData) {
+//       return <p className="text-white/60 text-center">No user data available</p>;
+//     }
+//     // Add null checks for preferences and foodPreference
+//     const foodPreference = userData.preferences?.foodPreference || 'Not specified';
+//     const accommodation = userData.preferences?.accommodation ? 'Yes' : 'No';
+
+//     return (
+//       <div className="space-y-6">
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//           <div className="space-y-4">
+//             {[
+//               { label: 'Name', value: userData.name },
+//               { label: 'Login Id', value: userData.id.toString() },
+//               { label: 'Email', value: userData.email },
+//               { label: 'Phone', value: userData.mobile },
+//               { label: 'Gender', value: userData.gender },
+//               { label: 'Food Preference', value: foodPreference },
+//               { label: 'Accommodation', value: accommodation },
+//             ].map((field, index) => (
+//               <div key={index}>
+//                 <label className="block text-sm font-medium text-white/60 mb-1">{field.label}</label>
+//                 <p className="font-medium text-white/90">{field.value}</p>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   };
+
+const renderAboutSection = () => {
     if (loading) {
       return <p className="text-white/60 text-center">Loading user data...</p>;
     }
+  
     if (!userData) {
       return <p className="text-white/60 text-center">No user data available</p>;
     }
-    // Add null checks for preferences and foodPreference
+  
     const foodPreference = userData.preferences?.foodPreference || 'Not specified';
     const accommodation = userData.preferences?.accommodation ? 'Yes' : 'No';
-
+    const college = userData.college?userData.college  : 'N/A';
+  
+    const fields = [
+      { label: 'Name', value: userData.name },
+      { label: 'Login Id', value: userData.id.toString() },
+      { label: 'Email', value: userData.email },
+      { label: 'Phone', value: userData.mobile },
+      { label: 'Gender', value: userData.gender },
+      { label: 'Food Preference', value: foodPreference },
+      { label: 'Accommodation', value: accommodation },
+      { label: 'College', value: college },
+    ];
+  
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            {[
-              { label: 'Name', value: userData.name },
-              { label: 'Login Id', value: userData.id.toString() },
-              { label: 'Email', value: userData.email },
-              { label: 'Phone', value: userData.mobile },
-              { label: 'Gender', value: userData.gender },
-              { label: 'Food Preference', value: foodPreference },
-              { label: 'Accommodation', value: accommodation },
-            ].map((field, index) => (
-              <div key={index}>
-                <label className="block text-sm font-medium text-white/60 mb-1">{field.label}</label>
-                <p className="font-medium text-white/90">{field.value}</p>
-              </div>
-            ))}
+      <div className="bg-white/5 p-6 rounded-md space-y-4">
+        {fields.map((field, index) => (
+          <div key={index} className="flex items-start gap-6">
+            <p className="w-[15%] text-sm font-medium text-white/60">{field.label}</p>
+            <p className="font-medium text-white/90">{field.value}</p>
           </div>
-        </div>
+        ))}
       </div>
     );
   };
-
+  
+  
   const renderTransactionsSection = () => (
     <div className="space-y-6">
       {transactions.map((transaction) => (
@@ -314,7 +343,7 @@ const Profile: React.FC = () => {
       initial={{ opacity: 0 }}
       animate={pageLoaded ? { opacity: 1 } : {}}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[#0d0718] text-white"
+      className=" text-white"
     >
 
 
@@ -333,7 +362,7 @@ const Profile: React.FC = () => {
         </AnimatePresence>
 
         {/* Header */}
-        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-6">
+        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-6 -z-40">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
@@ -383,7 +412,7 @@ const Profile: React.FC = () => {
           </div>
 
           {/* RIGHT PANEL */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 mb-10 ">
             <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl">
               {/* TAB BAR */}
               <div className="relative flex gap-2 p-4 border-b border-white/10 bg-white/5 rounded-t-md overflow-x-auto">
@@ -391,6 +420,7 @@ const Profile: React.FC = () => {
                   const isActive = activeTab === tab;
                   return (
                     <button
+                    
                       key={tab}
                       onClick={() => setActiveTab(tab)}
                       className={`relative px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${

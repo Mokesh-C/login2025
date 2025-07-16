@@ -9,6 +9,7 @@
    ────────────────────────────────────────────────────────── */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import axios from 'axios';
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -18,6 +19,9 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
+import { createUser, requestOtp, resendOtp } from '@/services/auth';
+import { verifyOtp as verifyOtpService, getAccessToken , submitParticipant} from '@/services/auth';
+
 
 /* ─── constants ─── */
 const OTP_LENGTH  = 4
@@ -149,36 +153,37 @@ export default function ParticipantRegister() {
     if (val && idx < OTP_LENGTH - 1) otpInputsRef.current[idx + 1]?.focus()
   }
 
-  const sendOtp = async () => {
+  const sendOtp = async (): Promise<void> => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user`, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({
-          name  : form.name,
-          mobile: form.mobile,
-          email : form.email,
-          gender: form.gender,
-        }),
-      })
-  
-      const data = await res.json()
-  
-      if (!res.ok) {
-        showError(data?.message || 'Failed to send OTP')
-        return false
-      }
+      const userRes = await createUser({
+        name: form.name,
+        mobile: form.mobile,
+        email: form.email,
+        gender: form.gender,
+      });
       
-      // ✅ Success
-      showSuccess('OTP sent successfully')
-      return true
+    console.log(userRes);
+    
+      if (!userRes.success) {
+        showError(userRes.message || 'Failed to create user');
+        return;
+      }
   
+      const otpRes = await requestOtp(form.mobile);
+  
+      if (!otpRes.success) {
+        showError(otpRes.message || 'Failed to send OTP');
+        return;
+      }
+  
+      showSuccess('OTP sent successfully');
+      setTimer(OTP_TIMEOUT);
+      setStep(STEPS.OTP);
     } catch (err) {
-      console.error('❌ Error sending OTP:', err)
-      showError('Failed to send OTP')
-      return false
+      showError('Unexpected error occurred. Please try again.');
     }
-  }
+  };
+  
   
 
   /* ── step 0 submit → send OTP ── */
@@ -196,51 +201,72 @@ export default function ParticipantRegister() {
 
   /* ── step 1 verify OTP ── */
   const verifyOtp = async () => {
-    const code = otp.join('')
-    if (code.length < OTP_LENGTH) return showError('Enter full OTP')
+    const code = otp.join('');
+    if (code.length < OTP_LENGTH) {
+      showError('Enter full OTP');
+      return;
+    }
   
     try {
-      const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/authMobile`, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ mobile: form.mobile, otp: code }),
-      })
-  
-      const j = await r.json()
-  
-      if (!r.ok || !j.refreshToken) {
-        showError(j?.message || 'Invalid OTP')
-        return
+      // Step 1: Verify OTP
+      const res = await verifyOtpService(form.mobile, code);
+      if (!res.success || !res.refreshToken) {
+        showError(res.message || 'OTP verification failed');
+        return;
       }
   
-      // ✅ OTP Verified
-      showSuccess('OTP Verified Successfully')
-      setStep(STEPS.DETAILS)
+      showSuccess('OTP verified');
   
-    } catch (err) {
-      console.error('❌ Error verifying OTP:', err)
-      showError('Something went wrong while verifying OTP')
+      // Step 2: Get Access Token
+      const tokenRes = await getAccessToken(res.refreshToken);
+      if (!tokenRes.success || !tokenRes.accessToken) {
+        showError(tokenRes.message || 'Failed to get access token');
+        return;
+      }
+  
+      // Optional: Store tokens
+      localStorage.setItem('accessToken', tokenRes.accessToken);
+      localStorage.setItem('refreshToken', res.refreshToken);
+  
+      // Step 3: Proceed to next step
+      setStep(STEPS.DETAILS);
+    } catch (error) {
+      showError('Unexpected error occurred');
     }
-  }
-
+  };
   /* ── step 2 submit full form ── */
   const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateDetails()) return
-
-    const fd = new FormData()
-    Object.entries(form).forEach(([k, v]) =>
-      v !== null && fd.append(k, v as any)
-    )
-    fd.append('studentType', 'participant')
-
-    try {
-      await fetch('http://localhost:3000/user/', { method: 'POST', body: fd })
-      router.push('/')
-    } catch {
-      showError('Submission failed')
+    e.preventDefault();
+  
+    if (!validateDetails()) return;
+  
+    const fd = new FormData();
+    Object.entries(form).forEach(([key, val]) => {
+      if (val !== null) {
+        fd.append(key, val as any);
+      }
+    });
+    fd.append('studentType', 'participant');
+  
+      const token = localStorage.getItem('accessToken');
+      console.log(token);
+      
+    if (!token) {
+      showError('Access token not found. Please verify OTP again.');
+      setStep(STEPS.GENERAL);
+      return;
     }
-  }
+  
+    const res = await submitParticipant(fd, token);
+    if (!res.success) {
+      showError(res.message || 'Registration failed');
+      return;
+    }
+    console.log(res);
+    
+    showSuccess('Registered successfully!');
+    router.push('/');
+  };
 
   const removeToast = useCallback(
     (id: number) => setErrorList(prev => prev.filter(t => t.id !== id)),
@@ -388,13 +414,19 @@ export default function ParticipantRegister() {
                     type="button"
                     disabled={timer > 0}
                     onClick={async () => {
-                      await sendOtp()
-                      setTimer(OTP_TIMEOUT)
+                        const otpRes = await resendOtp(form.mobile);
+                        if (otpRes.success) {
+                        showSuccess('OTP resent successfully');
+                        setTimer(OTP_TIMEOUT);
+                        } else {
+                        showError(otpRes.message || 'Failed to resend OTP');
+                        }
                     }}
                     className={timer > 0 ? 'cursor-not-allowed opacity-50' : 'text-blue-400'}
-                  >
+                    >
                     Resend OTP
-                  </button>
+                </button>
+
                 </div>
 
                 <button

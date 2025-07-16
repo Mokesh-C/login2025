@@ -129,12 +129,12 @@ function TeamCard({
     }
   } else {
     profilePicClass +=
-      ' w-[calc(100%-6px)] h-[calc(100%-6px)] rounded-[29px]'
+      ' w-[calc(100%-6px)] h-[calc(100%-6px)] rounded-[29px] rounded-tr-none'
   }
 
   // Image
   const imgClass =
-    'object-cover w-full h-full object-[0px_0px] transition-all duration-500'
+    'object-cover w-full h-full object-[0px_0px] transition-all duration-500 '
 
   return (
     <div
