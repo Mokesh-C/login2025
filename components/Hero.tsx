@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import confetti from 'canvas-confetti'
 
 export default function Hero() {
   /* ── COUNTDOWN LOGIC ───────────────────────── */
@@ -29,12 +30,14 @@ export default function Hero() {
   /* ── PRIZE COUNTER LOGIC (ease-out cubic, repeatable) ───── */
   const [prize, setPrize] = useState(0)
   const prizeRef = useRef<HTMLDivElement | null>(null)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   useEffect(() => {
     const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
     const duration = 1500
     const startValue = prize
     const endValue = 100000
+    
 
     const animateCounter = (startTime: number) => {
       const tick = (now: number) => {
@@ -47,6 +50,7 @@ export default function Hero() {
           requestAnimationFrame(tick)
         } else {
           setPrize(endValue)
+          setShowConfetti(true) // Trigger confetti once when target is reached
         }
       }
       requestAnimationFrame(tick)
@@ -57,6 +61,7 @@ export default function Hero() {
         if (entry.isIntersecting) {
           setPrize(0) // reset
           animateCounter(performance.now())
+          setShowConfetti(false) // Reset confetti on new animation
         }
       },
       { threshold: 0.5 }
@@ -66,16 +71,104 @@ export default function Hero() {
     return () => observer.disconnect()
   }, [])
 
+    
+    
+  // Canvas-confetti animation with faster gravity and div bounds
+useEffect(() => {
+  if (showConfetti) {
+    // Get the prize section bounds
+    const prizeSection = document.querySelector('#cash-prize-text');
+    if (!prizeSection) return;
+    
+    const rect = prizeSection.getBoundingClientRect();
+    // Calculate origin relative to viewport
+    const x = (rect.left + rect.width / 2) / window.innerWidth;
+    const y = (rect.top + rect.height / 2) / window.innerHeight;
+    
+    // First burst - faster falling with gravity
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      startVelocity: 40,
+      origin: { x, y }, // center of prize section
+      shapes: ['circle', 'square'],
+      colors: [
+        '#f9f871', '#72efdd', '#ff61a6', '#ffd166', '#7aecb3',
+        '#a2d2ff', '#bdb2ff', '#ffc6ff', '#ffafcc', '#43aa8b',
+        '#577590', '#fee440', '#7209b7'
+      ],
+      scalar: 1.2,
+      gravity: 5, // Faster falling (default is 1)
+      drift: 0.1,
+      ticks: 100 // Shorter duration (default is 200)
+    });
+    
+    // Second burst
+    setTimeout(() => {
+      // First burst
+confetti({
+  particleCount: 100,
+  spread: 70,
+  startVelocity: 40,
+  origin: { x, y },
+  shapes: [
+    'circle', 
+    'square', 
+    confetti.shapeFromText({ text: '▲', scalar: 2 }), // Triangle
+    confetti.shapeFromText({ text: '|', scalar: 3 })  // Line
+  ],
+  colors: [
+    '#f9f871', '#72efdd', '#ff61a6', '#ffd166', '#7aecb3',
+    '#a2d2ff', '#bdb2ff', '#ffc6ff', '#ffafcc', '#43aa8b',
+    '#577590', '#fee440', '#7209b7'
+  ],
+  scalar: 1.2,
+  gravity: 3,
+  drift: 0.1,
+  ticks: 80
+});
+
+// Second burst  
+confetti({
+  particleCount: 60,
+  spread: 100,
+  startVelocity: 30,
+  origin: { x, y },
+  shapes: [
+    'circle', 
+    'square',
+    confetti.shapeFromText({ text: '▲', scalar: 2 }), // Triangle
+    confetti.shapeFromText({ text: '|', scalar: 3 })  // Line
+  ],
+  colors: [
+    '#fdffb6', '#caff70', '#ffc6ff', '#90ee90',
+    '#ff9671', '#fa7e1e', '#e63946'
+  ],
+  scalar: 1.0,
+  gravity: 3,
+  drift: 0.1,
+  ticks: 80
+});
+    }, 200);
+    
+    // Reset confetti state after animation
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 1500); // Reduced from 3000ms to 1500ms
+  }
+}, [showConfetti])
+
+
   /* ── MARKUP ─────────────────────────────────── */
   return (
     <>
       {/* ───────── HERO (TOP) ───────── */}
-      <section className="flex  flex-col lg:flex-row  text-neutral-white lg:min-h-[calc(100vh-5rem)]">
+      <section className="flex flex-col lg:flex-row text-neutral-white lg:min-h-[calc(100vh-5rem)]">
         <div className="container mx-auto flex flex-col lg:flex-row w-full px-6 py-5">
           {/* LEFT */}
           <motion.div
-            initial={{ opacity: 0, x: -60 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="relative lg:w-[60%] w-full flex flex-col items-center justify-center"
           >
@@ -101,22 +194,21 @@ export default function Hero() {
                   height={240}
                   className="w-60 sm:w-72 md:w-80 lg:w-[38rem]"
                 />
-            
               </div>
             </div>
           </motion.div>
 
           {/* RIGHT */}
           <motion.div
-            initial={{ opacity: 0, x: 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
             className="lg:w-[40%] w-full mt-10 lg:mt-0 flex flex-col justify-center items-center text-center"
           >
             <div className="flex flex-col gap-10 max-w-md">
               <div className="flex flex-col gap-3">
                 <p className="text-4xl font-bold font-satoshi text-gradient p-2">
-                  September&nbsp;20, 21
+                  September 20, 21
                 </p>
                 <h3 className="text-base text-gray-300 sm:text-lg">
                   Experience the 34<sup>th</sup> International Inter‑Collegiate Tech‑Symposium
@@ -151,7 +243,7 @@ export default function Hero() {
         font-semibold shadow transition-colors
         hover:bg-violet-500 hover:text-white"
               >
-                Explore Events <span className="text-xl">→</span>
+                Explore Events <span className="text-xl">→</span>
               </Link>
             </div>
           </motion.div>
@@ -161,7 +253,8 @@ export default function Hero() {
       {/* ───────── PRIZE‑POOL (BOTTOM) ───────── */}
       <section
         ref={prizeRef}
-        className="relative min-h-[60vh] flex flex-col items-center justify-center  text-white overflow-hidden px-4"
+        id="prize-section"
+        className="relative min-h-[60vh] flex flex-col items-center justify-center text-white overflow-hidden px-4"
       >
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -172,9 +265,9 @@ export default function Hero() {
           <p className="leading-tight font-extrabold text-gray-300 text-2xl sm:text-5xl md:text-6xl">
             CASH PRIZE WORTH
           </p>
-          <h1 className="text-gradient font-extrabold py-4 text-4xl sm:text-5xl md:text-6xl">
-              ₹ {prize.toLocaleString('en-IN')}
-            </h1>
+          <h1 id="cash-prize-text" className="text-gradient-1 font-extrabold py-4 text-4xl sm:text-5xl md:text-6xl">
+            ₹ {prize.toLocaleString('en-IN')}
+          </h1>
 
           <div className="mt-6 flex flex-wrap justify-center gap-4 font-semibold text-xl">
             <TimeBox label="DAYS" value={timeLeft.days} />
@@ -189,7 +282,7 @@ export default function Hero() {
             </p>
             <p className="mt-2 text-gradient sm:text-lg">
               <span className="text-accent-cyan font-semibold">Note:</span>{' '}
-              Only M.E., MCA, MBA, M.Sc., M.Tech., M.Com., and M.A. students can register and participate.
+              Only M.E., M.Tech., MBA, MCA, M.Sc., and other PG students can register and participate.
             </p>
           </div>
         </motion.div>

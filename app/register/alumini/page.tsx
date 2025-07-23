@@ -19,6 +19,10 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
+import { createUser, sendOtp, verifyOtp, registerAlumni } from '@/services/auth';
+import OtpVerification from '@/components/OtpVerification';
+import { getUser } from '@/services/user';
+import { getAccessToken } from '@/services/auth';
 
 /* ─── constants ─── */
 const OTP_LENGTH  = 4
@@ -39,7 +43,7 @@ export default function AlumniRegister() {
     rollNumber : '',
     company    : '',
     role       : '',
-    photo      : null as File | null,
+    // photo      : null as File | null, // Removed photo field
   })
 
   /* ---------- other state ---------- */
@@ -48,6 +52,8 @@ export default function AlumniRegister() {
   const [timer, setTimer]         = useState(OTP_TIMEOUT)
   const [errorList, setErrorList] = useState<ErrorMessage[]>([])
   const [errorId,  setErrorId]    = useState(0)
+  const [loading, setLoading] = useState(false);
+  // Remove userId state
 
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([])
   const router       = useRouter()
@@ -75,24 +81,24 @@ export default function AlumniRegister() {
   }
 
   /* ── validation ── */
+  // Comment out alumni code validation for now
   const validateGeneral = () => {
-    const { name, mobile, alumniCode } = form
-    let ok = true
-    if (!name.trim())       showError('Name is required'),             ok = false
-    if (!/^\d{10}$/.test(mobile)) showError('Mobile must be 10 digits'), ok = false
-    if (!alumniCode.trim()) showError('Alumni code is required'),      ok = false
-    return ok
-  }
+    const { name, mobile } = form;
+    let ok = true;
+    if (!name.trim()) showError('Name is required'), ok = false;
+    if (!/^\d{10}$/.test(mobile)) showError('Mobile must be 10 digits'), ok = false;
+    // if (!alumniCode.trim()) showError('Alumni code is required'), ok = false;
+    return ok;
+  };
 
   const validateDetails = () => {
-    const { rollNumber, company, role, photo } = form
-    let ok = true
-    if (!rollNumber.trim()) showError('Roll number is required'), ok = false
-    if (!company.trim())    showError('Company is required'),     ok = false
-    if (!role.trim())       showError('Role is required'),        ok = false
-    if (!photo)             showError('Photo upload required'),   ok = false
-    return ok
-  }
+    const { rollNumber, company, role } = form;
+    let ok = true;
+    if (!rollNumber.trim()) showError('Roll number is required'), ok = false;
+    if (!company.trim())    showError('Company is required'),     ok = false;
+    if (!role.trim())       showError('Role is required'),        ok = false;
+    return ok;
+  };
 
   /* ── input handlers ── */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,64 +118,96 @@ export default function AlumniRegister() {
   }
 
   /* ── network helpers ── */
-  const sendOtp = async () => {
-    await fetch('http://localhost:3000/auth/sendMobileOTP', {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({ mobile: form.mobile }),
-    })
-  }
+  // Remove any local sendOtp function that uses fetch. Only use the imported sendOtp from services/auth.ts for backend integration.
 
   /* ── step 0 submit → send OTP ── */
+  // Step 0: Create user and send OTP
   const handleGeneralSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (validateGeneral()) return
+    e.preventDefault();
+    if (!validateGeneral()) return;
+    setLoading(true);
     try {
-      await sendOtp()
-      setTimer(OTP_TIMEOUT)
-      setStep(STEPS.OTP)
+      const userRes = await createUser(form.name, form.mobile);
+      if (!userRes.success) {
+        showError(userRes.message || 'Failed to create user');
+        setLoading(false);
+        return;
+      }
+      const otpRes = await sendOtp(form.mobile);
+      if (!otpRes.success) {
+        showError(otpRes.message || 'Failed to send OTP');
+        setLoading(false);
+        return;
+      }
+      setTimer(OTP_TIMEOUT);
+      setStep(STEPS.OTP);
     } catch {
-      showError('Failed to send OTP')
+      showError('Failed to create user or send OTP');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  /* ── step 1 verify OTP ── */
-  const verifyOtp = async () => {
-    const code = otp.join('')
-    if (code.length < OTP_LENGTH) return showError('Enter full OTP')
+  // Step 1: Verify OTP
+  const handleVerifyOtp = async () => {
+    const code = otp.join('');
+    if (code.length < OTP_LENGTH) return showError('Enter full OTP');
+    setLoading(true);
     try {
-      const r = await fetch('http://localhost:3000/auth/authMobile', {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ mobile: form.mobile, otp: code }),
-      })
-      const j = await r.json()
-      if (!r.ok || !j.refreshToken) throw new Error()
-      setStep(STEPS.DETAILS)
+      const res = await verifyOtp(form.mobile, code);
+      if (!res.success || !res.refreshToken) {
+        showError(res.message || 'Invalid OTP');
+        setLoading(false);
+        return;
+      }
+      // Get access token using refresh token
+      const tokenRes = await getAccessToken(res.refreshToken);
+      if (!tokenRes.success || !tokenRes.accessToken) {
+        showError(tokenRes.message || 'Failed to get access token');
+        setLoading(false);
+        return;
+      }
+      localStorage.setItem('accessToken', tokenRes.accessToken);
+      setStep(STEPS.DETAILS);
     } catch {
-        setStep(STEPS.DETAILS)
-      showError('Invalid OTP')
+      showError('Invalid OTP');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  /* ── step 2 submit full form ── */
+  // Step 2: Register alumni
   const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateDetails()) return
-
-    const fd = new FormData()
-    Object.entries(form).forEach(([k, v]) =>
-      v !== null && fd.append(k, v as any)
-    )
-    fd.append('studentType', 'alumni')
-
-    try {
-      await fetch('http://localhost:3000/user/', { method: 'POST', body: fd })
-      router.push('/')
-    } catch {
-      showError('Submission failed')
+    e.preventDefault();
+    if (!validateDetails()) return;
+    setLoading(true);
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      showError('Access token not found. Please verify OTP again.');
+      setLoading(false);
+      return;
     }
-  }
+    try {
+      const user = await getUser(accessToken);
+      const payload = {
+        userId: user.id,
+        rollNo: form.rollNumber,
+        currentCompany: form.company,
+        currentRole: form.role,
+      };
+      const res = await registerAlumni(payload, accessToken);
+      if (!res.success) {
+        showError(res.message || 'Submission failed');
+        setLoading(false);
+        return;
+      }
+      router.push('/');
+    } catch {
+      showError('Submission failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const removeToast = useCallback(
     (id: number) => setErrorList(prev => prev.filter(t => t.id !== id)),
@@ -222,7 +260,6 @@ export default function AlumniRegister() {
           {/* step heading */}
           <h2 className="mb-3 text-center text-3xl font-extrabold">
             {step === STEPS.GENERAL && 'Basic Details'}
-            {step === STEPS.OTP     && 'Verify OTP'}
             {step === STEPS.DETAILS && 'Alumni Details'}
           </h2>
 
@@ -251,18 +288,32 @@ export default function AlumniRegister() {
                   value={form.mobile}
                   onChange={handleChange}
                 />
+                {/*
                 <GlassInput
                   name="alumniCode"
                   placeholder="Alumni Code"
                   value={form.alumniCode}
                   onChange={handleChange}
                 />
+                */}
                 <button
                   type="submit"
-                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 flex items-center justify-center"
+                  disabled={loading}
                 >
+                  {loading ? <span className="loader mr-2"></span> : null}
                   Send OTP
                 </button>
+                <p className="pt-2 text-center text-sm text-white/70">
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => router.push('/login')}
+                    className="font-semibold text-gradient underline"
+                  >
+                    Login
+                  </button>
+                </p>
               </motion.div>
             )}
 
@@ -276,49 +327,18 @@ export default function AlumniRegister() {
                 transition={{ duration: 0.3 }}
                 className="space-y-5"
               >
-                <p className="text-center text-sm">
-                  Enter the {OTP_LENGTH}-digit OTP sent to <strong>{form.mobile}</strong>
-                </p>
-
-                <div className="flex justify-between gap-2">
-                  {otp.map((d, i) => (
-                    <input
-                      key={i}
-                      maxLength={1}
-                      value={d}
-                      onChange={e => handleOtpChange(i, e.target.value)}
-                      ref={(el) => {
-                        otpInputsRef.current[i] = el
-                      }}
-                      className="h-14 w-14 rounded bg-white/25 text-center text-xl text-black"
-                    />
-                  ))}
-                </div>
-
-                <div className="mt-1 flex items-center justify-between text-sm">
-                  <span className="text-gray-200">
-                    {timer > 0 ? `Resend OTP in ${timer}s` : 'Didn’t get it?'}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={timer > 0}
-                    onClick={async () => {
-                      await sendOtp()
-                      setTimer(OTP_TIMEOUT)
-                    }}
-                    className={timer > 0 ? 'cursor-not-allowed opacity-50' : 'text-blue-400'}
-                  >
-                    Resend OTP
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={verifyOtp}
-                  className="w-full rounded-md bg-green-600 py-3 font-semibold transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
-                >
-                  Verify OTP
-                </button>
+                <OtpVerification
+                  mobile={form.mobile}
+                  otp={otp}
+                  onOtpChange={handleOtpChange}
+                  onVerify={handleVerifyOtp}
+                  onResend={() => sendOtp(form.mobile)}
+                  loading={loading}
+                  timer={timer}
+                  description={`Enter the 4-digit OTP sent to ${form.mobile}`}
+                  verifyButtonText="Verify OTP"
+                  resendButtonText="Resend OTP"
+                />
               </motion.div>
             )}
 
@@ -353,24 +373,13 @@ export default function AlumniRegister() {
                   value={form.role}
                   onChange={handleChange}
                 />
-
-                {/* Photo upload */}
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
-                    <ImageIcon size={18} />
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFile}
-                    className="block w-full cursor-pointer rounded-md bg-white/10 py-3 pl-10 pr-4 text-sm text-white file:border-0 file:bg-transparent file:text-white/70 placeholder:text-white/50 backdrop-blur-md"
-                  />
-                </div>
-
+                {/* Photo upload removed */}
                 <button
                   type="submit"
-                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 flex items-center justify-center"
+                  disabled={loading}
                 >
+                  {loading ? <span className="loader mr-2"></span> : null}
                   Submit Registration
                 </button>
               </motion.div>

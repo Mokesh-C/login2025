@@ -17,6 +17,8 @@ import {
 import type { Easing } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import ToastCard from '@/components/ToastCard';
+import { getUser, refreshAccessToken } from '@/services/user';
+import { logout as logoutService } from '@/services/auth';
 
 interface Transaction {
   id: string;
@@ -96,17 +98,11 @@ const Profile: React.FC = () => {
           router.push('/login');
           return;
         }
-  
-        // Step: Get user data using access token with Axios
-        const userRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        setUserData(userRes.data);
+
+        // Use service function to get user data
+        const user = await getUser(accessToken);
+        setUserData(user);
       } catch (err) {
-          
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           const refreshToken = localStorage.getItem('refreshToken');
           if (!refreshToken) {
@@ -115,25 +111,15 @@ const Profile: React.FC = () => {
             router.push('/login');
             return;
           }
-  
+
           try {
-            const accessRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/accessToken`, {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${refreshToken}`,
-              },
-            });
-            const newAccessToken = accessRes.data.accessToken;
+            // Use service function to refresh access token
+            const newAccessToken = await refreshAccessToken(refreshToken);
             localStorage.setItem('accessToken', newAccessToken);
-  
+
             // Retry user data fetch with new token
-            const retryRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/user`, {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${newAccessToken}`,
-              },
-            });
-            setUserData(retryRes.data);
+            const user = await getUser(newAccessToken);
+            setUserData(user);
           } catch (refreshErr) {
             localStorage.removeItem('refreshToken');
             localStorage.removeItem('accessToken');
@@ -169,11 +155,19 @@ const Profile: React.FC = () => {
   };
 
   // Logout handler
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      try {
+        await logoutService(accessToken);
+      } catch (err) {
+        // Optionally handle error, but proceed to clear tokens anyway
+      }
+    }
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('accessToken');
     window.dispatchEvent(new Event('storageChange'));
-    router.push('/login');
+    router.push('/');
   };
 
 //   const renderAboutSection = () => {
@@ -347,7 +341,7 @@ const renderAboutSection = () => {
     >
 
 
-      <div className="max-w-7xl mx-auto px-4 pt-12 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 pt-12 relative">
         {/* Error Toasts */}
         <AnimatePresence>
           {errorList.map((e) => (
@@ -362,7 +356,7 @@ const renderAboutSection = () => {
         </AnimatePresence>
 
         {/* Header */}
-        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-6 -z-40">
+        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">

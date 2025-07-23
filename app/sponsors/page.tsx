@@ -82,7 +82,7 @@ export default function OurSponsors() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.6 }}
-        className="text-base sm:text-lg md:text-xl text-gradient text-center mb-8 sm:mb-10 font-medium"
+        className="text-base sm:text-lg md:text-xl text-gradient text-center my-6 sm:mb-10 font-medium"
       >
         Thank you to our amazing sponsors!
       </motion.p>
@@ -162,7 +162,7 @@ export default function OurSponsors() {
             onClick={() => move(i)}
             aria-label={`Go to sponsor ${SPONSORS[i].name}`}
             className={`h-2 w-2 sm:h-3 sm:w-3 rounded-full transition-all duration-300 ${
-              real === i ? 'bg-white scale-125' : 'bg-gray-400'
+              real === i ? 'bg-[#8b5cf6] scale-125' : 'bg-violet-400'
             }`}
           />
         ))}

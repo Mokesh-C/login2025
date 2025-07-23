@@ -77,7 +77,7 @@ export default function EventsSlider() {
                 <p className="mt-2 text-base md:text-lg leading-relaxed">{e.tagline}</p>
                 <button
                   onClick={() => router.push(`/events/${slug}`)}
-                  className="mt-4 bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-2 px-5 md:px-6 rounded-md hover:shadow-purple-500/25"
+                  className="mt-4 bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-2 px-5 md:px-6 rounded-md hover:shadow-purple-500/25 z-30"
                 >
                   Explore More
                 </button>
@@ -91,7 +91,7 @@ export default function EventsSlider() {
               <div className="w-full md:w-1/2 flex justify-center items-center ">
               <button
                 onClick={prev}
-                className=" -translate-y-1/2 text-[50px] md:text-[100px] font-bold opacity-30 transition-opacity hover:opacity-100"
+                className=" -translate-y-1/2 text-[50px] md:text-[100px] font-bold opacity-30 transition-opacity hover:opacity-100 z-30"
             >
                 &lt;
               </button>
@@ -99,7 +99,7 @@ export default function EventsSlider() {
               <div className="w-full md:w-1/2 flex text-center md:text-left justify-center ">
               <button
                 onClick={next}
-                className="-translate-y-1/2 text-[50px] md:text-[100px] font-bold opacity-30 transition-opacity hover:opacity-100"
+                className="-translate-y-1/2 text-[50px] md:text-[100px] font-bold opacity-30 transition-opacity hover:opacity-100 z-30"
             >
                 &gt;
               </button>
@@ -112,7 +112,7 @@ export default function EventsSlider() {
       
       {/* Rotating image wheel */}
       <div
-        className="absolute left-1/2 bottom-[-28%] md:bottom-[-45%] aspect-square w-[800px] md:w-[1100px] -translate-x-1/2 translate-y-1/2 rounded-full  outline-3 outline-dashed outline-white/30 transition-transform duration-500 outline-offset-[-100px]"
+        className="absolute left-1/2 bottom-[-28%] md:bottom-[-45%] aspect-square w-[800px] md:w-[1100px] -translate-x-1/2 translate-y-1/2 rounded-full  outline-3 outline-dashed outline-white/30 transition-transform duration-500 outline-offset-[-100px] z-10 pointer-events-none"
         style={{ transform: `translate(-50%,50%) rotate(${rotateDeg}deg)` }}
       >
         {events.map((e, i) => (

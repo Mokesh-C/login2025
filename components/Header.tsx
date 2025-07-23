@@ -3,21 +3,23 @@
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, Home, Calendar, Users, LogIn, ChevronRight, User, LogOut } from 'lucide-react'
+import { Menu, X, Home, Calendar, Clock, Users, Handshake, GraduationCap, LogIn, ChevronRight, User, LogOut } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
+import { logout as logoutService } from '@/services/auth';
 
 type NavItem = 
   | { id: 'home'; label: string; icon: React.ComponentType<any>; href?: never }
-  | { id: 'events' | 'timeline' | 'teams' | 'sponsors'; label: string; icon: React.ComponentType<any>; href: string }
+  | { id: 'events' | 'timeline' | 'teams' | 'sponsors' | 'alumni'; label: string; icon: React.ComponentType<any>; href: string }
 
 const navItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'events', label: 'Events', icon: Calendar, href: '/events' },
-  { id: 'timeline', label: 'Timeline', icon: Calendar, href: '/timeline' },
+  { id: 'timeline', label: 'Timeline', icon: Clock, href: '/timeline' },
   { id: 'teams', label: 'Teams', icon: Users, href: '/teams' },
-  { id: 'sponsors', label: 'Sponsors', icon: Users, href: '/sponsors' },
+  { id: 'sponsors', label: 'Sponsors', icon: Handshake, href: '/sponsors' },
+  { id: 'alumni', label: 'Alumni', icon: GraduationCap, href: '/alumni' },
 ]
 
 export default function Header() {
@@ -61,13 +63,21 @@ export default function Header() {
   }, [])
 
   // Handle logout
-  const handleLogout = () => {
-    localStorage.removeItem('refreshToken')
+  const handleLogout = async () => {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      try {
+        await logoutService(accessToken);
+      } catch (err) {
+        // Optionally handle error, but proceed to clear tokens anyway
+      }
+    }
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('accessToken');
-    setIsLoggedIn(false)
-    setProfileOpen(false)
-    window.dispatchEvent(new Event('storageChange'))
-    router.push('/login')
+    setIsLoggedIn(false);
+    setProfileOpen(false);
+    window.dispatchEvent(new Event('storageChange'));
+    router.push('/');
   }
 
   /* ── Home-button behaviour ────────────────────────────── */
@@ -84,7 +94,7 @@ export default function Header() {
     item.id === 'home' ? pathname === '/' : pathname.startsWith(item.href!)
 
   /* ── shared styles ────────────────────────────────────── */
-  const base = 'relative flex items-center gap-2 px-3 py-2 rounded-t-md transition-colors duration-300'
+  const base = 'relative flex items-center gap-2 px-2 py-2 rounded-t-md transition-colors duration-300'
   const active = 'bg-gradient-to-t from-accent/60 to-transparent text-neutral-white font-semibold border-b-4 border-violet-500'
   const inactive = 'text-neutral-muted hover:text-neutral-white'
 
@@ -105,16 +115,16 @@ export default function Header() {
           h-20
         `}
       >
-        <div className="w-full md:max-w-[95%] mx-auto px-5 sm:px-6 lg:px-8 font-ui flex items-center justify-between h-full">
+        <div className="w-full xl:max-w-[95%] mx-auto px-5 sm:px-6 lg:px-8 font-ui flex items-center justify-between h-full">
           <button onClick={scrollHome} className="flex items-center gap-2">
-            <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline">
+            <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline px-2">
               LOGIN 2025
             </span>
             <span className="text-xl pl-2 font-bold tracking-wide sm:hidden">
               LOGIN 2025
             </span>
           </button>
-          <nav className="hidden lg:flex flex-1 justify-center font-montserrat gap-6">
+          <nav className="hidden lg:flex flex-1 justify-center font-montserrat gap-2 xl:gap-8">
             {navItems.map((item) =>
               item.id === 'home' ? (
                 <button
@@ -292,7 +302,7 @@ export default function Header() {
         <div className={clsx(
           'mx-auto transition-all duration-300 pointer-events-auto',
           isScrolled
-            ? 'max-w-[90%] w-[95%] p-[2px] rounded-lg bg-gradient-to-r from-stale-950/[0.2] to-violet-950/[0.05] via-80% backdrop-blur-2xl border sm:border-2 border-violet-50/[0.2]'
+            ? 'w-[95%] p-[2px] rounded-lg bg-gradient-to-r from-stale-950/[0.2] to-violet-950/[0.05] via-80% backdrop-blur-2xl border sm:border-2 border-violet-50/[0.2]'
             : 'max-w-7xl w-full'
         )}>
           <div className={clsx(
@@ -300,14 +310,14 @@ export default function Header() {
             isScrolled ? 'h-16 bg-gradient-to-r from-stale-950/[0.2] to-violet-950/[0.05] via-80% backdrop-blur-2xl rounded-[inherit] px-6' : 'h-20 px-4 sm:px-6 lg:px-8'
           )}>
             <button onClick={scrollHome} className="flex items-center gap-2">
-              <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline">
+              <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline px-2">
                 LOGIN 2025
               </span>
               <span className="text-xl pl-2 font-bold tracking-wide sm:hidden">
                 LOGIN 2025
               </span>
             </button>
-            <nav className="hidden lg:flex flex-1 justify-center font-montserrat gap-6">
+            <nav className="hidden lg:flex flex-1 justify-center font-montserrat xl:gap-5">
               {navItems.map((item) =>
                 item.id === 'home' ? (
                   <button
@@ -346,7 +356,7 @@ export default function Header() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-md shadow-lg border border-white/10"
+                        className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-md shadow-lg border border-white/10 "
                       >
                         <Link
                           href="/profile"

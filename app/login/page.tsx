@@ -7,6 +7,8 @@ import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
 import { X } from 'lucide-react'
 import axios from 'axios';
+import { sendOtp, verifyOtp, getAccessToken } from '@/services/auth';
+import OtpVerification from '@/components/OtpVerification';
 
 /* ------------------------------------------------------------------
  * Constants & types
@@ -29,6 +31,8 @@ export default function LoginPage() {
   const [timer, setTimer]         = useState(OTP_TIMEOUT)
   const [errorList, setErrorList] = useState<ErrorMessage[]>([])
   const [errorId, setErrorId]     = useState(0)
+  const [loading, setLoading] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
 
   /* ---------------- Refs & router -------- */
   const otpInputsRef = useRef<HTMLInputElement[]>([])
@@ -76,26 +80,21 @@ export default function LoginPage() {
   /* ---------------- Handlers ------------- */
   const handleSendOtp = async () => {
     if (!validateMobile()) return;
-  
+    setLoading(true);
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/sendMobileOTP`, {
-        mobile,
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = res.data;
-  
-      if (res.status !== 200) {
-        showError(data?.message || 'Failed to send OTP');
+      const res = await sendOtp(mobile);
+      if (!res.success) {
+        showError(res.message || 'Failed to send OTP');
+        setLoading(false);
         return;
       }
-  
       showSuccess('OTP sent successfully');
       setIsOtpSent(true);
       setTimer(OTP_TIMEOUT);
-    } catch (err) {
-      const error = axios.isAxiosError(err) ? err.response?.data?.message || err.message : 'Failed to send OTP';
-      showError(error);
+    } catch {
+      showError('Failed to send OTP');
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -109,57 +108,36 @@ export default function LoginPage() {
     if (val && i < OTP_LENGTH - 1) otpInputsRef.current[i + 1]?.focus()
   }
 
-  const verifyOtp = async () => {
+  const handleVerifyOtp = async () => {
     const code = otp.join('');
     if (code.length < OTP_LENGTH) {
       showError('Enter the full 4-digit OTP');
       return;
     }
-  
+    setOtpLoading(true);
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/authMobile`, {
-        mobile,
-        otp: code,
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = res.data;
-  
-      if (res.status !== 200 || !data.refreshToken) {
-        showError(data?.message || 'Invalid OTP or login failed');
+      const res = await verifyOtp(mobile, code);
+      if (!res.success || !res.refreshToken) {
+        showError(res.message || 'Invalid OTP or login failed');
+        setOtpLoading(false);
         return;
       }
-  
-      const refreshToken = data.refreshToken;
-      localStorage.setItem('refreshToken', refreshToken);
-  
+      localStorage.setItem('refreshToken', res.refreshToken);
       // Fetch access token using refresh token
-      const accessRes = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/accessToken`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${refreshToken}`,
-        },
-      });
-  
-      if (accessRes.status !== 200) {
-        showError(accessRes.data?.message || 'Failed to get access token');
+      const accessRes = await getAccessToken(res.refreshToken);
+      if (!accessRes.success || !accessRes.accessToken) {
+        showError(accessRes.message || 'Failed to get access token');
+        setOtpLoading(false);
         return;
       }
-  
-      const accessData = accessRes.data;
-      const accessToken = accessData.accessToken;
-      if (!accessToken) {
-        showError('Access token not received from server');
-        return;
-      }
-      localStorage.setItem('accessToken', accessToken);
-  
+      localStorage.setItem('accessToken', accessRes.accessToken);
       window.dispatchEvent(new Event('storageChange'));
       showSuccess('Login successful');
       router.push('/');
-    } catch (err) {
-      const error = axios.isAxiosError(err) ? err.response?.data?.message || err.message : 'Invalid OTP or login failed';
-      showError(error);
+    } catch {
+      showError('Invalid OTP or login failed');
+    } finally {
+      setOtpLoading(false);
     }
   };
   
@@ -206,7 +184,9 @@ export default function LoginPage() {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="w-full max-w-md space-y-6 rounded-md border border-white/10 bg-white/10 p-8 backdrop-blur-xl shadow-2xl"
         >
+          {!isOtpSent && (
           <h2 className="text-center text-3xl font-extrabold">Login</h2>
+          )}
 
           {/* ------------- Step 1: Mobile number ------------- */}
           {!isOtpSent ? (
@@ -218,62 +198,36 @@ export default function LoginPage() {
                 placeholder="Enter Mobile Number"
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
+                disabled={loading}
               />
               <button
                 onClick={handleSendOtp}
-                className="w-full rounded-md bg-accent py-3 font-semibold hover:bg-accent-hover"
+                className="w-full rounded-md bg-accent py-3 font-semibold hover:bg-accent-hover flex items-center justify-center"
+                disabled={loading}
               >
+                {loading ? <span className="loader mr-2"></span> : null}
                 Send OTP
               </button>
             </>
           ) : (
-            /* ------------- Step 2: OTP -------------------- */
-            <>
-              <p className="text-center text-sm">
-                Enter the 4‑digit OTP sent to <strong>{mobile}</strong>
-              </p>
-
-              <div className="flex justify-between gap-2">
-                {otp.map((digit, i) => (
-                  <input
-                    key={i}
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(i, e.target.value)}
-                    ref={(el) => {
-                      otpInputsRef.current[i] = el!
-                    }}
-                    className="h-14 w-14 rounded bg-white text-center text-xl text-black"
-                  />
-                ))}
-              </div>
-
-              <div className="mt-1 flex items-center justify-between text-sm">
-                <span className="text-gray-200">
-                  {timer > 0 ? `Resend OTP in ${timer}s` : 'Didn’t get it?'}
-                </span>
-                <button
-                  type="button"
-                  disabled={timer > 0}
-                  className={timer > 0 ? 'cursor-not-allowed opacity-50' : 'text-blue-400'}
-                  onClick={handleSendOtp}
-                >
-                  Resend OTP
-                </button>
-              </div>
-
-              <button
-                onClick={verifyOtp}
-                className="w-full rounded-md bg-green-600 py-3 font-semibold hover:bg-green-700"
-              >
-                Verify OTP &amp; Login
-              </button>
-            </>
+            <OtpVerification
+              mobile={mobile}
+              otp={otp}
+              onOtpChange={handleOtpChange}
+              onVerify={handleVerifyOtp}
+              onResend={handleSendOtp}
+              loading={otpLoading}
+              timer={timer}
+              description={`Enter the 4-digit OTP sent to ${mobile}`}
+              verifyButtonText="Verify OTP & Login"
+              resendButtonText="Resend OTP"
+            />
           )}
 
           {/* --------- Account prompt --------- */}
+          {!isOtpSent && (
           <p className="pt-2 text-center text-sm text-white/70">
-           Don't have an account yet ? {' '}
+              Don't have an account yet ?{' '}
             <button
               type="button"
               onClick={() => router.push('/register')}
@@ -282,6 +236,7 @@ export default function LoginPage() {
               Register
             </button>
           </p>
+          )}
         </motion.div>
       </div>
     </div>

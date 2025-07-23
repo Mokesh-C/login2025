@@ -3,122 +3,144 @@ import axios from 'axios';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Create user
-export const createUser = async (data: {
-  name: string;
-  mobile: string;
-  email: string;
-  gender: string;
-}): Promise<{ success: boolean; message?: string }> => {
+// Send OTP for login
+export const sendOtp = async (mobile: string): Promise<{ success: boolean; message?: string }> => {
   try {
-    const res = await axios.post(`${API_BASE}/user`, data);
+    await axios.post(`${API_BASE}/auth/sendMobileOTP`, { mobile });
     return { success: true };
   } catch (err: any) {
     return {
       success: false,
-      message: err.response?.data?.message || 'User creation failed',
+      message: err.response?.data?.message || 'Failed to send OTP',
     };
   }
 };
 
-// Send OTP
-export const requestOtp = async (mobile: string): Promise<{ success: boolean; message?: string }> => {
+// Verify OTP for login
+export const verifyOtp = async (mobile: string, otp: string): Promise<{ success: boolean; message?: string; refreshToken?: string }> => {
   try {
-    const res = await axios.post(`${API_BASE}/auth/sendMobileOTP`, { mobile });
+    const res = await axios.post(`${API_BASE}/auth/authMobile`, { mobile, otp });
+    return { success: true, refreshToken: res.data.refreshToken };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.response?.data?.message || 'OTP verification failed',
+    };
+  }
+};
+
+// Get access token using refresh token
+export const getAccessToken = async (refreshToken: string): Promise<{ success: boolean; message?: string; accessToken?: string }> => {
+  try {
+    const res = await axios.get(`${API_BASE}/auth/accessToken`, {
+      headers: { Authorization: `Bearer ${refreshToken}` },
+    });
+    return { success: true, accessToken: res.data.accessToken };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err.response?.data?.message || 'Failed to get access token',
+    };
+  }
+};
+
+// Register participant after OTP verification
+export const registerParticipant = async (formData: FormData): Promise<{ success: boolean; message?: string }> => {
+  try {
+    await axios.post(`${API_BASE}/user/participant`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return { success: true };
   } catch (err: any) {
     return {
       success: false,
-      message: err.response?.data?.message || 'OTP send failed',
+      message: err.response?.data?.message || 'Registration failed',
     };
   }
 };
 
-
-// Resend OTP
-export const resendOtp = async (mobile: string): Promise<{ success: boolean; message?: string }> => {
+// Create user with name and mobile
+export const createUser = async (name: string, mobile: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      await axios.post(`${API_BASE}/auth/resendMobileOTP`, { mobile });
+    await axios.post(`${API_BASE}/user/`, { name, mobile });
       return { success: true };
     } catch (err: any) {
       return {
         success: false,
-        message: err.response?.data?.message || 'OTP resend failed',
+      message: err.response?.data?.message || 'Failed to create user',
       };
     }
 };
   
-// Verify OTP and get tokens
-export const verifyOtp = async (mobile: string, otp: string): Promise<{
-    success: boolean;
-    message?: string;
-    refreshToken?: string;
-  }> => {
+// Update user profile after OTP verification
+export const updateUser = async (
+  data: { email: string; gender: string; avatarUrl: string; accommodation: number; foodPreference: string },
+  accessToken: string
+): Promise<{ success: boolean; message?: string }> => {
     try {
-      const res = await axios.post(`${API_BASE}/auth/authMobile`, {
-        mobile,
-        otp,
-      });
-  
-      console.log("🔐 OTP Verified Response:", res.data);
-  
-      return {
-        success: true,
-        refreshToken: res.data.refreshToken,
-      };
+    await axios.patch(`${API_BASE}/user/`, data, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return { success: true };
     } catch (err: any) {
-      console.error("❌ OTP Verify Error:", err.response?.data || err.message);
+    console.log(err.response.data.message);
+    
       return {
         success: false,
-        message: err.response?.data?.message || 'OTP verification failed',
+      message: err.response?.data?.message || 'Failed to update user profile',
       };
     }
   };
   
-// Exchange refresh token for access token
-export const getAccessToken = async (refreshToken: string): Promise<{
-    success: boolean;
-    accessToken?: string;
-    message?: string;
-  }> => {
+// Register student after OTP verification
+export const registerStudent = async (
+  data: { college: string; field: string; programme: string; year: string },
+  accessToken: string
+): Promise<{ success: boolean; message?: string }> => {
     try {
-      const res = await axios.get(`${API_BASE}/auth/accessToken`, {
+    await axios.post(`${API_BASE}/student`, data, {
         headers: {
-          Authorization: `Bearer ${refreshToken}`,
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
         },
       });
-      return {
-        success: true,
-        accessToken: res.data.accessToken,
-      };
+    return { success: true };
     } catch (err: any) {
       return {
         success: false,
-        message: err.response?.data?.message || 'Access token fetch failed',
+      message: err.response?.data?.message || 'Failed to register student',
       };
     }
   };
   
-  
-  
-// Submit full participant registration
-export const submitParticipant = async (
-    formData: FormData,
+export const registerAlumni = async (
+  data: { userId: number; rollNo: string; currentCompany: string; currentRole: string },
     accessToken: string
   ): Promise<{ success: boolean; message?: string }> => {
     try {
-      await axios.post(`${API_BASE}/student`, formData, {
+    await axios.post(`${API_BASE}/alumni/`, data, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
         },
       });
       return { success: true };
     } catch (err: any) {
       return {
         success: false,
-        message: err.response?.data?.message || 'Form submission failed',
+      message: err.response?.data?.message || 'Alumni registration failed',
       };
     }
   };
+
+export const logout = async (accessToken: string) => {
+  await axios.delete(`${API_BASE}/auth/logout`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+};
   

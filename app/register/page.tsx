@@ -19,8 +19,8 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
-import { createUser, requestOtp, resendOtp } from '@/services/auth';
-import { verifyOtp as verifyOtpService, getAccessToken , submitParticipant} from '@/services/auth';
+import { sendOtp, verifyOtp, registerParticipant, createUser, getAccessToken, updateUser, registerStudent } from '@/services/auth';
+import OtpVerification from '@/components/OtpVerification';
 
 
 /* ─── constants ─── */
@@ -37,17 +37,17 @@ export default function ParticipantRegister() {
   const [form, setForm] = useState({
     /* step‑0 */
     name          : '',
-    email         : '',
     mobile        : '',
-    gender        : '',
     /* step‑2 */
+    email         : '',
+    gender        : '',
     college       : '',
     degree        : '',
     specialization: '',
     year          : '',
     foodPreference: '',
     accommodation : '',
-    photo         : null as File | null,
+    photo         : '', // now a string for ID card URL
   })
 
   /* ---------- other state ---------- */
@@ -58,6 +58,7 @@ export default function ParticipantRegister() {
   const [timer, setTimer]           = useState(OTP_TIMEOUT)
   const [errorList, setErrorList]   = useState<ErrorMessage[]>([])
   const [errorId,  setErrorId]      = useState(0)
+  const [loading, setLoading] = useState(false);
 
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([])
   const router       = useRouter()
@@ -101,30 +102,30 @@ export default function ParticipantRegister() {
   
   /* ── validation per step ── */
   const validateGeneral = () => {
-    const { name, email, mobile, gender } = form
-    let ok = true
-    if (!name.trim())  showError('Name is required'),                        ok = false
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRe.test(email)) showError('Invalid email'),                 ok = false
-    if (!/^\d{10}$/.test(mobile)) showError('Mobile must be 10 digits'),   ok = false
-    if (!gender)            showError('Select gender'),                      ok = false
-    return ok
+    const { name, mobile } = form;
+    let ok = true;
+    if (!name.trim())  showError('Name is required'), ok = false;
+    if (!/^\d{10}$/.test(mobile)) showError('Mobile must be 10 digits'), ok = false;
+    return ok;
   }
 
   const validateDetails = () => {
     const {
-      college, degree, specialization,
+      email, gender, college, degree, specialization,
       year, foodPreference, accommodation, photo,
-    } = form
-    let ok = true
-    if (!college.trim())        showError('College name is required'),       ok = false
-    if (!degree)               showError('Select degree'),                  ok = false
-    if (!specialization.trim()) showError('Specialization required'),       ok = false
-    if (!year)                 showError('Select year'),                    ok = false
-    if (!foodPreference)       showError('Select food preference'),         ok = false
-    if (!accommodation)        showError('Select accommodation'),           ok = false
-    if (!photo)                showError('Photo upload required'),          ok = false
-    return ok
+    } = form;
+    let ok = true;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email)) showError('Invalid email'), ok = false;
+    if (!gender) showError('Select gender'), ok = false;
+    if (!college.trim()) showError('College name is required'), ok = false;
+    if (!degree) showError('Select degree'), ok = false;
+    if (!specialization.trim()) showError('Specialization required'), ok = false;
+    if (!year) showError('Select year'), ok = false;
+    if (!foodPreference) showError('Select food preference'), ok = false;
+    if (!accommodation) showError('Select accommodation'), ok = false;
+    if (!photo) showError('Photo upload required'), ok = false;
+    return ok;
   }
 
   /* ── input handlers ── */
@@ -141,9 +142,6 @@ export default function ParticipantRegister() {
     }
   }
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(prev => ({ ...prev, photo: e.target.files?.[0] ?? null }))
-
   /* ── OTP handling ── */
   const handleOtpChange = (idx: number, val: string) => {
     if (!/^\d?$/.test(val)) return
@@ -153,125 +151,127 @@ export default function ParticipantRegister() {
     if (val && idx < OTP_LENGTH - 1) otpInputsRef.current[idx + 1]?.focus()
   }
 
-  const sendOtp = async (): Promise<void> => {
+  /* ── step 0 submit → create user and send OTP ── */
+  const handleGeneralSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateGeneral()) return;
+    setLoading(true);
     try {
-      const userRes = await createUser({
-        name: form.name,
-        mobile: form.mobile,
-        email: form.email,
-        gender: form.gender,
-      });
-      
-    console.log(userRes);
-    
+      const userRes = await createUser(form.name, form.mobile);
       if (!userRes.success) {
         showError(userRes.message || 'Failed to create user');
+        setLoading(false);
         return;
       }
-  
-      const otpRes = await requestOtp(form.mobile);
-  
+      const otpRes = await sendOtp(form.mobile);
       if (!otpRes.success) {
         showError(otpRes.message || 'Failed to send OTP');
+        setLoading(false);
         return;
       }
-  
       showSuccess('OTP sent successfully');
       setTimer(OTP_TIMEOUT);
       setStep(STEPS.OTP);
-    } catch (err) {
-      showError('Unexpected error occurred. Please try again.');
+    } catch {
+      showError('Failed to create user or send OTP');
+    } finally {
+      setLoading(false);
     }
   };
-  
-  
-
-  /* ── step 0 submit → send OTP ── */
-  const handleGeneralSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateGeneral()) return
-    try {
-      await sendOtp()
-      setTimer(OTP_TIMEOUT)
-      setStep(STEPS.OTP)
-    } catch {
-      showError('Failed to send OTP')
-    }
-  }
 
   /* ── step 1 verify OTP ── */
-  const verifyOtp = async () => {
+  const handleVerifyOtp = async () => {
     const code = otp.join('');
     if (code.length < OTP_LENGTH) {
       showError('Enter full OTP');
       return;
     }
-  
+    setLoading(true);
     try {
-      // Step 1: Verify OTP
-      const res = await verifyOtpService(form.mobile, code);
+      const res = await verifyOtp(form.mobile, code);
       if (!res.success || !res.refreshToken) {
         showError(res.message || 'OTP verification failed');
+        setLoading(false);
         return;
       }
-  
       showSuccess('OTP verified');
-  
-      // Step 2: Get Access Token
+      // Get access token
       const tokenRes = await getAccessToken(res.refreshToken);
       if (!tokenRes.success || !tokenRes.accessToken) {
         showError(tokenRes.message || 'Failed to get access token');
+        setLoading(false);
         return;
       }
-  
-      // Optional: Store tokens
-      localStorage.setItem('accessToken', tokenRes.accessToken);
+      // Store tokens in localStorage
       localStorage.setItem('refreshToken', res.refreshToken);
-  
-      // Step 3: Proceed to next step
+      localStorage.setItem('accessToken', tokenRes.accessToken);
       setStep(STEPS.DETAILS);
-    } catch (error) {
-      showError('Unexpected error occurred');
+    } catch {
+      showError('OTP verification failed');
+    } finally {
+      setLoading(false);
     }
   };
+
   /* ── step 2 submit full form ── */
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
     if (!validateDetails()) return;
-  
-    const fd = new FormData();
-    Object.entries(form).forEach(([key, val]) => {
-      if (val !== null) {
-        fd.append(key, val as any);
-      }
-    });
-    fd.append('studentType', 'participant');
-  
-      const token = localStorage.getItem('accessToken');
-      console.log(token);
-      
-    if (!token) {
+    setLoading(true);
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
       showError('Access token not found. Please verify OTP again.');
-      setStep(STEPS.GENERAL);
+      setLoading(false);
       return;
     }
-  
-    const res = await submitParticipant(fd, token);
-    if (!res.success) {
-      showError(res.message || 'Registration failed');
-      return;
+    // Prepare user update payload
+    const userPayload = {
+      email: form.email,
+      gender: form.gender,
+      avatarUrl: form.photo, // now a URL string
+      accommodation: Number(form.accommodation),
+      foodPreference: form.foodPreference,
+    };
+    // Prepare student registration payload
+    const studentPayload = {
+      college: form.college,
+      field: form.specialization,
+      programme: form.degree,
+      year: form.year,
+    };
+    try {
+      // Update user profile
+      const userRes = await updateUser(userPayload, accessToken);
+      if (!userRes.success) {
+        showError(userRes.message || 'Failed to update user profile');
+        setLoading(false);
+        return;
+      }
+      // Register student
+      const studentRes = await registerStudent(studentPayload, accessToken);
+      if (!studentRes.success) {
+        showError(studentRes.message || 'Failed to register student');
+        setLoading(false);
+        return;
+      }
+      showSuccess('Registration successful!');
+      setTimeout(() => router.push('/'), 1200);
+    } catch {
+      showError('Registration failed');
+    } finally {
+      setLoading(false);
     }
-    console.log(res);
-    
-    showSuccess('Registered successfully!');
-    router.push('/');
   };
 
   const removeToast = useCallback(
     (id: number) => setErrorList(prev => prev.filter(t => t.id !== id)),
     []
   )
+
+  // Wrapper for OTP resend to match OtpVerification signature
+  const handleResendOtp = async () => {
+    await handleGeneralSubmit({ preventDefault: () => {} } as React.FormEvent);
+  };
 
   /* ─── UI ─── */
   return (
@@ -300,7 +300,8 @@ export default function ParticipantRegister() {
                 onClose={() => removeToast(e.id)}
                 textColor={
                     e.message.toLowerCase().includes('otp sent') ||
-                    e.message.toLowerCase().includes('success')
+                    e.message.toLowerCase().includes('success') ||
+                    e.message.toLowerCase().includes('verified')
                     ? 'text-green-400'
                     : 'text-red-500'
                 }
@@ -345,13 +346,7 @@ export default function ParticipantRegister() {
                   placeholder="Full Name"
                   value={form.name}
                   onChange={handleChange}
-                />
-                <GlassInput
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  value={form.email}
-                  onChange={handleChange}
+                  disabled={loading}
                 />
                 <GlassInput
                   name="mobile"
@@ -360,18 +355,14 @@ export default function ParticipantRegister() {
                   placeholder="Mobile Number"
                   value={form.mobile}
                   onChange={handleChange}
-                />
-                <GlassSelect
-                  name="gender"
-                  value={form.gender}
-                  onChange={handleChange}
-                  options={['Male', 'Female', 'Other']}
-                  placeholder="Select Gender"
+                  disabled={loading}
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 flex items-center justify-center"
+                  disabled={loading}
                 >
+                  {loading ? <span className="loader mr-2"></span> : null}
                   Send OTP
                 </button>
               </motion.div>
@@ -387,55 +378,18 @@ export default function ParticipantRegister() {
                 transition={{ duration: 0.3 }}
                 className="space-y-5"
               >
-                <p className="text-center text-sm">
-                  Enter the {OTP_LENGTH}-digit OTP sent to <strong>{form.mobile}</strong>
-                </p>
-
-                <div className="flex justify-between gap-2">
-                  {otp.map((d, i) => (
-                    <input
-                      key={i}
-                      maxLength={1}
-                      value={d}
-                      onChange={e => handleOtpChange(i, e.target.value)}
-                      ref={(el) => {
-                        otpInputsRef.current[i] = el
-                      }}
-                      className="h-14 w-14 rounded bg-white/25 text-center text-xl text-black"
-                    />
-                  ))}
-                </div>
-
-                <div className="mt-1 flex items-center justify-between text-sm">
-                  <span className="text-gray-200">
-                    {timer > 0 ? `Resend OTP in ${timer}s` : 'Didn’t get it?'}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={timer > 0}
-                    onClick={async () => {
-                        const otpRes = await resendOtp(form.mobile);
-                        if (otpRes.success) {
-                        showSuccess('OTP resent successfully');
-                        setTimer(OTP_TIMEOUT);
-                        } else {
-                        showError(otpRes.message || 'Failed to resend OTP');
-                        }
-                    }}
-                    className={timer > 0 ? 'cursor-not-allowed opacity-50' : 'text-blue-400'}
-                    >
-                    Resend OTP
-                </button>
-
-                </div>
-
-                <button
-                  type="button"
-                  onClick={verifyOtp}
-                  className="w-full rounded-md bg-green-600 py-3 font-semibold transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2"
-                >
-                  Verify OTP
-                </button>
+                <OtpVerification
+                  mobile={form.mobile}
+                  otp={otp}
+                  onOtpChange={handleOtpChange}
+                  onVerify={handleVerifyOtp}
+                  onResend={handleResendOtp}
+                  loading={loading}
+                  timer={timer}
+                  description={`Enter the 4-digit OTP sent to ${form.mobile}`}
+                  verifyButtonText="Verify OTP"
+                  resendButtonText="Resend OTP"
+                />
               </motion.div>
             )}
 
@@ -449,6 +403,22 @@ export default function ParticipantRegister() {
                 transition={{ duration: 0.3 }}
                 className="space-y-5"
               >
+                <GlassInput
+                  name="email"
+                  type="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+                <GlassSelect
+                  name="gender"
+                  value={form.gender}
+                  onChange={handleChange}
+                  options={['Male', 'Female', 'Other']}
+                  placeholder="Select Gender"
+                  disabled={loading}
+                />
                 {/* College autocomplete */}
                 <div className="relative">
                   <GlassInput
@@ -457,6 +427,7 @@ export default function ParticipantRegister() {
                     placeholder="College Name"
                     value={form.college}
                     onChange={handleChange}
+                    disabled={loading}
                   />
                   {suggestions.length > 0 && (
                     <ul className="absolute left-0 top-full z-20 max-h-40 w-full overflow-auto rounded bg-white text-black shadow">
@@ -482,6 +453,7 @@ export default function ParticipantRegister() {
                   onChange={handleChange}
                   options={['M.E.', 'MCA', 'MBA', 'M.Sc.', 'M.Tech.', 'M.Com.', 'M.A.']}
                   placeholder="Select Degree"
+                  disabled={loading}
                 />
 
                 <GlassInput
@@ -489,6 +461,7 @@ export default function ParticipantRegister() {
                   placeholder="Specialization"
                   value={form.specialization}
                   onChange={handleChange}
+                  disabled={loading}
                 />
 
                 <GlassSelect
@@ -497,6 +470,7 @@ export default function ParticipantRegister() {
                   onChange={handleChange}
                   options={['I', 'II', 'III', 'IV']}
                   placeholder="Select Year"
+                  disabled={loading}
                 />
 
                 <GlassSelect
@@ -505,33 +479,33 @@ export default function ParticipantRegister() {
                   onChange={handleChange}
                   options={['VEG', 'NON-VEG']}
                   placeholder="Food Preference"
+                  disabled={loading}
                 />
 
                 <GlassSelect
                   name="accommodation"
                   value={form.accommodation}
                   onChange={handleChange}
-                  options={['YES', 'NO']}
-                  placeholder="Accommodation"
+                  options={['1', '2']}
+                  placeholder="Accommodation (1 or 2)"
+                  disabled={loading}
                 />
 
-                {/* Photo upload */}
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
-                    <ImageIcon size={18} />
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFile}
-                    className="block w-full cursor-pointer rounded-md bg-white/10 py-3 pl-10 pr-4 text-sm text-white file:border-0 file:bg-transparent file:text-white/70 placeholder:text-white/50 backdrop-blur-md"
-                  />
-                </div>
+                {/* ID Card URL input */}
+                <GlassInput
+                  name="photo"
+                  placeholder="ID Card Image URL"
+                  value={form.photo || ''}
+                  onChange={e => setForm(f => ({ ...f, photo: e.target.value }))}
+                  disabled={loading}
+                />
 
                 <button
                   type="submit"
-                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                  className="w-full rounded-md bg-accent py-3 font-semibold transition hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 flex items-center justify-center"
+                  disabled={loading}
                 >
+                  {loading ? <span className="loader mr-2"></span> : null}
                   Submit Registration
                 </button>
               </motion.div>

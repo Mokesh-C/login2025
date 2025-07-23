@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Hero   from '@/components/Hero'
 import About  from '@/components/About'
 import Footer from '@/components/Footer'
-import Profile from '@/components/Profile'
+import FAQ from '@/components/FAQ'
 
 const Section = ({ id, title, bg }: { id: string; title: string; bg: string }) => (
   <motion.section
@@ -37,6 +37,9 @@ export default function Home() {
       <section id="home">
         <About />
       </section>    
+      <section id="faq">
+        <FAQ />
+      </section>
       <Footer />    
       </main>
         
