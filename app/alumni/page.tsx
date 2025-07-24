@@ -62,7 +62,7 @@ const categories = [
 
 export default function AlumniPage() {
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-primary via-primary-100 to-primary py-12 px-4 "> {/*bg-[#e0e5ec]*/}
+    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third py-12 px-4 "> {/*bg-[#e0e5ec]*/}
       <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-10 text-white drop-shadow-sm">
         Our Distinguished Alumni
       </h1>

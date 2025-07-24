@@ -25,6 +25,9 @@ export default {
                     conblue: '#6c63ff',
                     frenchgray: '#b8bac0',
                     mystic: '#e0e5ec',
+                    first:"#1a0e2e",
+                    second:"#2a1a5a",
+                    third:"#2d1e6b"
                 },
                 neutral: {
                     white: '#ffffff',

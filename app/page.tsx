@@ -30,7 +30,7 @@ const Section = ({ id, title, bg }: { id: string; title: string; bg: string }) =
 
 export default function Home() {
   return (
-      <main className="bg-gradient-to-br from-primary via-primary-100 to-primary">
+      <main className="bg-gradient-to-br from-accent-first via-accent-second to-accent-third"> 
       <section id="home">
         <Hero />
       </section>

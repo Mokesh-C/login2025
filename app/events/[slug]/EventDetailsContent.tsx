@@ -141,8 +141,7 @@ export default function EventDetailsContent({
       initial="hidden"
       animate="show"
       variants={stagger}
-      className="relative min-h-screen bg-gradient-to-br
-                 from-primary via-primary-100 to-primary
+      className="relative min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third
                  text-white px-4 pb-24 pt-10 overflow-hidden"
     >
       {/* Toasts */}

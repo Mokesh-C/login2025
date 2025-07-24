@@ -267,7 +267,7 @@ function TeamCard({
 ───────────────────────── */
 export default function TeamsPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary via-primary-100 to-primary flex flex-col items-center py-12">
+    <main className="min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third flex flex-col items-center py-12">
       <h1 className="text-3xl font-extrabold text-[#6c63ff] mb-14 tracking-tight">Meet Our Team</h1>
 
       {/* Office Bearers */}

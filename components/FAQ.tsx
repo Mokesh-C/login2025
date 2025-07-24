@@ -56,9 +56,9 @@ export default function FAQ() {
     <motion.section
       id="faq"
       className="
-        scroll-mt-24 w-full min-h-screen
+        scroll-mt-24 w-full 
         text-neutral-white font-montserrat
-        py-8
+        py-8 mb-16
       "
       variants={parent}
       initial="hidden"
@@ -78,7 +78,7 @@ export default function FAQ() {
             <motion.div
               key={index}
               variants={child}
-              className="bg-white/5 backdrop-blur-sm rounded-lg shadow-md border border-white/10"
+              className="bg-blue-300/5 backdrop-blur-sm rounded-lg shadow-md border border-blue-300/10"
             >
               <button
                 className="w-full flex justify-between items-center p-4 text-left  text-neutral-white"

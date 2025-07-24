@@ -45,17 +45,17 @@ export default function EventsSlider() {
     }, [isPlaying, step]) //[isPlaying, step]
 
   return (
-    <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-gradient-to-br from-primary via-primary-100 to-primary font-mono text-white">
+    <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-gradient-to-br from-accent-first via-accent-second to-accent-third font-mono text-white">
       {/* Orange half overlay */}
       {/* <button onClick={()=> router.push('/')} >&lt; Back</button> */}
-      <div className="absolute inset-y-0 left-0 w-1/2 bg-white/5" />
+      <div className="absolute inset-y-0 left-0 w-1/2 bg-blue-300/10" />
 
       {/* Giant cursive heading */}
       <div className="relative w-full max-w-7xl mx-auto py-4 flex flex-col md:flex-row gap-10 min-h-[400px] items-center justify-center">
 
         {/* Active Image */}
         <div className="w-[80%] md:w-1/2 flex items-center justify-center ">
-          <div key={active} className="w-3/4 flex items-center justify-center bg-white/10 rounded-md animate-fade-in"> 
+          <div key={active} className="w-3/4 flex items-center justify-center bg-blue-300/10 rounded-md animate-fade-in"> 
             <Image
               src={events[active].eventimage}
               alt={events[active].title}
@@ -112,7 +112,7 @@ export default function EventsSlider() {
       
       {/* Rotating image wheel */}
       <div
-        className="absolute left-1/2 bottom-[-28%] md:bottom-[-45%] aspect-square w-[800px] md:w-[1100px] -translate-x-1/2 translate-y-1/2 rounded-full  outline-3 outline-dashed outline-white/30 transition-transform duration-500 outline-offset-[-100px] z-10 pointer-events-none"
+        className="absolute left-1/2 bottom-[-28%] md:bottom-[-45%] aspect-square w-[800px] md:w-[1100px] -translate-x-1/2 translate-y-1/2 rounded-full  outline-3 outline-dashed outline-blue-300/10 transition-transform duration-500 outline-offset-[-100px] z-10 pointer-events-none"
         style={{ transform: `translate(-50%,50%) rotate(${rotateDeg}deg)` }}
       >
         {events.map((e, i) => (
@@ -127,7 +127,7 @@ export default function EventsSlider() {
               width={150}
               height={150}
               sizes="(max-width: 639px) 120px, 120px"
-          className={`rounded-full border-8 md:border-[10px] transition-transform duration-300 ease-in-out w-[110px] h-[110px] sm:w-[120px] sm:h-[120px] md:w-[150px] md:h-[150px] ${i === active ? e.title === "STAR OF LOGIN" ? "border-cyan-300 scale-[1.2]" : "border-violet-500 scale-[1.2]" : "border-white/10"}`}
+          className={`rounded-full border-8 md:border-[10px] transition-transform duration-300 ease-in-out w-[110px] h-[110px] sm:w-[120px] sm:h-[120px] md:w-[150px] md:h-[150px] ${i === active ? e.title === "STAR OF LOGIN" ? "border-cyan-300 scale-[1.2]" : "border-violet-500 scale-[1.2]" : "border-blue-300/10"}`}
           priority={i === 0}
             />
           </div>

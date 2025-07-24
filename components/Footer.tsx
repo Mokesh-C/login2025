@@ -8,7 +8,7 @@ export default function Footer() {
     <footer
       id="footer-section"
       className="        
-        bg-white/5
+        bg-blue-300/5
         backdrop-blur-sm
         shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
         text-neutral-white

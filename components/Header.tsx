@@ -107,7 +107,7 @@ export default function Header() {
         transition={{ duration: 0 }}
         className={`
           w-full z-40
-          bg-gradient-to-br from-primary via-primary-100 to-primary
+          bg-gradient-to-br from-accent-first via-accent-second to-accent-third
           backdrop-blur-lg shadow-md
           text-neutral-white
           transition-all duration-300
@@ -152,7 +152,7 @@ export default function Header() {
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300/10 hover:bg-blue-300/20 transition-colors"
                 >
                   <User className="w-5 h-5" />
                 </button>
@@ -163,18 +163,18 @@ export default function Header() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-md shadow-lg border border-white/10"
+                      className="absolute right-0 mt-2 w-48 bg-blue-300/10 backdrop-blur-xl rounded-md shadow-lg border border-blue-300/10"
                     >
                       <Link
                         href="/profile"
                         onClick={() => setProfileOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-white/20"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-blue-300/20"
                       >
                         <User className="w-4 h-4" /> Profile
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-white/20"
+                        className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-blue-300/20"
                       >
                         <LogOut className="w-4 h-4" /> Logout
                       </button>
@@ -218,7 +218,7 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', stiffness: 260, damping: 25 }}
-              className="fixed top-0 left-0 h-screen w-64 z-50 flex flex-col pt-24 px-6 gap-6 bg-gradient-to-br from-brand-purple via-follow-pink to-brand-cyan backdrop-blur-2xl border-r border-white/10 shadow-lg"
+              className="fixed top-0 left-0 h-screen w-64 z-50 flex flex-col pt-24 px-6 gap-6 bg-gradient-to-br from-brand-purple via-follow-pink to-brand-cyan backdrop-blur-2xl border-r border-blue-300/10 shadow-lg"
             >
               <div className="absolute top-0 left-0 w-full flex items-center justify-between px-6 py-5">
                 <h1 className="text-xl font-extrabold tracking-wide select-none">
@@ -227,7 +227,7 @@ export default function Header() {
                 <button
                   aria-label="Close menu"
                   onClick={() => setMobileOpen(false)}
-                  className="p-2 rounded-md hover:bg-white/10"
+                  className="p-2 rounded-md hover:bg-blue-300/10"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -345,7 +345,7 @@ export default function Header() {
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300/10 hover:bg-blue-300/20 transition-colors"
                   >
                     <User className="w-5 h-5" />
                   </button>
@@ -356,18 +356,18 @@ export default function Header() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-xl rounded-md shadow-lg border border-white/10 "
+                        className="absolute right-0 mt-2 w-48 bg-blue-300/10 backdrop-blur-xl rounded-md shadow-lg border border-blue-300/10"
                       >
                         <Link
                           href="/profile"
                           onClick={() => setProfileOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-white/20"
+                          className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-blue-300/20"
                         >
                           <User className="w-4 h-4" /> Profile
                         </Link>
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-white/20"
+                          className="flex items-center gap-2 px-4 py-2 text-sm w-full text-left hover:bg-blue-300/20"
                         >
                           <LogOut className="w-4 h-4" /> Logout
                         </button>

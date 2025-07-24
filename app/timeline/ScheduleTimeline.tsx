@@ -139,9 +139,9 @@ export default function Timeline() {
                     transition={{ duration: 0.5, delay: 0.05 * seq, type: 'spring', stiffness: 100 }}
                     viewport={{ once: true, amount: 0.2 }}
                   >
-                    <div className="relative rounded-md bg-white/5 p-6 shadow-xl border-l-4 border-violet-400">
+                    <div className="relative rounded-md bg-blue-300/10 p-6 shadow-xl border-l-4 border-violet-400">
                       <div className="flex items-center gap-4 m-2">
-                        <span className="inline-flex items-center justify-center rounded-full bg-white/15 p-3 shadow-lg">
+                        <span className="inline-flex items-center justify-center rounded-full bg-blue-300/10 p-3 shadow-lg">
                           <Icon className="h-6 w-6 text-cyan-400" />
                         </span>
                         <h3 className="text-lg font-bold text-white">{event.title}</h3>

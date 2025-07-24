@@ -68,7 +68,7 @@ export default function OurSponsors() {
   }
 
   return (
-    <section className="w-full min-h-[calc(100vh-5rem)] bg-gradient-to-br from-primary via-primary-100 to-primary text-white overflow-hidden">
+    <section className="w-full min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white overflow-hidden">
       <motion.h2
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
