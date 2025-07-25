@@ -49,10 +49,9 @@ const Profile: React.FC = () => {
     const [pageLoaded, setPageLoaded] = useState(false);
     const [errorList, setErrorList] = useState<ErrorMessage[]>([]);
     const [errorId, setErrorId] = useState(0);
-    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    const { logout: logoutService, user } = useAuth();
+    const { logout: logoutService, user, isLoading } = useAuth();
 
     // Static data for transactions and events (replace with API calls if endpoints provided)
     const transactions: Transaction[] = [
@@ -180,43 +179,56 @@ const Profile: React.FC = () => {
         router.push("/");
     };
 
-    //   const renderAboutSection = () => {
+    // const renderAboutSection = () => {
     //     if (loading) {
-    //       return <p className="text-white/60 text-center">Loading user data...</p>;
+    //         return (
+    //             <p className="text-white/60 text-center">
+    //                 Loading user data...
+    //             </p>
+    //         );
     //     }
     //     if (!user) {
-    //       return <p className="text-white/60 text-center">No user data available</p>;
+    //         return (
+    //             <p className="text-white/60 text-center">
+    //                 No user data available
+    //             </p>
+    //         );
     //     }
     //     // Add null checks for preferences and foodPreference
-    //     const foodPreference = user.preferences?.foodPreference || 'Not specified';
-    //     const accommodation = user.preferences?.accommodation ? 'Yes' : 'No';
+    //     const foodPreference =
+    //         user.preferences?.foodPreference || "Not specified";
+    //     const accommodation = user.preferences?.accommodation ? "Yes" : "No";
 
     //     return (
-    //       <div className="space-y-6">
-    //         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-    //           <div className="space-y-4">
-    //             {[
-    //               { label: 'Name', value: user.name },
-    //               { label: 'Login Id', value: user.id.toString() },
-    //               { label: 'Email', value: user.email },
-    //               { label: 'Phone', value: user.mobile },
-    //               { label: 'Gender', value: user.gender },
-    //               { label: 'Food Preference', value: foodPreference },
-    //               { label: 'Accommodation', value: accommodation },
-    //             ].map((field, index) => (
-    //               <div key={index}>
-    //                 <label className="block text-sm font-medium text-white/60 mb-1">{field.label}</label>
-    //                 <p className="font-medium text-white/90">{field.value}</p>
-    //               </div>
-    //             ))}
-    //           </div>
+    //         <div className="space-y-6">
+    //             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    //                 <div className="space-y-4">
+    //                     {[
+    //                         { label: "Name", value: user.name },
+    //                         { label: "Login Id", value: user.id.toString() },
+    //                         { label: "Email", value: user.email },
+    //                         { label: "Phone", value: user.mobile },
+    //                         { label: "Gender", value: user.gender },
+    //                         { label: "Food Preference", value: foodPreference },
+    //                         { label: "Accommodation", value: accommodation },
+    //                     ].map((field, index) => (
+    //                         <div key={index}>
+    //                             <label className="block text-sm font-medium text-white/60 mb-1">
+    //                                 {field.label}
+    //                             </label>
+    //                             <p className="font-medium text-white/90">
+    //                                 {field.value}
+    //                             </p>
+    //                         </div>
+    //                     ))}
+    //                 </div>
+    //             </div>
     //         </div>
-    //       </div>
     //     );
-    //   };
+    // };
 
     const renderAboutSection = () => {
-        if (loading) {
+        if (isLoading) {
             return (
                 <p className="text-white/60 text-center">
                     Loading user data...
