@@ -9,10 +9,9 @@
    ────────────────────────────────────────────────────────── */
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { School, Image as ImageIcon, X } from "lucide-react";
+import { School, Image as ImageIcon, X, User, Mail, Phone, GraduationCap, BadgeCheck, IdCard } from "lucide-react";
 import Image from "next/image";
 import ToastCard from "@/components/ToastCard";
 import {
@@ -48,9 +47,6 @@ export default function ParticipantRegister() {
         degree: "",
         specialization: "",
         year: "",
-        foodPreference: "",
-        accommodation: "",
-        photo: "", // now a string for ID card URL
     });
 
     /* ---------- other state ---------- */
@@ -127,9 +123,6 @@ export default function ParticipantRegister() {
             degree,
             specialization,
             year,
-            foodPreference,
-            accommodation,
-            photo,
         } = form;
         let ok = true;
         const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -141,9 +134,6 @@ export default function ParticipantRegister() {
         if (!specialization.trim())
             showError("Specialization required"), (ok = false);
         if (!year) showError("Select year"), (ok = false);
-        if (!foodPreference) showError("Select food preference"), (ok = false);
-        if (!accommodation) showError("Select accommodation"), (ok = false);
-        if (!photo) showError("Photo upload required"), (ok = false);
         return ok;
     };
 
@@ -245,34 +235,27 @@ export default function ParticipantRegister() {
             setLoading(false);
             return;
         }
-        // Prepare user update payload
-        const userPayload = {
-            email: form.email,
-            gender: form.gender,
-            avatarUrl: form.photo, // now a URL string
-            accommodation: Number(form.accommodation),
-            foodPreference: form.foodPreference,
-        };
-        // Prepare student registration payload
-        const studentPayload = {
-            college: form.college,
-            field: form.specialization,
-            programme: form.degree,
-            year: form.year,
-        };
         try {
-            // Update user profile
-            const userRes = await updateUser(userPayload, accessToken);
+            // 1. Update user profile (email, gender)
+            const userRes = await updateUser({
+                email: form.email,
+                gender: form.gender,
+                avatarUrl: "", // No avatar at registration
+                accommodation: 0, // Not used
+                foodPreference: "", // Not used
+            }, accessToken);
             if (!userRes.success) {
                 showError(userRes.message || "Failed to update user profile");
                 setLoading(false);
                 return;
             }
-            // Register student
-            const studentRes = await registerStudent(
-                studentPayload,
-                accessToken
-            );
+            // 2. Register student (academic details)
+            const studentRes = await registerStudent({
+                college: form.college,
+                field: form.specialization,
+                programme: form.degree,
+                year: form.year,
+            }, accessToken);
             if (!studentRes.success) {
                 showError(studentRes.message || "Failed to register student");
                 setLoading(false);
@@ -301,7 +284,7 @@ export default function ParticipantRegister() {
 
     /* ─── UI ─── */
     return (
-        <div className="relative flex min-h-screen bg-gradient-to-br from-primary to-primary-100 text-white">
+        <div className="relative flex min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white">
             {/* LEFT promo panel */}
             <div className="hidden md:flex w-1/2 flex-col items-center justify-center px-10">
                 <Image
@@ -353,12 +336,11 @@ export default function ParticipantRegister() {
                     initial={{ opacity: 0, scale: 0.95, y: 40 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="w-full max-w-md overflow-hidden rounded-md border border-white/10 bg-white/10 p-8 backdrop-blur-xl shadow-2xl"
+                    className="w-full max-w-md overflow-hidden rounded-md border border-blue-300/10 bg-blue-300/10 p-8 backdrop-blur-xl shadow-2xl"
                 >
                     {/* step headings */}
                     <h2 className="mb-3 text-center text-3xl font-extrabold">
                         {step === STEPS.GENERAL && "Basic Details"}
-                        {step === STEPS.OTP && "Verify OTP"}
                         {step === STEPS.DETAILS && "Participant Details"}
                     </h2>
 
@@ -438,6 +420,7 @@ export default function ParticipantRegister() {
                                 className="space-y-5"
                             >
                                 <GlassInput
+                                    icon={<Mail size={18} />}
                                     name="email"
                                     type="email"
                                     placeholder="Email"
@@ -464,7 +447,7 @@ export default function ParticipantRegister() {
                                         disabled={loading}
                                     />
                                     {suggestions.length > 0 && (
-                                        <ul className="absolute left-0 top-full z-20 max-h-40 w-full overflow-auto rounded bg-white text-black shadow">
+                                        <ul className="absolute left-0 top-full z-20 max-h-40 w-full overflow-auto rounded bg-white/90 text-black shadow">
                                             {suggestions.map((c, i) => (
                                                 <li
                                                     key={i}
@@ -502,6 +485,7 @@ export default function ParticipantRegister() {
                                 />
 
                                 <GlassInput
+                                    icon={<BadgeCheck size={18} />}
                                     name="specialization"
                                     placeholder="Specialization"
                                     value={form.specialization}
@@ -515,38 +499,6 @@ export default function ParticipantRegister() {
                                     onChange={handleChange}
                                     options={["I", "II", "III", "IV"]}
                                     placeholder="Select Year"
-                                    disabled={loading}
-                                />
-
-                                <GlassSelect
-                                    name="foodPreference"
-                                    value={form.foodPreference}
-                                    onChange={handleChange}
-                                    options={["VEG", "NON-VEG"]}
-                                    placeholder="Food Preference"
-                                    disabled={loading}
-                                />
-
-                                <GlassSelect
-                                    name="accommodation"
-                                    value={form.accommodation}
-                                    onChange={handleChange}
-                                    options={["1", "2"]}
-                                    placeholder="Accommodation (1 or 2)"
-                                    disabled={loading}
-                                />
-
-                                {/* ID Card URL input */}
-                                <GlassInput
-                                    name="photo"
-                                    placeholder="ID Card Image URL"
-                                    value={form.photo || ""}
-                                    onChange={(e) =>
-                                        setForm((f) => ({
-                                            ...f,
-                                            photo: e.target.value,
-                                        }))
-                                    }
                                     disabled={loading}
                                 />
 
@@ -583,7 +535,7 @@ function GlassInput({ icon, ...rest }: InputProps) {
             )}
             <input
                 {...rest}
-                className={`w-full rounded-md bg-white/10 py-3 ${
+                className={`w-full rounded-md bg-blue-300/10 py-3 ${
                     icon ? "pl-10" : "px-4"
                 } pr-4 text-sm text-white placeholder:text-white/50 outline-none backdrop-blur-md transition focus:ring-2 focus:ring-accent`}
             />
@@ -600,13 +552,13 @@ function GlassSelect({ options, placeholder, ...rest }: SelectProps) {
         <div className="relative">
             <select
                 {...rest}
-                className="w-full appearance-none rounded-md bg-white/10 py-3 px-4 text-sm text-white outline-none backdrop-blur-md transition focus:ring-2 focus:ring-accent"
+                className="w-full appearance-none rounded-md bg-blue-300/10 py-3 px-4 text-sm text-white outline-none backdrop-blur-md transition focus:ring-2 focus:ring-accent"
             >
                 <option value="" disabled hidden>
                     {placeholder}
                 </option>
                 {options.map((o) => (
-                    <option key={o} value={o} className="bg-primary text-white">
+                    <option key={o} value={o} className="bg-accent-second/90 text-white">
                         {o}
                     </option>
                 ))}

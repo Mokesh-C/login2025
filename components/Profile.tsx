@@ -18,7 +18,6 @@ import type { Easing } from "framer-motion";
 import { useRouter } from "next/navigation";
 import ToastCard from "@/components/ToastCard";
 import useAuth from "@/hooks/useAuth";
-import useUser from "@/hooks/useUser";
 
 interface Transaction {
     id: string;
@@ -38,21 +37,6 @@ interface Event {
     isUpcoming?: boolean;
 }
 
-interface UserData {
-    id: number;
-    name: string;
-    mobile: string;
-    email: string;
-    createdOn: string;
-    gender: string;
-    avatarUrl: string | null;
-    preferences?: {
-        accommodation: number;
-        foodPreference?: string;
-    };
-    college: string;
-}
-
 interface ErrorMessage {
     id: number;
     message: string;
@@ -63,14 +47,12 @@ const Profile: React.FC = () => {
         "about" | "transactions" | "events" | "workshops" | "papers"
     >("about");
     const [pageLoaded, setPageLoaded] = useState(false);
-    const [userData, setUserData] = useState<UserData | null>(null);
     const [errorList, setErrorList] = useState<ErrorMessage[]>([]);
     const [errorId, setErrorId] = useState(0);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    const { getUser, refreshAccessToken } = useUser();
-    const { logout: logoutService } = useAuth();
+    const { logout: logoutService, user } = useAuth();
 
     // Static data for transactions and events (replace with API calls if endpoints provided)
     const transactions: Transaction[] = [
@@ -113,53 +95,50 @@ const Profile: React.FC = () => {
     const totalEvents = registeredEvents.length;
     const upcomingEvents = registeredEvents.filter((e) => e.isUpcoming).length;
 
-    // Fetch access token and user data
-    useEffect(() => {
-        const fetchUserData = async () => {
-            setLoading(true);
-            try {
-                const accessToken = localStorage.getItem("accessToken");
-                if (!accessToken) {
-                    router.push("/login");
-                    return;
-                }
+    // // Fetch access token and user data
+    // useEffect(() => {
+    //     const fetchUserData = async () => {
+    //         setLoading(true);
+    //         try {
+    //             const accessToken = localStorage.getItem("accessToken");
+    //             if (!accessToken) {
+    //                 router.push("/login");
+    //                 return;
+    //             }
 
-                // Use service function to get user data
-                const user = await getUser(accessToken);
-                setUserData(user);
-            } catch (err) {
-                if (axios.isAxiosError(err) && err.response?.status === 401) {
-                    const refreshToken = localStorage.getItem("refreshToken");
-                    if (!refreshToken) {
-                        localStorage.removeItem("accessToken");
-                        window.dispatchEvent(new Event("storageChange"));
-                        router.push("/login");
-                        return;
-                    }
+    //         } catch (err) {
+    //             if (axios.isAxiosError(err) && err.response?.status === 401) {
+    //                 const refreshToken = localStorage.getItem("refreshToken");
+    //                 if (!refreshToken) {
+    //                     localStorage.removeItem("accessToken");
+    //                     window.dispatchEvent(new Event("storageChange"));
+    //                     router.push("/login");
+    //                     return;
+    //                 }
 
-                    try {
-                        // Use service function to refresh access token
-                        const newAccessToken = await refreshAccessToken(
-                            refreshToken
-                        );
-                        localStorage.setItem("accessToken", newAccessToken);
+    //                 try {
+    //                     // Use service function to refresh access token
+    //                     const newAccessToken = await refreshAccessToken(
+    //                         refreshToken
+    //                     );
+    //                     localStorage.setItem("accessToken", newAccessToken);
 
-                        // Retry user data fetch with new token
-                        const user = await getUser(newAccessToken);
-                        setUserData(user);
-                    } catch (refreshErr) {
-                        localStorage.removeItem("refreshToken");
-                        localStorage.removeItem("accessToken");
-                        window.dispatchEvent(new Event("storageChange"));
-                        router.push("/login");
-                    }
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchUserData();
-    }, [router]);
+    //                     // Retry user data fetch with new token
+    //                     const user = await getUser(newAccessToken);
+    //                     setUserData(user);
+    //                 } catch (refreshErr) {
+    //                     localStorage.removeItem("refreshToken");
+    //                     localStorage.removeItem("accessToken");
+    //                     window.dispatchEvent(new Event("storageChange"));
+    //                     router.push("/login");
+    //                 }
+    //             }
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+    //     fetchUserData();
+    // }, [router]);
 
     // Auto-dismiss errors
     useEffect(() => {
@@ -205,23 +184,23 @@ const Profile: React.FC = () => {
     //     if (loading) {
     //       return <p className="text-white/60 text-center">Loading user data...</p>;
     //     }
-    //     if (!userData) {
+    //     if (!user) {
     //       return <p className="text-white/60 text-center">No user data available</p>;
     //     }
     //     // Add null checks for preferences and foodPreference
-    //     const foodPreference = userData.preferences?.foodPreference || 'Not specified';
-    //     const accommodation = userData.preferences?.accommodation ? 'Yes' : 'No';
+    //     const foodPreference = user.preferences?.foodPreference || 'Not specified';
+    //     const accommodation = user.preferences?.accommodation ? 'Yes' : 'No';
 
     //     return (
     //       <div className="space-y-6">
     //         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
     //           <div className="space-y-4">
     //             {[
-    //               { label: 'Name', value: userData.name },
-    //               { label: 'Login Id', value: userData.id.toString() },
-    //               { label: 'Email', value: userData.email },
-    //               { label: 'Phone', value: userData.mobile },
-    //               { label: 'Gender', value: userData.gender },
+    //               { label: 'Name', value: user.name },
+    //               { label: 'Login Id', value: user.id.toString() },
+    //               { label: 'Email', value: user.email },
+    //               { label: 'Phone', value: user.mobile },
+    //               { label: 'Gender', value: user.gender },
     //               { label: 'Food Preference', value: foodPreference },
     //               { label: 'Accommodation', value: accommodation },
     //             ].map((field, index) => (
@@ -245,7 +224,7 @@ const Profile: React.FC = () => {
             );
         }
 
-        if (!userData) {
+        if (!user) {
             return (
                 <p className="text-white/60 text-center">
                     No user data available
@@ -254,18 +233,18 @@ const Profile: React.FC = () => {
         }
 
         const foodPreference =
-            userData.preferences?.foodPreference || "Not specified";
-        const accommodation = userData.preferences?.accommodation
-            ? "Yes"
-            : "No";
-        const college = userData.college ? userData.college : "N/A";
+            user.preferences?.foodPreference || "Not specified";
+        const accommodation = user.preferences?.accommodation ? "Yes" : "No";
+        const college = user.studentData?.college
+            ? user.studentData.college
+            : "N/A";
 
         const fields = [
-            { label: "Name", value: userData.name },
-            { label: "Login Id", value: userData.id.toString() },
-            { label: "Email", value: userData.email },
-            { label: "Phone", value: userData.mobile },
-            { label: "Gender", value: userData.gender },
+            { label: "Name", value: user.name },
+            { label: "Login Id", value: user.id.toString() },
+            { label: "Email", value: user.email },
+            { label: "Phone", value: user.mobile },
+            { label: "Gender", value: user.gender },
             { label: "Food Preference", value: foodPreference },
             { label: "Accommodation", value: accommodation },
             { label: "College", value: college },
@@ -425,9 +404,9 @@ const Profile: React.FC = () => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                                {userData?.avatarUrl ? (
+                                {user?.avatarUrl ? (
                                     <img
-                                        src={userData.avatarUrl}
+                                        src={user.avatarUrl}
                                         alt="Profile"
                                         className="w-full h-full rounded-full object-cover"
                                     />
@@ -437,7 +416,7 @@ const Profile: React.FC = () => {
                             </div>
                             <div>
                                 <h1 className="text-2xl font-bold">
-                                    {userData?.name || "Loading..."}
+                                    {user?.name || "Loading..."}
                                 </h1>
                                 <p className="text-white/60">PROFILE</p>
                             </div>
