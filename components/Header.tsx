@@ -7,7 +7,7 @@ import { Menu, X, Home, Calendar, Clock, Users, Handshake, GraduationCap, LogIn,
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
-import { logout as logoutService } from '@/services/auth';
+import useAuth from '@/hooks/useAuth';
 
 type NavItem = 
   | { id: 'home'; label: string; icon: React.ComponentType<any>; href?: never }
@@ -26,16 +26,20 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const router = useRouter()
+  const { logout } = useAuth();
 
-  // Check for JWT token in localStorage to determine login status
+  // Check for JWT token and user role in localStorage
   useEffect(() => {
     const checkLoginStatus = () => {
       const token = localStorage.getItem('refreshToken')
+      const role = localStorage.getItem('userRole')
       setIsLoggedIn(!!token)
+      setUserRole(role)
     }
     checkLoginStatus() // Initial check
     window.addEventListener('storageChange', checkLoginStatus)
@@ -64,17 +68,10 @@ export default function Header() {
 
   // Handle logout
   const handleLogout = async () => {
-    const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-      try {
-        await logoutService(accessToken);
-      } catch (err) {
-        // Optionally handle error, but proceed to clear tokens anyway
-      }
-    }
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken') || '';
+    await logout(refreshToken);  
     setIsLoggedIn(false);
+    setUserRole(null);
     setProfileOpen(false);
     window.dispatchEvent(new Event('storageChange'));
     router.push('/');
@@ -166,7 +163,7 @@ export default function Header() {
                       className="absolute right-0 mt-2 w-48 bg-blue-300/10 backdrop-blur-xl rounded-md shadow-lg border border-blue-300/10"
                     >
                       <Link
-                        href="/profile"
+                        href={userRole === 'alumni' ? '/profile/alumni' : '/profile'}
                         onClick={() => setProfileOpen(false)}
                         className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-blue-300/20"
                       >

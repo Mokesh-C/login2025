@@ -17,6 +17,7 @@ import {
 import type { Easing } from "framer-motion";
 import { useRouter } from "next/navigation";
 import ToastCard from "@/components/ToastCard";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 import useAuth from "@/hooks/useAuth";
 
 interface Transaction {
@@ -49,9 +50,12 @@ const Profile: React.FC = () => {
     const [pageLoaded, setPageLoaded] = useState(false);
     const [errorList, setErrorList] = useState<ErrorMessage[]>([]);
     const [errorId, setErrorId] = useState(0);
+    const { logout } = useAuth();
     const router = useRouter();
 
-    const { logout: logoutService, user, isLoading } = useAuth();
+    const [user, setUser] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const axiosPrivate = useAxiosPrivate();
 
     // Static data for transactions and events (replace with API calls if endpoints provided)
     const transactions: Transaction[] = [
@@ -94,50 +98,20 @@ const Profile: React.FC = () => {
     const totalEvents = registeredEvents.length;
     const upcomingEvents = registeredEvents.filter((e) => e.isUpcoming).length;
 
-    // // Fetch access token and user data
-    // useEffect(() => {
-    //     const fetchUserData = async () => {
-    //         setLoading(true);
-    //         try {
-    //             const accessToken = localStorage.getItem("accessToken");
-    //             if (!accessToken) {
-    //                 router.push("/login");
-    //                 return;
-    //             }
 
-    //         } catch (err) {
-    //             if (axios.isAxiosError(err) && err.response?.status === 401) {
-    //                 const refreshToken = localStorage.getItem("refreshToken");
-    //                 if (!refreshToken) {
-    //                     localStorage.removeItem("accessToken");
-    //                     window.dispatchEvent(new Event("storageChange"));
-    //                     router.push("/login");
-    //                     return;
-    //                 }
-
-    //                 try {
-    //                     // Use service function to refresh access token
-    //                     const newAccessToken = await refreshAccessToken(
-    //                         refreshToken
-    //                     );
-    //                     localStorage.setItem("accessToken", newAccessToken);
-
-    //                     // Retry user data fetch with new token
-    //                     const user = await getUser(newAccessToken);
-    //                     setUserData(user);
-    //                 } catch (refreshErr) {
-    //                     localStorage.removeItem("refreshToken");
-    //                     localStorage.removeItem("accessToken");
-    //                     window.dispatchEvent(new Event("storageChange"));
-    //                     router.push("/login");
-    //                 }
-    //             }
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-    //     fetchUserData();
-    // }, [router]);
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await axiosPrivate.get("/user");+
+                setUser(res.data);
+            } catch (err) {
+                setUser(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchUser();
+    }, []);
 
     // Auto-dismiss errors
     useEffect(() => {
@@ -163,20 +137,11 @@ const Profile: React.FC = () => {
         setErrorId((prev) => prev + 1);
     };
 
-    // Logout handler
     const handleLogout = async () => {
-        const accessToken = localStorage.getItem("accessToken");
-        if (accessToken) {
-            try {
-                await logoutService(accessToken);
-            } catch (err) {
-                // Optionally handle error, but proceed to clear tokens anyway
-            }
-        }
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("accessToken");
-        window.dispatchEvent(new Event("storageChange"));
-        router.push("/");
+        const refreshToken = localStorage.getItem('refreshToken') || '';
+        await logout(refreshToken);
+        window.dispatchEvent(new Event('storageChange'));
+        router.push('/');
     };
 
     // const renderAboutSection = () => {
@@ -244,9 +209,6 @@ const Profile: React.FC = () => {
             );
         }
 
-        const foodPreference =
-            user.preferences?.foodPreference || "Not specified";
-        const accommodation = user.preferences?.accommodation ? "Yes" : "No";
         const college = user.studentData?.college
             ? user.studentData.college
             : "N/A";
@@ -257,13 +219,11 @@ const Profile: React.FC = () => {
             { label: "Email", value: user.email },
             { label: "Phone", value: user.mobile },
             { label: "Gender", value: user.gender },
-            { label: "Food Preference", value: foodPreference },
-            { label: "Accommodation", value: accommodation },
             { label: "College", value: college },
         ];
 
         return (
-            <div className="bg-white/5 p-6 rounded-md space-y-4">
+            <div className="bg-blue-300/5 p-6 rounded-md space-y-4">
                 {fields.map((field, index) => (
                     <div key={index} className="flex items-start gap-6">
                         <p className="w-[15%] text-sm font-medium text-white/60">
@@ -283,7 +243,7 @@ const Profile: React.FC = () => {
             {transactions.map((transaction) => (
                 <div
                     key={transaction.id}
-                    className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-6 shadow-xl"
+                    className="bg-blue-300/5 backdrop-blur-lg border border-blue-300/10 rounded-md p-6 shadow-xl"
                 >
                     <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -321,7 +281,7 @@ const Profile: React.FC = () => {
             {registeredEvents.map((event) => (
                 <div
                     key={event.id}
-                    className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-6 shadow-xl"
+                    className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md p-6 shadow-xl"
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -346,7 +306,7 @@ const Profile: React.FC = () => {
 
     const renderWorkshopsSection = () => (
         <div className="space-y-6">
-            <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-8 text-center">
+            <div className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md p-8 text-center">
                 <Calendar className="w-12 h-12 text-white/40 mx-auto mb-4" />
                 <p className="text-white/90 mb-4">
                     You haven't registered for any workshops yet!
@@ -412,10 +372,10 @@ const Profile: React.FC = () => {
                 </AnimatePresence>
 
                 {/* Header */}
-                <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-6">
+                <div className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md shadow-xl p-6 mb-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+                            <div className="w-20 h-20 bg-blue-300e/20 rounded-full flex items-center justify-center">
                                 {user?.avatarUrl ? (
                                     <img
                                         src={user.avatarUrl}
@@ -446,7 +406,7 @@ const Profile: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* LEFT PANEL */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md p-6 space-y-6 shadow-xl">
+                        <div className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md p-6 space-y-6 shadow-xl">
                             <div className="flex items-center gap-3">
                                 <Trophy className="w-5 h-5 text-yellow-400" />
                                 <p className="text-white/80 font-semibold">
@@ -461,7 +421,7 @@ const Profile: React.FC = () => {
                             </div>
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
+                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
                             >
                                 <LogOut className="w-4 h-4" />
                                 Logout
@@ -471,9 +431,9 @@ const Profile: React.FC = () => {
 
                     {/* RIGHT PANEL */}
                     <div className="lg:col-span-3 mb-10 ">
-                        <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl">
+                        <div className="bg-blue-300/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl">
                             {/* TAB BAR */}
-                            <div className="relative flex gap-2 p-4 border-b border-white/10 bg-white/5 rounded-t-md overflow-x-auto">
+                            <div className="relative flex gap-2 p-4 border-b border-white/10 bg-blue-300/5 rounded-t-md overflow-x-auto">
                                 {(
                                     [
                                         "about",
@@ -488,7 +448,7 @@ const Profile: React.FC = () => {
                                         <button
                                             key={tab}
                                             onClick={() => setActiveTab(tab)}
-                                            className={`relative px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                                            className={`relative px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 cursor-pointer ${
                                                 isActive
                                                     ? "text-white"
                                                     : "text-white/60 hover:bg-white/10"

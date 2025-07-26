@@ -7,6 +7,10 @@ import { useEffect, useRef, useState } from 'react'
 import confetti from 'canvas-confetti'
 
 export default function Hero() {
+  // AUTH STATE
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
+
   // COUNTDOWN LOGIC
   const targetDate = new Date('2025-09-21T00:00:00')
   const calcTimeLeft = () => {
@@ -74,6 +78,19 @@ useEffect(() => {
   if (prizeRef.current) observer.observe(prizeRef.current);
   return () => observer.disconnect();
 }, [hasAnimated]);
+
+  // AUTH STATE MANAGEMENT
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const token = localStorage.getItem('refreshToken')
+      const role = localStorage.getItem('userRole')
+      setIsLoggedIn(!!token)
+      setUserRole(role)
+    }
+    checkLoginStatus() // Initial check
+    window.addEventListener('storageChange', checkLoginStatus)
+    return () => window.removeEventListener('storageChange', checkLoginStatus)
+  }, [])
 
   // Intersection Observer for prize section animation
   useEffect(() => {
@@ -216,12 +233,35 @@ useEffect(() => {
               </div>
             </div>
             <div className="flex flex-col items-center sm:flex-row gap-4 md:gap-6 mt-2 justify-center md:justify-start">
-              <Link
-                href="/register/alumini"
-                className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-md font-semibold shadow transition"
-              >
-                Alumni Registration
-              </Link>
+              {!isLoggedIn ? (
+                <Link
+                  href="/register/alumini"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-md font-semibold shadow transition"
+                >
+                  Alumni Registration
+                </Link>
+              ) : userRole === 'student' ? (
+                <Link
+                  href="/profile"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-md font-semibold shadow transition"
+                >
+                  Dashboard
+                </Link>
+              ) : userRole === 'alumni' ? (
+                <Link
+                  href="/profile/alumni"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-md font-semibold shadow transition"
+                >
+                  Alumni Dashboard
+                </Link>
+              ) : isLoggedIn && !userRole ? (
+                <Link
+                  href="/profile"
+                  className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-md font-semibold shadow transition"
+                >
+                  Dashboard
+                </Link>
+              ) : null}
               <Link
                 href="/events"
                 className="border-2 border-accent text-violet-500 px-6 py-3 rounded-md font-semibold shadow transition-colors hover:bg-violet/10 hover:text-white/80 hover:border-violet-400 "
@@ -236,34 +276,64 @@ useEffect(() => {
       <section
         ref={prizeRef}
         id="prize-section"
-        className="relative min-h-[80vh] flex flex-col items-center justify-center text-white overflow-hidden px-4"
+        className="relative min-h-[65vh] sm:min-h-[80vh] md:min-h-[90vh] flex flex-col items-center justify-center text-white overflow-hidden px-4"
       >
+        {/* Main Prize Content */}
         <motion.div
-          initial={{ y: 60 }}
-          animate={prizeSectionInView ? { y: 0 } : { y: 60 }}
+          initial={{ y: 60, opacity: 0 }}
+          animate={prizeSectionInView ? { y: 0, opacity: 1 } : { y: 60, opacity: 0 }}
           transition={{ duration: 1 }}
-          className="z-10 text-center max-w-3xl"
+          className="relative z-10 text-center max-w-4xl"
         >
-          <p className="leading-tight font-extrabold text-gray-300 text-2xl sm:text-5xl md:text-6xl">
-            CASH PRIZE WORTH
-          </p>
-          <h1 id="cash-prize-text" className="text-gradient-1 font-extrabold py-4 text-4xl sm:text-5xl md:text-6xl">
-            ₹ {prize.toLocaleString('en-IN')}
-          </h1>
-          <div className="mt-6 flex flex-wrap justify-center gap-4 font-semibold text-xl">
-            <TimeBox label="DAYS" value={timeLeft.days} />
-            <TimeBox label="HRS" value={timeLeft.hours} />
-            <TimeBox label="MIN" value={timeLeft.minutes} />
-            <TimeBox label="SEC" value={timeLeft.seconds} />
+          {/* Prize Card */}
+          <div className="mb-8">
+            {/* Prize Text */}
+            <div className="space-y-3">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white/90 tracking-wide">
+                CASH PRIZE WORTH
+              </h2>
+              
+              {/* Prize Amount */}
+              <div className="relative">
+                <h1 
+                  id="cash-prize-text" 
+                  className="text-4xl md:text-6xl lg:text-7xl font-black text-gradient-1 tracking-tight leading-none"
+                >
+                  ₹ {prize.toLocaleString('en-IN')}
+                </h1>
+              </div>
+
+              {/* Subtitle */}
+              <p className="text-lg md:text-xl text-white/80 font-medium">
+                Worth of Prizes to be Won!
+              </p>
+            </div>
           </div>
-          <div className="pb-8">
-            <p className="mt-10 text-gradient-1 text-lg sm:text-xl font-medium">
-              International Inter‑Collegiate Tech‑Symposium for PG Students
-            </p>
-            <p className="mt-2 text-gradient sm:text-lg">
-              <span className="text-accent-cyan font-semibold">Note:</span>{' '}
-              Only M.E., M.Tech., MBA, MCA, M.Sc., and other PG students can register and participate.
-            </p>
+
+          {/* Countdown Timer */}
+          <div className="mb-8">
+            <h3 className="text-xl md:text-2xl font-bold text-gradient mb-4">
+              Event Starts In
+            </h3>
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
+              <TimeBox label="DAYS" value={timeLeft.days} />
+              <TimeBox label="HRS" value={timeLeft.hours} />
+              <TimeBox label="MIN" value={timeLeft.minutes} />
+              <TimeBox label="SEC" value={timeLeft.seconds} />
+            </div>
+          </div>
+
+          {/* Event Info */}
+          <div className="p-4 md:p-6">
+            <h3 className="text-xl md:text-2xl font-bold text-gradient-1 mb-3">
+              National Level Inter‑Collegiate Tech‑Symposium For PG Students
+            </h3>
+            <div className="bg-blue-300/10 border border-blue-300/20 rounded-lg p-3">
+              <p className="text-gradient text-sm md:text-base font-semibold">
+                <span className="font-bold">Note:</span>{' '}
+                Only M.E., M.Tech., MBA, MCA, M.Sc., and other PG students can register and participate.
+              </p>
+            </div>
           </div>
         </motion.div>
       </section>
@@ -271,9 +341,49 @@ useEffect(() => {
   )
 }
 
-const TimeBox = ({ label, value }: { label: string; value: number }) => (
-  <div className="flex flex-col items-center bg-gradient-to-b from-accent/60 to-transparent text-neutral-white font-semibold border-t-4 border-violet-500 px-4 py-1 ">
-    <span className="text-xl font-bold">{value.toString().padStart(2, '0')}</span>
-    <span className="text-xs uppercase mt-1 text-accent-cyan">{label}</span>
-  </div>
-)
+const TimeBox = ({ label, value }: { label: string; value: number }) => {
+  const [prevValue, setPrevValue] = useState(value);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    if (prevValue !== value) {
+      setIsAnimating(true);
+      setPrevValue(value);
+      setTimeout(() => setIsAnimating(false), 300);
+    }
+  }, [value, prevValue]);
+
+  return (
+    <div className="flex flex-col items-center">
+      <span className="text-xs sm:text-sm md:text-base uppercase mb-1 text-accent-cyan font-medium">{label}</span>
+      <div className="bg-gradient-to-b from-accent/60 to-transparent text-white/90 font-semibold border-t-4 border-violet-500 px-2 sm:px-3 md:px-4 py-1 sm:py-2 md:py-3 w-16 sm:w-18 md:w-20 h-12 sm:h-14 md:h-16 overflow-hidden flex items-center justify-center">
+        <div className="relative h-6 sm:h-7 md:h-8 flex items-center justify-center">
+          {isAnimating ? (
+            <>
+              <motion.div
+                initial={{ y: 0, opacity: 1 }}
+                animate={{ y: 32, opacity: 0 }}
+                transition={{ duration: 0.15, ease: "easeIn" }}
+                className="absolute text-lg sm:text-2xl md:text-3xl font-bold"
+              >
+                {prevValue.toString().padStart(2, '0')}
+              </motion.div>
+              <motion.div
+                initial={{ y: -32, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.15, ease: "easeOut", delay: 0.15 }}
+                className="absolute text-lg sm:text-2xl md:text-3xl font-bold"
+              >
+                {value.toString().padStart(2, '0')}
+              </motion.div>
+            </>
+          ) : (
+            <div className="text-lg sm:text-2xl md:text-3xl font-bold">
+              {value.toString().padStart(2, '0')}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

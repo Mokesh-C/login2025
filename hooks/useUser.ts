@@ -32,7 +32,7 @@ const useUser = () => {
 
     // Update user profile after OTP verification
     const updateUser = async (
-        data: { email: string; gender: string; avatarUrl: string; accommodation: number; foodPreference: string },
+        data: { email: string; gender: string;},
         accessToken: string
     ): Promise<{ success: boolean; message?: string }> => {
         try {
@@ -55,7 +55,7 @@ const useUser = () => {
 
     // Register student after OTP verification
     const registerStudent = async (
-        data: { college: string; field: string; programme: string; year: string },
+        data: { college: string; field: string; programme: string; year: number },
         accessToken: string
     ): Promise<{ success: boolean; message?: string }> => {
         try {
@@ -105,7 +105,13 @@ const useUser = () => {
         return res.data.accessToken;
     };
 
-    return { refreshAccessToken, registerParticipant, createUser, updateUser, registerStudent, registerAlumni };
-}
+    const getUser = async (accessToken: string) => {
+        const res = await api.get('/user', { 
+            headers: { Authorization: `Bearer ${accessToken}` } 
+        });
+        return res.data;
+    };
 
+    return { refreshAccessToken, registerParticipant, createUser, updateUser, registerStudent, registerAlumni, getUser };
+}
 export default useUser;

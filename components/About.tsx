@@ -24,7 +24,7 @@ export default function About() {
       id="about"
       className="
         scroll-mt-24 w-full min-h-screen flex items-center justify-center
-        py-16 px-4
+        py-4 md:py-16 px-4
       "
     >
       <motion.div

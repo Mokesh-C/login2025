@@ -9,17 +9,17 @@ import { User } from "@/types/user";
 const useAuth = () => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const axiosPrivate = useAxiosPrivate();
+    // const axiosPrivate = useAxiosPrivate();
 
 
-    useEffect(() => {
-        const fetchAuth = async () => {
-            const user = await axiosPrivate.get("/user");
-            setUser(user.data);
-            setIsLoading(false);
-        };
-        fetchAuth();
-    }, []);
+    // useEffect(() => {
+    //     const fetchAuth = async () => {
+    //         const user = await axiosPrivate.get("/user");
+    //         setUser(user.data);
+    //         setIsLoading(false);
+    //     };
+    //     fetchAuth();
+    // }, []);
 
     // Send OTP for login
     const sendOtp = async (
@@ -58,13 +58,14 @@ const useAuth = () => {
         }
     };
 
-    const logout = async (accessToken: string) => {
-        localStorage.removeItem("refreshToken");
+    const logout = async (refreshToken: string) => {
         await api.delete(`/auth/logout`, {
             headers: {
-                Authorization: `Bearer ${localStorage.getItem("refreshToken")}`,
+                Authorization: `Bearer ${refreshToken}`,
             },
         });
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("accessToken");
     };
 
     const getUser = async (accessToken: string) => {

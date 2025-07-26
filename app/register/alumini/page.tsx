@@ -16,13 +16,18 @@ import {
   Building2,
   Briefcase,
   Image as ImageIcon,
+  User,
+  Phone,
 } from 'lucide-react'
 import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
-import { createUser, sendOtp, verifyOtp, registerAlumni } from '@/services/auth';
+import useUser from '@/hooks/useUser';
+import useAuth from '@/hooks/useAuth';
 import OtpVerification from '@/components/OtpVerification';
 import { getUser } from '@/services/user';
 import { getAccessToken } from '@/services/auth';
+import React from 'react';
+import { AlumniRegisterPayload } from '@/types/alumni';
 
 /* ─── constants ─── */
 const OTP_LENGTH  = 4
@@ -56,7 +61,16 @@ export default function AlumniRegister() {
   // Remove userId state
 
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([])
+  const inputRefs = {
+    name: useRef<HTMLInputElement>(null),
+    mobile: useRef<HTMLInputElement>(null),
+    rollNumber: useRef<HTMLInputElement>(null),
+    company: useRef<HTMLInputElement>(null),
+    role: useRef<HTMLInputElement>(null),
+  };
   const router       = useRouter()
+  const { createUser, registerAlumni, refreshAccessToken } = useUser();
+  const { sendOtp, verifyOtp } = useAuth();
 
   /* ── OTP countdown ── */
   useEffect(() => {
@@ -76,28 +90,48 @@ export default function AlumniRegister() {
 
   /* ── helpers ── */
   const showError = (msg: string) => {
-    setErrorList(prev => [...prev, { id: errorId, message: msg }])
-    setErrorId(prev => prev + 1)
+    setErrorList([{ id: errorId, message: msg }]);
+    setErrorId(prev => prev + 1);
   }
+  const showSuccess = (msg: string) => {
+    setErrorList((prev) => [...prev, { id: errorId, message: msg }]);
+    setErrorId((prev) => prev + 1);
+};
 
   /* ── validation ── */
-  // Comment out alumni code validation for now
+  // Validation with auto-focus
   const validateGeneral = () => {
     const { name, mobile } = form;
-    let ok = true;
-    if (!name.trim()) showError('Name is required'), ok = false;
-    if (!/^\d{10}$/.test(mobile)) showError('Mobile must be 10 digits'), ok = false;
-    // if (!alumniCode.trim()) showError('Alumni code is required'), ok = false;
-    return ok;
+    if (!name.trim()) {
+      showError('Name is required');
+      inputRefs.name.current?.focus();
+      return false;
+    }
+    if (!/^\d{10}$/.test(mobile)) {
+      showError('Mobile must be 10 digits');
+      inputRefs.mobile.current?.focus();
+      return false;
+    }
+    return true;
   };
-
   const validateDetails = () => {
     const { rollNumber, company, role } = form;
-    let ok = true;
-    if (!rollNumber.trim()) showError('Roll number is required'), ok = false;
-    if (!company.trim())    showError('Company is required'),     ok = false;
-    if (!role.trim())       showError('Role is required'),        ok = false;
-    return ok;
+    if (!rollNumber.trim()) {
+      showError('Roll number is required');
+      inputRefs.rollNumber.current?.focus();
+      return false;
+    }
+    if (!company.trim()) {
+      showError('Company is required');
+      inputRefs.company.current?.focus();
+      return false;
+    }
+    if (!role.trim()) {
+      showError('Role is required');
+      inputRefs.role.current?.focus();
+      return false;
+    }
+    return true;
   };
 
   /* ── input handlers ── */
@@ -161,13 +195,14 @@ export default function AlumniRegister() {
         return;
       }
       // Get access token using refresh token
-      const tokenRes = await getAccessToken(res.refreshToken);
-      if (!tokenRes.success || !tokenRes.accessToken) {
-        showError(tokenRes.message || 'Failed to get access token');
+      const accessToken = await refreshAccessToken(res.refreshToken);
+      if (!accessToken) {
+        showError('Failed to get access token');
         setLoading(false);
         return;
       }
-      localStorage.setItem('accessToken', tokenRes.accessToken);
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('userRole', 'alumni');
       setStep(STEPS.DETAILS);
     } catch {
       showError('Invalid OTP');
@@ -189,7 +224,7 @@ export default function AlumniRegister() {
     }
     try {
       const user = await getUser(accessToken);
-      const payload = {
+      const payload: AlumniRegisterPayload = {
         userId: user.id,
         rollNo: form.rollNumber,
         currentCompany: form.company,
@@ -201,7 +236,9 @@ export default function AlumniRegister() {
         setLoading(false);
         return;
       }
-      router.push('/');
+          showSuccess('Registration successful!');
+          window.dispatchEvent(new Event('storageChange'));
+          setTimeout(() => router.push('/'), 500);
     } catch {
       showError('Submission failed');
     } finally {
@@ -275,19 +312,33 @@ export default function AlumniRegister() {
                 className="space-y-5"
               >
                 <GlassInput
+                  icon={<User size={18} />}
                   name="name"
+                  id="alumni-name"
+                  ref={inputRefs.name}
                   placeholder="Full Name"
                   value={form.name}
                   onChange={handleChange}
+                  aria-label="Full Name"
+                  aria-invalid={!!errorList.length && errorList[0].message.includes('Name')}
+                  aria-describedby={!!errorList.length && errorList[0].message.includes('Name') ? 'name-error' : undefined}
                 />
+                <label htmlFor="alumni-name" className="sr-only">Full Name</label>
                 <GlassInput
+                  icon={<Phone size={18} />}
                   name="mobile"
+                  id="alumni-mobile"
+                  ref={inputRefs.mobile}
                   type="tel"
                   maxLength={10}
                   placeholder="Mobile Number"
                   value={form.mobile}
                   onChange={handleChange}
+                  aria-label="Mobile Number"
+                  aria-invalid={!!errorList.length && errorList[0].message.includes('Mobile')}
+                  aria-describedby={!!errorList.length && errorList[0].message.includes('Mobile') ? 'mobile-error' : undefined}
                 />
+                <label htmlFor="alumni-mobile" className="sr-only">Mobile Number</label>
                 {/*
                 <GlassInput
                   name="alumniCode"
@@ -355,24 +406,42 @@ export default function AlumniRegister() {
                 <GlassInput
                   icon={<IdCard size={18} />}
                   name="rollNumber"
+                  id="alumni-roll"
+                  ref={inputRefs.rollNumber}
                   placeholder="Roll Number"
                   value={form.rollNumber}
                   onChange={handleChange}
+                  aria-label="Roll Number"
+                  aria-invalid={!!errorList.length && errorList[0].message.includes('Roll number')}
+                  aria-describedby={!!errorList.length && errorList[0].message.includes('Roll number') ? 'roll-error' : undefined}
                 />
+                <label htmlFor="alumni-roll" className="sr-only">Roll Number</label>
                 <GlassInput
                   icon={<Building2 size={18} />}
                   name="company"
+                  id="alumni-company"
+                  ref={inputRefs.company}
                   placeholder="Current Company"
                   value={form.company}
                   onChange={handleChange}
+                  aria-label="Current Company"
+                  aria-invalid={!!errorList.length && errorList[0].message.includes('Company')}
+                  aria-describedby={!!errorList.length && errorList[0].message.includes('Company') ? 'company-error' : undefined}
                 />
+                <label htmlFor="alumni-company" className="sr-only">Current Company</label>
                 <GlassInput
                   icon={<Briefcase size={18} />}
                   name="role"
+                  id="alumni-role"
+                  ref={inputRefs.role}
                   placeholder="Role"
                   value={form.role}
                   onChange={handleChange}
+                  aria-label="Role"
+                  aria-invalid={!!errorList.length && errorList[0].message.includes('Role')}
+                  aria-describedby={!!errorList.length && errorList[0].message.includes('Role') ? 'role-error' : undefined}
                 />
+                <label htmlFor="alumni-role" className="sr-only">Role</label>
                 {/* Photo upload removed */}
                 <button
                   type="submit"
@@ -395,8 +464,8 @@ export default function AlumniRegister() {
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   icon?: React.ReactNode
 }
-function GlassInput({ icon, ...rest }: InputProps) {
-  return (
+const GlassInput = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ icon, ...rest }, ref) => (
     <div className="relative">
       {icon && (
         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/60">
@@ -404,9 +473,11 @@ function GlassInput({ icon, ...rest }: InputProps) {
         </span>
       )}
       <input
+        ref={ref}
         {...rest}
         className={`w-full rounded-md bg-white/10 py-3 ${icon ? 'pl-10' : 'px-4'} pr-4 text-sm text-white placeholder:text-white/50 outline-none backdrop-blur-md transition focus:ring-2 focus:ring-accent`}
       />
     </div>
   )
-}
+);
+GlassInput.displayName = 'GlassInput';

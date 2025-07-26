@@ -7,8 +7,11 @@ import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
 import { X } from 'lucide-react'
 import axios from 'axios';
-import { sendOtp, verifyOtp, getAccessToken } from '@/services/auth';
+import useUser from '@/hooks/useUser';
+import useAuth from '@/hooks/useAuth';
 import OtpVerification from '@/components/OtpVerification';
+import { OtpPayload, OtpResponse, AccessTokenResponse } from '@/types/auth';
+import { getUser } from '@/services/user'
 
 /* ------------------------------------------------------------------
  * Constants & types
@@ -38,6 +41,10 @@ export default function LoginPage() {
   const otpInputsRef = useRef<HTMLInputElement[]>([])
   const router       = useRouter()
 
+  // Use sendOtp and verifyOtp from useAuth hook
+  const { refreshAccessToken, getUser } = useUser();
+  const { sendOtp, verifyOtp } = useAuth();
+
   /* ---------------- Effects -------------- */
   // OTP countdown
   useEffect(() => {
@@ -57,6 +64,25 @@ export default function LoginPage() {
     )
     return () => timers.forEach(clearTimeout)
   }, [errorList])
+
+  // Automatic access token refresh on login page load
+  useEffect(() => {
+    const tryRefresh = async () => {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        setLoading(true);
+        const res = await refreshAccessToken(refreshToken);
+        if (res.success && res.accessToken) {
+          localStorage.setItem('accessToken', res.accessToken);
+          window.dispatchEvent(new Event('storageChange'));
+          router.push('/');
+          return;
+        }
+        setLoading(false);
+      }
+    };
+    tryRefresh();
+  }, [router]);
 
   /* ---------------- Helpers -------------- */
   const showError = (msg: string) => {
@@ -124,13 +150,18 @@ export default function LoginPage() {
       }
       localStorage.setItem('refreshToken', res.refreshToken);
       // Fetch access token using refresh token
-      const accessRes = await getAccessToken(res.refreshToken);
-      if (!accessRes.success || !accessRes.accessToken) {
-        showError(accessRes.message || 'Failed to get access token');
+      const accessToken = await refreshAccessToken(res.refreshToken);
+      if (!accessToken) {
+        showError('Failed to get access token');
         setOtpLoading(false);
         return;
       }
-      localStorage.setItem('accessToken', accessRes.accessToken);
+      localStorage.setItem('accessToken', accessToken);
+ 
+      // Get user data to store role
+      const userData = await getUser(accessToken);
+      localStorage.setItem('userRole', userData.role);
+      
       window.dispatchEvent(new Event('storageChange'));
       showSuccess('Login successful');
       router.push('/');
@@ -146,7 +177,7 @@ export default function LoginPage() {
    * Render
    * ----------------------------------------------------------------*/
   return (
-    <div className="relative flex min-h-[calc(100vh-5rem)] bg-gradient-to-br from-primary to-primary-100 text-white">
+    <div className="relative flex min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white">
       {/* ---------- LEFT PANEL (desktop only) ---------- */}
       <div className="hidden w-1/2 flex-col items-center justify-center px-10 md:flex">
         <Image src="/logo.png" alt="Login Logo" width={480} height={240} className="mb-6" />
@@ -182,7 +213,7 @@ export default function LoginPage() {
           initial={{ opacity: 0, scale: 0.95, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="w-full max-w-md space-y-6 rounded-md border border-white/10 bg-white/10 p-8 backdrop-blur-xl shadow-2xl"
+          className="w-full max-w-md space-y-6 rounded-md border border-blue-300/10 bg-blue-300/10 p-8 backdrop-blur-xl shadow-2xl"
         >
           {!isOtpSent && (
           <h2 className="text-center text-3xl font-extrabold">Login</h2>

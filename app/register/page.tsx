@@ -14,16 +14,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { School, Image as ImageIcon, X, User, Mail, Phone, GraduationCap, BadgeCheck, IdCard } from "lucide-react";
 import Image from "next/image";
 import ToastCard from "@/components/ToastCard";
-import {
-    sendOtp,
-    verifyOtp,
-    registerParticipant,
-    createUser,
-    getAccessToken,
-    updateUser,
-    registerStudent,
-} from "@/services/auth";
+import useUser from '@/hooks/useUser';
+import useAuth from "@/hooks/useAuth";
 import OtpVerification from "@/components/OtpVerification";
+import { OtpPayload, OtpResponse, AccessTokenResponse, CreateUserPayload, RegisterStudentPayload } from '@/types/auth';
 
 /* ─── constants ─── */
 const OTP_LENGTH = 4;
@@ -64,6 +58,9 @@ export default function ParticipantRegister() {
     const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
     const router = useRouter();
 
+    const { createUser, updateUser, registerStudent, refreshAccessToken } = useUser();
+    const { sendOtp, verifyOtp } = useAuth();
+
     /* ── fetch college list once ── */
     useEffect(() => {
         fetch("/colleges.json")
@@ -96,7 +93,7 @@ export default function ParticipantRegister() {
 
     /* ── helpers ── */
     const showError = (msg: string) => {
-        setErrorList((prev) => [...prev, { id: errorId, message: msg }]);
+        setErrorList([{ id: errorId, message: msg }]);
         setErrorId((prev) => prev + 1);
     };
 
@@ -108,33 +105,21 @@ export default function ParticipantRegister() {
     /* ── validation per step ── */
     const validateGeneral = () => {
         const { name, mobile } = form;
-        let ok = true;
-        if (!name.trim()) showError("Name is required"), (ok = false);
-        if (!/^\d{10}$/.test(mobile))
-            showError("Mobile must be 10 digits"), (ok = false);
-        return ok;
+        if (!name.trim()) { showError("Name is required"); return false; }
+        if (!/^\d{10}$/.test(mobile)) { showError("Mobile must be 10 digits"); return false; }
+        return true;
     };
 
     const validateDetails = () => {
-        const {
-            email,
-            gender,
-            college,
-            degree,
-            specialization,
-            year,
-        } = form;
-        let ok = true;
+        const { email, gender, college, degree, specialization, year } = form;
         const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRe.test(email)) showError("Invalid email"), (ok = false);
-        if (!gender) showError("Select gender"), (ok = false);
-        if (!college.trim())
-            showError("College name is required"), (ok = false);
-        if (!degree) showError("Select degree"), (ok = false);
-        if (!specialization.trim())
-            showError("Specialization required"), (ok = false);
-        if (!year) showError("Select year"), (ok = false);
-        return ok;
+        if (!emailRe.test(email)) { showError("Invalid email"); return false; }
+        if (!gender) { showError("Select gender"); return false; }
+        if (!college.trim()) { showError("College name is required"); return false; }
+        if (!degree) { showError("Select degree"); return false; }
+        if (!specialization.trim()) { showError("Specialization required"); return false; }
+        if (!year) { showError("Select year"); return false; }
+        return true;
     };
 
     /* ── input handlers ── */
@@ -162,7 +147,7 @@ export default function ParticipantRegister() {
         if (val && idx < OTP_LENGTH - 1) otpInputsRef.current[idx + 1]?.focus();
     };
 
-    /* ── step 0 submit → create user and send OTP ── */
+    /* ── step 0 submit → create user and send OTP ── */
     const handleGeneralSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateGeneral()) return;
@@ -190,7 +175,7 @@ export default function ParticipantRegister() {
         }
     };
 
-    /* ── step 1 verify OTP ── */
+    /* ── step 1 verify OTP ── */
     const handleVerifyOtp = async () => {
         const code = otp.join("");
         if (code.length < OTP_LENGTH) {
@@ -207,15 +192,16 @@ export default function ParticipantRegister() {
             }
             showSuccess("OTP verified");
             // Get access token
-            const tokenRes = await getAccessToken(res.refreshToken);
-            if (!tokenRes.success || !tokenRes.accessToken) {
-                showError(tokenRes.message || "Failed to get access token");
+            const accessToken = await refreshAccessToken(res.refreshToken);
+            if (!accessToken) {
+                showError("Failed to get access token");
                 setLoading(false);
                 return;
             }
             // Store tokens in localStorage
             localStorage.setItem("refreshToken", res.refreshToken);
-            localStorage.setItem("accessToken", tokenRes.accessToken);
+            localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem('userRole', 'student');
             setStep(STEPS.DETAILS);
         } catch {
             showError("OTP verification failed");
@@ -224,7 +210,7 @@ export default function ParticipantRegister() {
         }
     };
 
-    /* ── step 2 submit full form ── */
+    /* ── step 2 submit full form ── */
     const handleFinalSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateDetails()) return;
@@ -239,10 +225,7 @@ export default function ParticipantRegister() {
             // 1. Update user profile (email, gender)
             const userRes = await updateUser({
                 email: form.email,
-                gender: form.gender,
-                avatarUrl: "", // No avatar at registration
-                accommodation: 0, // Not used
-                foodPreference: "", // Not used
+                gender: form.gender
             }, accessToken);
             if (!userRes.success) {
                 showError(userRes.message || "Failed to update user profile");
@@ -254,15 +237,17 @@ export default function ParticipantRegister() {
                 college: form.college,
                 field: form.specialization,
                 programme: form.degree,
-                year: form.year,
+                year: Number(form.year), // ensure type is number
             }, accessToken);
             if (!studentRes.success) {
                 showError(studentRes.message || "Failed to register student");
                 setLoading(false);
                 return;
             }
+            // Show success and redirect almost simultaneously
             showSuccess("Registration successful!");
-            setTimeout(() => router.push("/"), 1200);
+            window.dispatchEvent(new Event('storageChange'));
+            setTimeout(() => router.push("/"), 500); // reduce delay for smoother UX
         } catch {
             showError("Registration failed");
         } finally {
@@ -356,6 +341,7 @@ export default function ParticipantRegister() {
                                 className="space-y-5"
                             >
                                 <GlassInput
+                                    icon={<User size={18} />}
                                     name="name"
                                     placeholder="Full Name"
                                     value={form.name}
@@ -363,6 +349,7 @@ export default function ParticipantRegister() {
                                     disabled={loading}
                                 />
                                 <GlassInput
+                                    icon={<Phone size={18} />}
                                     name="mobile"
                                     type="tel"
                                     maxLength={10}
@@ -497,7 +484,7 @@ export default function ParticipantRegister() {
                                     name="year"
                                     value={form.year}
                                     onChange={handleChange}
-                                    options={["I", "II", "III", "IV"]}
+                                    options={["1", "2", "3", "4", "5"]}
                                     placeholder="Select Year"
                                     disabled={loading}
                                 />
@@ -558,7 +545,7 @@ function GlassSelect({ options, placeholder, ...rest }: SelectProps) {
                     {placeholder}
                 </option>
                 {options.map((o) => (
-                    <option key={o} value={o} className="bg-accent-second/90 text-white">
+                    <option key={o} value={o} className="text-black">
                         {o}
                     </option>
                 ))}
