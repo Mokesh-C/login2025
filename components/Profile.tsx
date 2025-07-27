@@ -102,7 +102,7 @@ const Profile: React.FC = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await axiosPrivate.get("/user");+
+                const res = await axiosPrivate.get("/user");
                 setUser(res.data);
             } catch (err) {
                 setUser(null);

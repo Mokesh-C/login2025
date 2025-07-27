@@ -253,7 +253,7 @@ export default function AlumniRegister() {
 
   /* ─── UI ─── */
   return (
-    <div className="relative flex min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white">
+    <div className="relative flex min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white">
       {/* LEFT promo panel */}
       <div className="hidden md:flex w-1/2 flex-col items-center justify-center px-10">
         <Image src="/logo.png" alt="Login Logo" width={480} height={240} className="mb-6" />

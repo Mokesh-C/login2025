@@ -19,7 +19,7 @@ const navItems: NavItem[] = [
   { id: 'timeline', label: 'Timeline', icon: Clock, href: '/timeline' },
   { id: 'teams', label: 'Teams', icon: Users, href: '/teams' },
   { id: 'sponsors', label: 'Sponsors', icon: Handshake, href: '/sponsors' },
-  { id: 'alumni', label: 'Alumni', icon: GraduationCap, href: '/alumni' },
+  { id: 'alumni', label: 'Our Alumni', icon: GraduationCap, href: '/alumni' },
 ]
 
 export default function Header() {
@@ -179,19 +179,11 @@ export default function Header() {
                   )}
                 </AnimatePresence>
               </div>
-            ) : (
-              <>
-                <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan font-medium">
+                          ) : (
+                <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan bg-accent hover:bg-accent-hover text-neutral-white font-medium px-4 py-2 rounded-b-md border-t-4 border-violet-400">
                   <LogIn className="w-4 h-4" /> Login
                 </Link>
-                <Link
-                  href="/register"
-                  className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
-                >
-                  Register
-                </Link>
-              </>
-            )}
+              )}
           </div>
           <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden">
             {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -257,7 +249,7 @@ export default function Header() {
               {isLoggedIn ? (
                 <>
                   <Link
-                    href="/profile"
+                    href={userRole === 'alumni' ? '/profile/alumni' : '/profile'}
                     onClick={() => setMobileOpen(false)}
                     className="flex items-center gap-2 px-4 hover:text-accent-cyan font-bold"
                   >
@@ -271,14 +263,9 @@ export default function Header() {
                   </button>
                 </>
               ) : (
-                <>
-                  <Link href="/login" className="flex items-center gap-2 px-4 hover:text-accent-cyan font-bold">
-                    <LogIn className="w-5 h-5" /> Login
-                  </Link>
-                  <Link href="/register" className="bg-accent text-neutral-white text-center px-4 py-2 rounded">
-                    Register
-                  </Link>
-                </>
+                <Link href="/login" className="flex items-center gap-2 px-4 hover:text-accent-cyan font-bold">
+                  <LogIn className="w-5 h-5" /> Login
+                </Link>
               )}
             </motion.div>
           </>
@@ -304,7 +291,7 @@ export default function Header() {
         )}>
           <div className={clsx(
             'flex items-center justify-between',
-            isScrolled ? 'h-16 bg-gradient-to-r from-stale-950/[0.2] to-violet-950/[0.05] via-80% backdrop-blur-2xl rounded-[inherit] px-6' : 'h-20 px-4 sm:px-6 lg:px-8'
+            isScrolled ? 'h-12 sm:h-16 bg-gradient-to-r from-stale-950/[0.2] to-violet-950/[0.05] via-80% backdrop-blur-2xl rounded-[inherit] px-6' : 'h-16 sm:h-20 px-4 sm:px-6 lg:px-8'
           )}>
             <button onClick={scrollHome} className="flex items-center gap-2">
               <span className="text-xl font-bold tracking-wide lg:text-xl lg:font-bold lg:tracking-wide hidden sm:inline px-2">
@@ -356,7 +343,7 @@ export default function Header() {
                         className="absolute right-0 mt-2 w-48 bg-blue-300/10 backdrop-blur-xl rounded-md shadow-lg border border-blue-300/10"
                       >
                         <Link
-                          href="/profile"
+                          href={userRole === 'alumni' ? '/profile/alumni' : '/profile'}
                           onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-blue-300/20"
                         >
@@ -373,17 +360,9 @@ export default function Header() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <>
-                  <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan font-medium">
-                    <LogIn className="w-4 h-4" /> Login
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="bg-accent hover:bg-accent-hover text-neutral-white font-semibold px-4 py-2 rounded-b-md border-t-4 border-violet-400"
-                  >
-                    Register
-                  </Link>
-                </>
+                <Link href="/login" className="flex items-center gap-2 hover:text-accent-cyan font-medium bg-accent hover:bg-accent-hover text-neutral-white px-4 py-2 rounded-b-md border-t-4 border-violet-400">
+                  <LogIn className="w-4 h-4" /> Login
+                </Link>
               )}
             </div>
             <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden">

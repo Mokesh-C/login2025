@@ -235,10 +235,10 @@ useEffect(() => {
             <div className="flex flex-col items-center sm:flex-row gap-4 md:gap-6 mt-2 justify-center md:justify-start">
               {!isLoggedIn ? (
                 <Link
-                  href="/register/alumini"
+                  href="/register"
                   className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-md font-semibold shadow transition"
                 >
-                  Alumni Registration
+                  Register
                 </Link>
               ) : userRole === 'student' ? (
                 <Link

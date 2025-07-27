@@ -91,7 +91,7 @@ function MetaCard({
     return (
         <motion.div
             variants={fadeUp}
-            className="rounded-md p-6 bg-white/10 backdrop-blur-[4px]
+            className="rounded-md p-6 bg-blue-300/10 backdrop-blur-[4px]
                  border border-white/15 shadow-md flex flex-col items-center text-center gap-2"
         >
             <div className="flex items-center gap-2 text-lg">
@@ -107,7 +107,7 @@ function SectionCard({ children }: { children: React.ReactNode }) {
     return (
         <motion.div
             variants={fadeUp}
-            className="rounded-md p-8 bg-white/10 backdrop-blur-[4px]
+            className="rounded-md p-8 bg-blue-300/10 backdrop-blur-[4px]
                  border border-white/15 shadow-md"
         >
             {children}
@@ -138,8 +138,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
             initial="hidden"
             animate="show"
             variants={stagger}
-            className="relative min-h-screen bg-gradient-to-br
-                 from-primary via-primary-100 to-primary
+            className="relative min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third
                  text-white px-4 pb-24 pt-10 overflow-hidden"
         >
             {/* Toasts */}
@@ -176,7 +175,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                 <div className="flex gap-5 ">
                                     <div className="md:w-1/4 flex justify-center items-center">
                                         <div
-                                            className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/10
+                                            className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-blue-300/10
                                         backdrop-blur-sm border border-white/20 flex items-center justify-center"
                                         >
                                             {event.logoUrl ? (
@@ -287,7 +286,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                         transition={{ duration: 0.8, delay: 0.5 }}
                     >
                         {/* Event Details Card */}
-                        <div className="bg-white/5 backdrop-blur-sm rounded-md p-6 border border-white/10 sticky top-6 hover:bg-white/8 transition-all duration-500">
+                        <div className="bg-blue-300/5 backdrop-blur-sm rounded-md p-6 border border-white/10 sticky top-6 hover:bg-blue-300/8 transition-all duration-500">
                             <h3 className="text-2xl font-bold text-white mb-6 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text">
                                 Event Details
                             </h3>
@@ -325,7 +324,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                 ].map((item, index) => (
                                     <motion.div
                                         key={index}
-                                        className="flex items-center gap-4 p-4 rounded-md bg-white/5 border border-white/10 hover:bg-white/8 transition-all duration-300"
+                                        className="flex items-center gap-4 p-4 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
                                         whileHover={{ x: 5 }}
                                     >
                                         <div
@@ -349,7 +348,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                         </div>
 
                         {/* Coordinators */}
-                        <div className="bg-white/5 backdrop-blur-sm rounded-md p-6 border border-white/10 hover:bg-white/8 transition-all duration-500">
+                        <div className="bg-blue-300/5 backdrop-blur-sm rounded-md p-6 border border-white/10 hover:bg-blue-300/8 transition-all duration-500">
                             <h3 className="text-xl font-bold text-white mb-4">
                                 Event Coordinators
                             </h3>
@@ -364,7 +363,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                     (coordinator, index) => (
                                         <div
                                             key={index}
-                                            className="p-4 rounded-md bg-white/5 border border-white/10 hover:bg-white/8 transition-all duration-300"
+                                            className="p-4 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
                                         >
                                             <p className="font-semibold text-white mb-2">
                                                 {coordinator.name}
@@ -388,7 +387,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                     <div className="lg:col-span-2 space-y-8">
                         {/* About Section */}
                         <motion.div
-                            className="bg-white/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-white/8 transition-all duration-500"
+                            className="bg-blue-300/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-blue-300/8 transition-all duration-500"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
@@ -411,7 +410,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
 
                         {/*Rounds*/}
                         <motion.div
-                            className="bg-white/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-white/8 transition-all duration-500"
+                            className="bg-blue-300/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-blue-300/8 transition-all duration-500"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
@@ -431,7 +430,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                 {event.rounds.map((r, i) => (
                                     <motion.div
                                         key={i}
-                                        className="p-5 rounded-md bg-white/5 border border-white/10 hover:bg-white/8 transition-all duration-300"
+                                        className="p-5 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.1 * i }}
@@ -454,7 +453,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
 
                         {/* Rules Section */}
                         <motion.div
-                            className="bg-white/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-white/8 transition-all duration-500"
+                            className="bg-blue-300/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-blue-300/8 transition-all duration-500"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
@@ -478,7 +477,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                         .map((rule, index) => (
                                             <motion.div
                                                 key={index}
-                                                className="flex items-start gap-4 p-5 rounded-md bg-white/5 border border-white/10 hover:bg-white/8 transition-all duration-300"
+                                                className="flex items-start gap-4 p-5 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{
