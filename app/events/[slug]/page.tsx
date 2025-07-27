@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { useParams } from "next/navigation";
 import EventDetailsContent from "./EventDetailsContent";
 import useEvents from "@/hooks/useEvents";
+import { PageLoader } from "@/components/LoadingSpinner";
 
 // /* ------------------------------------------------------------------
 //  * Helper: load one event by slug
@@ -58,7 +59,7 @@ export default function EventDetailsPage() {
     const slug = params.slug;
     const { events, loading } = useEvents();
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div><PageLoader text="Loading event..." /></div>;
     const event = events.find((e) => e.id === Number(slug));
     if (!event) notFound();
 

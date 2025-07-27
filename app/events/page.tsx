@@ -6,6 +6,7 @@ import { Pacifico } from "next/font/google";
 // import events from "@/data/events.json" assert { type: "json" };
 import { useRouter } from "next/navigation";
 import useEvents from "@/hooks/useEvents";
+import { PageLoader } from "@/components/LoadingSpinner";
 // import { Play, Pause } from 'lucide-react'
 
 // Google font via next/font
@@ -43,12 +44,12 @@ export default function EventsSlider() {
         return () => clearInterval(timer);
     }, [isPlaying, step]); //[isPlaying, step]
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div><PageLoader text="Loading events..." /></div>;
     return (
-        <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-gradient-to-br from-primary via-primary-100 to-primary font-mono text-white">
+        <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-gradient-to-br from-accent-first via-accent-second to-accent-third font-mono text-white">
             {/* Orange half overlay */}
             {/* <button onClick={()=> router.push('/')} >&lt; Back</button> */}
-            <div className="absolute inset-y-0 left-0 w-1/2 bg-white/5" />
+            <div className="absolute inset-y-0 left-0 w-1/2 bg-blue-300/5" />
 
             {/* Giant cursive heading */}
             <div className="relative w-full max-w-7xl mx-auto py-4 flex flex-col md:flex-row gap-10 min-h-[400px] items-center justify-center">
@@ -56,7 +57,7 @@ export default function EventsSlider() {
                 <div className="w-[80%] md:w-1/2 flex items-center justify-center ">
                     <div
                         key={active}
-                        className="w-3/4 flex items-center justify-center bg-white/10 rounded-md animate-fade-in"
+                        className="w-3/4 flex items-center justify-center bg-blue-300/10 rounded-md animate-fade-in"
                     >
                         <Image
                             src={
