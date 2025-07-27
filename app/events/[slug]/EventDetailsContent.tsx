@@ -179,13 +179,24 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                             className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/10
                                         backdrop-blur-sm border border-white/20 flex items-center justify-center"
                                         >
-                                            <Image
-                                                src={event.logoUrl}
-                                                alt={event.name}
-                                                width={112}
-                                                height={112}
-                                                className="object-contain"
-                                            />
+                                            {event.logoUrl ? (
+                                                <Image
+                                                    src={event.logoUrl}
+                                                    alt={event.name}
+                                                    width={112}
+                                                    height={112}
+                                                    className="object-contain"
+                                                />
+                                            ) : (
+                                                <div
+                                                    className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/10
+                                        backdrop-blur-sm border border-white/20 flex items-center justify-center"
+                                                >
+                                                    <p className="text-white text-2xl font-bold">
+                                                        {event.name.charAt(0)}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div>
@@ -286,7 +297,11 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                     {
                                         icon: Calendar,
                                         label: "Date",
-                                        value: event.rounds[0].time,
+                                        value: event.rounds[0].time
+                                            ? new Date(
+                                                  event.rounds[0].time
+                                              ).toLocaleDateString()
+                                            : "TBA",
                                     },
                                     {
                                         icon: Clock,
@@ -301,7 +316,11 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                     {
                                         icon: Users,
                                         label: "Team Size",
-                                        value: event.teamSize,
+                                        value:
+                                            event.teamMinSize ===
+                                            event.teamMaxSize
+                                                ? `${event.teamMinSize}`
+                                                : `${event.teamMinSize} - ${event.teamMaxSize}`,
                                     },
                                 ].map((item, index) => (
                                     <motion.div
