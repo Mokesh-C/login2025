@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     motion,
     AnimatePresence,
@@ -26,11 +26,17 @@ import {
     Award,
     CheckCircle,
     ListCheck,
+    Monitor,
+    Timer,
+    Loader2,
 } from "lucide-react";
 
 import ToastCard from "@/components/ToastCard";
 import type { EventCardProps } from "@/components/EventCard";
 import { Event } from "@/types/events";
+import { useRouter } from "next/navigation";
+import { PageLoader } from "@/components/LoadingSpinner";
+import useRegister from "@/hooks/useRegister";
 
 /* ---------------------------------------------------------------------
  * Types
@@ -115,22 +121,157 @@ function SectionCard({ children }: { children: React.ReactNode }) {
     );
 }
 
+// Utility to format date/time
+function formatDateTime(dateString?: string) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString.replace(' ', 'T'));
+  if (isNaN(date.getTime())) return dateString;
+  let formatted = date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+  // Ensure comma and uppercase AM/PM
+  formatted = formatted.replace(',', ',').replace(/([ap]m)$/i, (m) => m.toUpperCase());
+  return formatted;
+}
+
 /* ---------------------------------------------------------------------
  * Main component
  * -------------------------------------------------------------------*/
 
 export default function EventDetailsContent({ event }: { event: Event }) {
     /* ---------------- Toast handling ---------------- */
-    const [errors, setErrors] = useState<{ id: number; message: string }[]>([]);
+    const [errorList, setErrorList] = useState<{ id: number; message: string }[]>([]);
+    const [errorId, setErrorId] = useState(0);
+    const [isRegistered, setIsRegistered] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [checkingRegistration, setCheckingRegistration] = useState(false);
+    const [registrationData, setRegistrationData] = useState<any>(null);
+    
     const notifyError = () =>
-        setErrors((prev) => [
+        setErrorList((prev) => [
             ...prev,
             {
-                id: Date.now(),
-                message:
-                    "The site is under development — registration is unavailable.",
+                id: errorId,
+                message: "The site is under development — registration is unavailable.",
             },
         ]);
+
+    /* ── auto‑dismiss toasts ── */
+    useEffect(() => {
+        const tids = errorList.map((e) =>
+            setTimeout(
+                () => setErrorList((prev) => prev.filter((t) => t.id !== e.id)),
+                4_000
+            )
+        );
+        return () => tids.forEach(clearTimeout);
+    }, [errorList]);
+
+    /* ── helpers ── */
+    const showError = (msg: string) => {
+        setErrorList([{ id: errorId, message: msg }]);
+        setErrorId((prev) => prev + 1);
+    };
+
+    const showSuccess = (msg: string) => {
+        setErrorList((prev) => [...prev, { id: errorId, message: msg }]);
+        setErrorId((prev) => prev + 1);
+    };
+
+    const removeToast = useCallback(
+        (id: number) => setErrorList((prev) => prev.filter((t) => t.id !== id)),
+        []
+    );
+
+
+    const router = useRouter();
+    const { soloRegister, getRegistrationsByUser } = useRegister();
+
+    // Check registration status on component mount
+    useEffect(() => {
+        const checkRegistrationStatus = async () => {
+            const accessToken = localStorage.getItem("accessToken");
+            if (!accessToken) return;
+
+            setCheckingRegistration(true);
+            try {
+                const regRes = await getRegistrationsByUser(accessToken);
+                if (regRes.success && regRes.data) {
+                    setRegistrationData(regRes.data);
+                    
+                    // Check if user is registered for this event
+                    const currentEventId = event.id;
+                    
+                    if (event.teamMaxSize === 1) {
+                        // Individual event - check user registrations
+                        const userRegistration = regRes.data.user?.find(
+                            (reg: any) => reg.eventId === currentEventId
+                        );
+                        setIsRegistered(!!userRegistration);
+                    } else {
+                        // Team event - check team registrations
+                        const teamRegistration = regRes.data.team?.find(
+                            (reg: any) => reg.eventId === currentEventId
+                        );
+                        setIsRegistered(!!teamRegistration);
+                    }
+                }
+            } catch (error) {
+                console.error("Error checking registration status:", error);
+            } finally {
+                setCheckingRegistration(false);
+            }
+        };
+
+        checkRegistrationStatus();
+    }, [event.id, event.teamMaxSize]);
+
+    // Registration handler
+    const handleRegister = async () => {
+        // Check for authentication (accessToken in localStorage)
+        const accessToken = localStorage.getItem("accessToken");
+        if (!accessToken) {
+            // Not authenticated, redirect to login
+            router.push("/login");
+            return;
+        }
+        
+        if (event.teamMaxSize === 1) {
+            // Solo registration            
+            setIsRegistering(true);
+            try {
+                const res = await soloRegister(event.id, accessToken);
+                if (res.success) {
+                    setIsRegistered(true);
+                    showSuccess(`Registration successful for ${event.name}!`);
+                } else {
+                    showError(res.message || "Failed to register for event.");
+                }
+            } catch (error) {
+                showError("Failed to register for event.");
+            } finally {
+                setIsRegistering(false);
+            }
+            return;
+        }
+        
+        if (event.teamMaxSize > 1) {
+            // Go to event-specific team creation page with eventId, eventName, eventLogo, teamSize, and eventMinSize as query params
+            router.push(`/events/create-team?eventId=${event.id}&eventName=${encodeURIComponent(event.name)}&eventLogo=${encodeURIComponent(event.logoUrl)}&teamSize=${event.teamMaxSize}&eventMinSize=${event.teamMinSize}`);
+            return;
+        }
+        notifyError(); // fallback
+    };
+
+    // Handle view team navigation
+    const handleViewTeam = () => {
+        router.push(`/events/create-team?eventId=${event.id}&eventName=${encodeURIComponent(event.name)}&eventLogo=${encodeURIComponent(event.logoUrl)}&teamSize=${event.teamMaxSize}&eventMinSize=${event.teamMinSize}`);
+    };
 
     /* ---------------- Render ----------------------- */
     return (
@@ -138,27 +279,29 @@ export default function EventDetailsContent({ event }: { event: Event }) {
             initial="hidden"
             animate="show"
             variants={stagger}
-            className="relative min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third
-                 text-white px-4 pb-24 pt-10 overflow-hidden"
+            className="min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white px-4 pb-24 pt-20 overflow-hidden"
         >
             {/* Toasts */}
             <AnimatePresence>
-                {errors.map((e) => (
+                {errorList.map((e) => (
                     <ToastCard
                         key={e.id}
                         id={e.id}
                         message={e.message}
-                        onClose={() =>
-                            setErrors((p) => p.filter((x) => x.id !== e.id))
+                        onClose={() => removeToast(e.id)}
+                        textColor={
+                            e.message.toLowerCase().includes("successful") ||
+                            e.message.toLowerCase().includes("success")
+                                ? "text-green-400"
+                                : "text-red-500"
                         }
-                        textColor="text-red-700"
                     />
                 ))}
             </AnimatePresence>
 
             {/* -------------------- HERO ROW -------------------- */}
             <motion.div
-                className="relative z-10 p-1 pb-12"
+                className="relative z-10 px-auto md:px-6 pb-12"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
@@ -205,17 +348,119 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                             </motion.div>
 
                             {/* CTA Button */}
-                            <motion.button
-                                className={`bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105`}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={notifyError}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.1, delay: 0.5 }}
-                            >
-                                Register Now
-                            </motion.button>
+                            {!event.closed ? (
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    {checkingRegistration ? (
+                                        <motion.button
+                                            className="bg-gray-600 text-white font-bold py-4 px-8 rounded-md text-lg opacity-50 cursor-not-allowed"
+                                            disabled
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.1, delay: 0.5 }}
+                                        >
+                                            <Loader2 className="animate-spin w-5 h-5 inline-block mr-2" />
+                                            Checking...
+                                        </motion.button>
+                                    ) : isRegistered ? (
+                                        <>
+                                            <motion.div
+                                                className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.1, delay: 0.5 }}
+                                            >
+                                                <CheckCircle className="w-5 h-5 text-green-400" />
+                                                <span className="text-green-400 font-semibold">Registered</span>
+                                            </motion.div>
+                                            {event.teamMaxSize > 1 && (
+                                                <motion.button
+                                                    className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={handleViewTeam}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.1, delay: 0.5 }}
+                                                >
+                                                    <Users className="w-5 h-5 inline-block mr-2" />
+                                                    View Team
+                                                </motion.button>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <motion.button
+                                            className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={handleRegister}
+                                            disabled={isRegistering}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.1, delay: 0.5 }}
+                                        >
+                                            {isRegistering ? (
+                                                <>
+                                                    <Loader2 className="animate-spin w-5 h-5 inline-block mr-2" />
+                                                    Registering...
+                                                </>
+                                            ) : (
+                                                "Register Now"
+                                            )}
+                                        </motion.button>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    {checkingRegistration ? (
+                                        <motion.button
+                                            className="bg-gray-600 text-white font-bold py-4 px-8 rounded-md text-lg opacity-50 cursor-not-allowed"
+                                            disabled
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.1, delay: 0.5 }}
+                                        >
+                                            <Loader2 className="animate-spin w-5 h-5 inline-block mr-2" />
+                                            Checking...
+                                        </motion.button>
+                                    ) : isRegistered ? (
+                                        <>
+                                            <motion.div
+                                                className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.1, delay: 0.5 }}
+                                            >
+                                                <CheckCircle className="w-5 h-5 text-green-400" />
+                                                <span className="text-green-400 font-semibold">Registered</span>
+                                            </motion.div>
+                                            {event.teamMaxSize > 1 && (
+                                                <motion.button
+                                                    className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={handleViewTeam}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.1, delay: 0.5 }}
+                                                >
+                                                    <Users className="w-5 h-5 inline-block mr-2" />
+                                                    View Team
+                                                </motion.button>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <motion.div
+                                            className="flex items-center gap-2 bg-red-500/20 border border-red-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.1, delay: 0.5 }}
+                                        >
+                                            <CheckCircle className="w-5 h-5 text-red-400" />
+                                            <span className="text-red-400 font-semibold">Registration Closed</span>
+                                        </motion.div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Right Image */}
@@ -226,12 +471,13 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                             transition={{ duration: 0.8, delay: 0.4 }}
                         >
                             <div className="relative rounded-md overflow-hidden border border-white/20 shadow-2xl">
-                                <img
-                                    src={
-                                        "https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=800"
-                                    }
+                                <Image
+                                    src={event.images[0]?.url}
                                     alt={event.name}
+                                    width={800}
+                                    height={384}
                                     className="w-full h-96 object-cover"
+                                    unoptimized
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
                             </div>
@@ -281,50 +527,62 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                             </h3>
 
                             <div className="space-y-5">
-                                {[
-                                    {
-                                        icon: Calendar,
-                                        label: "Date",
-                                        value: event.rounds[0].time,
-                                    },
-                                    {
-                                        icon: Clock,
-                                        label: "Time",
-                                        value: "TBA",
-                                    },
-                                    {
-                                        icon: MapPin,
-                                        label: "Venue",
-                                        value: "TBA",
-                                    },
-                                    {
-                                        icon: Users,
-                                        label: "Team Size",
-                                        value: event.teamSize,
-                                    },
-                                ].map((item, index) => (
-                                    <motion.div
-                                        key={index}
-                                        className="flex items-center gap-4 p-4 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
-                                        whileHover={{ x: 5 }}
-                                    >
-                                        <div
-                                            className={`p-3 rounded-md bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}
-                                        >
-                                            <item.icon
-                                                className={`w-5 h-5 text-cyan-400`}
-                                            />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-400">
-                                                {item.label}
-                                            </p>
-                                            <p className="font-semibold text-white">
-                                                {item.value}
-                                            </p>
-                                        </div>
-                                    </motion.div>
-                                ))}
+                                {/* Date (from first round, formatted) */}
+                                <motion.div
+                                    className="flex items-center gap-4 p-4 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
+                                    whileHover={{ x: 5 }}
+                                >
+                                    <div className={`p-3 rounded-md bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}>
+                                        <Calendar className={`w-5 h-5 text-cyan-400`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Date</p>
+                                        <p className="font-semibold text-white">{formatDateTime(event.rounds[0]?.time).split(',')[0]}</p>
+                                    </div>
+                                </motion.div>
+                                {/* Event Type */}
+                                <motion.div
+                                    className="flex items-center gap-4 p-4 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
+                                    whileHover={{ x: 5 }}
+                                >
+                                    <div className={`p-3 rounded-md bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}>
+                                        <Tag className={`w-5 h-5 text-cyan-400`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Event Type</p>
+                                        <p className="font-semibold text-white">{event.type || 'N/A'}</p>
+                                    </div>
+                                </motion.div>
+                                {/* Venue (from first round) */}
+                                <motion.div
+                                    className="flex items-center gap-4 p-4 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
+                                    whileHover={{ x: 5 }}
+                                >
+                                    <div className={`p-3 rounded-md bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}>
+                                        <MapPin className={`w-5 h-5 text-cyan-400`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Venue</p>
+                                        <p className="font-semibold text-white">{event.rounds[0]?.venue || 'N/A'}</p>
+                                    </div>
+                                </motion.div>
+                                {/* Team Size */}
+                                <motion.div
+                                    className="flex items-center gap-4 p-4 rounded-md bg-blue-300/5 border border-white/10 hover:bg-blue-300/8 transition-all duration-300"
+                                    whileHover={{ x: 5 }}
+                                >
+                                    <div className={`p-3 rounded-md bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}>
+                                        <Users className={`w-5 h-5 text-cyan-400`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Team Size</p>
+                                        <p className="font-semibold text-white">
+                                            {event.teamMinSize === event.teamMaxSize
+                                                ? event.teamMinSize
+                                                : `${event.teamMinSize} - ${event.teamMaxSize}`}
+                                        </p>
+                                    </div>
+                                </motion.div>
                             </div>
                         </div>
 
@@ -352,11 +610,20 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                             <div className="space-y-2">
                                                 <a
                                                     href={`tel:${coordinator.mobile}`}
-                                                    className={`flex items-center gap-2 text-sm text-cyan-300 hover:text-cyan-400 transition-colors`}
+                                                    className={`flex items-center gap-2 text-sm text-whilte/80 hover:text-white/90 transition-colors`}
                                                 >
-                                                    <Phone className="w-4 h-4" />
+                                                    <Phone className="w-4 h-4 text-cyan-300" />
                                                     {coordinator.mobile}
                                                 </a>
+                                                {coordinator.email && (
+                                                    <a
+                                                        href={`mailto:${coordinator.email}`}
+                                                        className="flex items-center gap-2 text-sm text-white/80 hover:text-white/90 transition-colors"
+                                                    >
+                                                        <Mail className="w-4 h-4 text-cyan-300" />
+                                                        {coordinator.email}
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
                                     )
@@ -427,6 +694,30 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                                     <li key={j}>{d}</li>
                                                 ))}
                                         </ul>
+
+                                        {/* Round Details Row */}
+                                        <div className="flex flex-col md:flex-row justify-center gap-4 mt-4">
+                                            {/* Mode */}
+                                            <div className="flex items-center gap-2 bg-blue-300/10 border border-white/10 rounded-md px-3 py-2 min-w-[110px]">
+                                                <Monitor className="w-4 h-4 text-cyan-400" />
+                                                <span className="text-sm text-white/90 font-medium">{r.mode || 'N/A'}</span>
+                                            </div>
+                                            {/* Venue */}
+                                            <div className="flex items-center gap-2 bg-blue-300/10 border border-white/10 rounded-md px-3 py-2 min-w-[110px]">
+                                                <MapPin className="w-4 h-4 text-cyan-400" />
+                                                <span className="text-sm text-white/90 font-medium">{r.venue || 'N/A'}</span>
+                                            </div>
+                                            {/* Time */}
+                                            <div className="flex items-center gap-2 bg-blue-300/10 border border-white/10 rounded-md px-3 py-2 min-w-[110px]">
+                                                <Clock className="w-4 h-4 text-cyan-400" />
+                                                <span className="text-sm text-white/90 font-medium">{formatDateTime(r.time)}</span>
+                                            </div>
+                                            {/* Duration */}
+                                            <div className="flex items-center gap-2 bg-blue-300/10 border border-white/10 rounded-md px-3 py-2 min-w-[110px]">
+                                                <Timer className="w-4 h-4 text-cyan-400" />
+                                                <span className="text-sm text-white/90 font-medium">{r.duration ? `${r.duration} min` : 'N/A'}</span>
+                                            </div>
+                                        </div>
                                     </motion.div>
                                 ))}
                             </div>

@@ -103,7 +103,7 @@ export default function Header() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0 }}
         className={`
-          w-full z-40
+          w-full z-[100]
           bg-gradient-to-br from-accent-first via-accent-second to-accent-third
           backdrop-blur-lg shadow-md
           text-neutral-white
@@ -146,7 +146,7 @@ export default function Header() {
           </nav>
           <div className="hidden lg:flex items-center space-x-4">
             {isLoggedIn ? (
-              <div className="relative" ref={profileRef}>
+              <div className="relative z-[100]" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300/10 hover:bg-blue-300/20 transition-colors"
@@ -340,7 +340,7 @@ export default function Header() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 mt-2 w-48 bg-blue-300/10 backdrop-blur-xl rounded-md shadow-lg border border-blue-300/10"
+                        className="absolute right-0 mt-2 w-48 bg-blue-300/10 backdrop-blur-xl rounded-md shadow-lg border border-blue-300/10 z-[110]"
                       >
                         <Link
                           href={userRole === 'alumni' ? '/profile/alumni' : '/profile'}

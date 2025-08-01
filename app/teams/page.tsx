@@ -54,32 +54,32 @@ const OFFICE_BEARERS: TeamMember[] = [
 const DEV_TEAM: TeamMember[] = [
   {
     name: 'Praveen',
-    about: 'Web Development Coordinator and Backend Developer.',
+    about: 'Web Development Team Lead',
     imageUrl: '/coordinators/Praveen.JPG',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Jeffry Patrick',
-    about: 'Full Stack Developer',
+    about: 'Backend Developer',
     imageUrl: '/coordinators/Jeffrypatrick.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Mokesh',
-    about: 'Frontend Developer and UI Design',
+    about: 'Frontend Developer and UI Designer',
     imageUrl: '/coordinators/Mokesh.jpg',
     email: 'hello@example.com',
     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
   },
-  {
-    name: 'Balaji',
-    about: 'Frontend Developer',
-    imageUrl: '/coordinators/Balaji.jpg',
-    email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
-  },
+//   {
+//     name: 'Balaji',
+//     about: 'Frontend Developer',
+//     imageUrl: '/coordinators/Balaji.jpg',
+//     email: 'hello@example.com',
+//     socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+//   },
 ]
 
 /* ─────────────────────────

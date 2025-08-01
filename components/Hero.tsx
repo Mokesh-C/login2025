@@ -184,7 +184,7 @@ useEffect(() => {
   return (
     <>
       {/* HERO SECTION */}
-      <section className="relative flex flex-col sm:justify-center min-h-[calc(100vh-5rem)] w-full overflow-hidden px-4 md:px-12 lg:px-24 pb-0">
+      <section className="flex flex-col sm:justify-center min-h-[calc(100vh-5rem)] w-full overflow-hidden px-4 md:px-12 lg:px-24 pb-0">
         {/* Decorative Mountain Wave at Bottom */}
         <div className="absolute bottom-0 left-0 w-full ">
           {/* Main mountain wave */}
@@ -329,7 +329,7 @@ useEffect(() => {
               National Level Inter‑Collegiate Tech‑Symposium For PG Students
             </h3>
             <div className="bg-blue-300/10 border border-blue-300/20 rounded-lg p-3">
-              <p className="text-gradient text-sm md:text-base font-semibold">
+              <p className="text-cyan-500 text-sm md:text-base font-semibold">
                 <span className="font-bold">Note:</span>{' '}
                 Only M.E., M.Tech., MBA, MCA, M.Sc., and other PG students can register and participate.
               </p>

@@ -2,7 +2,9 @@ import { User } from "./user";
 
 
 export interface EventImage {
-    id: number;
+    // Some images use 'id', some use 'eventId' in the data
+    id?: number;
+    eventId?: number;
     url: string;
 }
 
@@ -11,7 +13,8 @@ export interface Event {
     name: string;
     type: string;
     description: string;
-    teamSize: number;
+    teamMinSize: number;
+    teamMaxSize: number;
     closed: boolean;
     maxRegistration: number | -1; // -1 for unlimited registrations
     rules: string;

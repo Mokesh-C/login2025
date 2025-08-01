@@ -7,35 +7,24 @@ import { User, LogOut } from "lucide-react";
 import ToastCard from "@/components/ToastCard";
 import useAuth from "@/hooks/useAuth";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
+import useRequireAuth from "@/hooks/useRequireAuth";
+import { PageLoader } from "@/components/LoadingSpinner";
 
 export default function AlumniProfilePage() {
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [errorList, setErrorList] = useState<{ id: number; message: string }[]>([]);
   const [errorId, setErrorId] = useState(0);
   const router = useRouter();
   const axiosPrivate = useAxiosPrivate();
+  const { logout } = useAuth();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axiosPrivate.get("/user");
-        setUser(res.data);
-      } catch {
-        router.push("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUser();
-  }, [router]);
+  // Use useRequireAuth for user and loading state
+  const { user, isLoading } = useRequireAuth();
 
   const showError = (msg: string) => {
     setErrorList((prev) => [...prev, { id: errorId, message: msg }]);
     setErrorId((prev) => prev + 1);
   };
 
-  const { logout } = useAuth();
   const handleLogout = async () => {
     const refreshToken = localStorage.getItem("refreshToken") || "";
     await logout(refreshToken);
@@ -43,6 +32,7 @@ export default function AlumniProfilePage() {
     router.push("/");
   };
 
+  if (isLoading) return <PageLoader text="Loading user data..." />;
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -97,9 +87,7 @@ export default function AlumniProfilePage() {
 
         {/* Basic Details */}
         <div className="bg-blue-300/5 p-6 rounded-md space-y-4">
-          {isLoading ? (
-            <p className="text-white/60 text-center">Loading user data...</p>
-          ) : !user ? (
+          {!user ? (
             <p className="text-white/60 text-center">No user data available</p>
           ) : (
             <>

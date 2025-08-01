@@ -62,6 +62,6 @@ export default function EventDetailsPage() {
     if (loading) return <div><PageLoader text="Loading event..." /></div>;
     const event = events.find((e) => e.id === Number(slug));
     if (!event) notFound();
-
+    
     return <EventDetailsContent event={event} />;
 }
