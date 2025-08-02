@@ -144,7 +144,7 @@ export default function EventsSlider() {
                             style={{ transform: `rotate(${-i * step}deg)` }}
                         >
                             <Image
-                                src={e.logoUrl}
+                                src={e.logoUrl || ""}
                                 alt={e.name}
                                 width={150}
                                 height={150}
