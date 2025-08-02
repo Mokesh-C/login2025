@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import useRequireAuth from "@/hooks/useRequireAuth";
 import { PageLoader } from "@/components/LoadingSpinner";
@@ -11,7 +11,7 @@ import { FaUsersGear, FaUserPlus } from "react-icons/fa6";
 import useTeam from "@/hooks/useTeam";
 import useRegister from "@/hooks/useRegister";
 
-export default function CreateTeamPage() {
+function CreateTeamPageContent() {
   const { user, isLoading } = useRequireAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -866,5 +866,13 @@ export default function CreateTeamPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CreateTeamPage() {
+  return (
+    <Suspense fallback={<PageLoader text="Loading..." />}>
+      <CreateTeamPageContent />
+    </Suspense>
   );
 } 

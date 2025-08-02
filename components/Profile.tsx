@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import Image from "next/image";
 import {
     User,
     ArrowRightLeft,
@@ -14,10 +15,12 @@ import {
     LogOut,
     Clock,
     Users,
+    Mail,
 } from "lucide-react";
 import type { Easing } from "framer-motion";
 import { useRouter } from "next/navigation";
 import ToastCard from "@/components/ToastCard";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 import useAuth from "@/hooks/useAuth";
 import useRequireAuth from "@/hooks/useRequireAuth";
@@ -47,11 +50,12 @@ interface Event {
 interface ErrorMessage {
     id: number;
     message: string;
+    type?: 'error' | 'success';
 }
 
 const Profile: React.FC = () => {
     const [activeTab, setActiveTab] = useState<
-        "about" | "events" | "teams"
+        "about" | "events" | "teams" | "invitations"
     >("about");
     const [pageLoaded, setPageLoaded] = useState(false);
     const [errorList, setErrorList] = useState<ErrorMessage[]>([]);
@@ -60,6 +64,20 @@ const Profile: React.FC = () => {
     const [loadingEvents, setLoadingEvents] = useState(true); // Start with loading true
     const [userTeams, setUserTeams] = useState<any[]>([]);
     const [loadingTeams, setLoadingTeams] = useState(true);
+    const [allInvitations, setAllInvitations] = useState<any[]>([]);
+    const [loadingInvitations, setLoadingInvitations] = useState(true);
+    const [confirmDialog, setConfirmDialog] = useState<{
+        isOpen: boolean;
+        type: 'accept' | 'decline';
+        invitation: any;
+        teamName?: string;
+        eventName?: string;
+    }>({
+        isOpen: false,
+        type: 'accept',
+        invitation: null
+    });
+    const [isUpdatingInvitation, setIsUpdatingInvitation] = useState(false);
     const { logout } = useAuth();
     const router = useRouter();
 
@@ -67,7 +85,7 @@ const Profile: React.FC = () => {
     const { user, isLoading } = useRequireAuth();
     const { getRegistrationsByUser } = useRegister();
     const { events: allEvents } = useEvents();
-    const { userTeams: fetchUserTeams, teamMembers } = useTeam();
+    const { userTeams: fetchUserTeams, teamMembers, updateInvitation } = useTeam();
 
     // Static data for transactions and events (replace with API calls if endpoints provided)
     const transactions: Transaction[] = [
@@ -95,12 +113,15 @@ const Profile: React.FC = () => {
                 }
 
                 const result = await getRegistrationsByUser(accessToken);
-                console.log(result);
                 
                 if (result.success && result.data) {
-                    // Extract event IDs from both user and team registrations
+                    // Extract event IDs only from accepted registrations
+                    // For user array: no status check needed (individual registrations are automatically accepted)
+                    // For team array: check invitationStatus === "accepted" AND has complete data (teamId, eventId)
                     const userEventIds = result.data.user?.map((reg: any) => reg.eventId) || [];
-                    const teamEventIds = result.data.team?.map((reg: any) => reg.eventId) || [];
+                    const teamEventIds = result.data.team?.filter((reg: any) => 
+                        reg.invitationStatus === "accepted" && reg.teamId && reg.eventId
+                    ).map((reg: any) => reg.eventId) || [];
                     const allEventIds = [...userEventIds, ...teamEventIds];
 
                     // Utility to format date
@@ -142,6 +163,79 @@ const Profile: React.FC = () => {
         fetchUserRegistrations();
     }, [user?.id, allEvents.length]); // Only depend on user ID and events length
 
+    // Fetch all invitations (pending, accepted, declined)
+    useEffect(() => {
+        const fetchAllInvitations = async () => {
+            if (!user) return;
+
+            setLoadingInvitations(true);
+            try {
+                const accessToken = localStorage.getItem('accessToken');
+                if (!accessToken) {
+                    showError('No access token found');
+                    return;
+                }
+
+                const result = await getRegistrationsByUser(accessToken);
+                if (result.success && result.data) {
+                    // Get ALL team invitations (pending, accepted, declined)
+                    const allTeamInvitations = result.data.team || [];
+
+                    // Get all user teams to find team names
+                    const teamsResult = await fetchUserTeams(accessToken);
+                    const allTeams = teamsResult.success ? teamsResult.teams : [];
+
+                    // Get event and team details for each invitation
+                    const invitationsWithDetails = await Promise.all(
+                        allTeamInvitations.map(async (invitation: any) => {
+                            const event = allEvents.find(e => e.id === invitation.eventId);
+                            let teamAdmin = null;
+                            let teamName = `Team ${invitation.teamId}`; // Fallback
+                            
+                            // Get team members to find admin and team name
+                            if (invitation.teamId) {
+                                try {
+                                    const teamResult = await teamMembers(invitation.teamId, accessToken);
+                                    if (teamResult.success && teamResult.members) {
+                                        // Find the admin who sent the invite
+                                        teamAdmin = teamResult.members.find((member: any) => member.admin === true);
+                                        
+                                        // Try to get team name from userTeams first
+                                        const userTeam = allTeams?.find(t => t.id === invitation.teamId);
+                                        if (userTeam?.name) {
+                                            teamName = userTeam.name;
+                                        }
+                                    }
+                                } catch (error) {
+                                    console.error('Error fetching team details:', error);
+                                }
+                            }
+
+                            return {
+                                ...invitation,
+                                event,
+                                teamAdmin,
+                                teamName
+                            };
+                        })
+                    );
+
+                    setAllInvitations(invitationsWithDetails);
+                } else {
+                    showError(result.message || 'Failed to fetch invitations');
+                }
+            } catch (error) {
+                showError('Failed to fetch invitations');
+            } finally {
+                setLoadingInvitations(false);
+            }
+        };
+
+        if (allEvents.length > 0) {
+            fetchAllInvitations();
+        }
+    }, [user?.id, allEvents.length]);
+
     // Fetch user teams with members
     useEffect(() => {
         const fetchTeamsWithMembers = async () => {
@@ -162,25 +256,37 @@ const Profile: React.FC = () => {
                     return;
                 }
 
-                // Step 2: For each team, get members
+                // Step 2: For each team, get members and check if current user is accepted
                 const teamsWithMembers = await Promise.all(
                     teamsResult.teams.map(async (team) => {
                         try {
                             const membersResult = await teamMembers(team.id, accessToken);
+                            const members = membersResult.success ? (membersResult.members || []) : [];
+                            
+                            // Find current user in the team members
+                            const currentUserInTeam = members.find((member: any) => member.userId === user.id);
+                            
                             return {
                                 ...team,
-                                members: membersResult.success ? membersResult.members : []
+                                members,
+                                userInvitationStatus: currentUserInTeam?.invitationStatus || 'pending'
                             };
                         } catch (error) {
                             return {
                                 ...team,
-                                members: []
+                                members: [],
+                                userInvitationStatus: 'pending'
                             };
                         }
                     })
                 );
 
-                setUserTeams(teamsWithMembers);
+                // Step 3: Filter teams - only show teams where current user has accepted
+                const acceptedTeams = teamsWithMembers.filter(team => 
+                    team.userInvitationStatus === 'accepted'
+                );
+
+                setUserTeams(acceptedTeams);
             } catch (error) {
                 showError('Failed to fetch user teams');
             } finally {
@@ -215,7 +321,13 @@ const Profile: React.FC = () => {
 
     // Error handling
     const showError = (msg: string) => {
-        setErrorList((prev) => [...prev, { id: errorId, message: msg }]);
+        setErrorList((prev) => [...prev, { id: errorId, message: msg, type: 'error' }]);
+        setErrorId((prev) => prev + 1);
+    };
+
+    // Success handling
+    const showSuccess = (msg: string) => {
+        setErrorList((prev) => [...prev, { id: errorId, message: msg, type: 'success' }]);
         setErrorId((prev) => prev + 1);
     };
 
@@ -224,6 +336,137 @@ const Profile: React.FC = () => {
         await logout(refreshToken);
         window.dispatchEvent(new Event('storageChange'));
         router.push('/');
+    };
+
+    // Handle invitation actions
+    const handleInvitationAction = (invitation: any, action: 'accept' | 'decline') => {
+        const eventName = invitation.event?.name || 'Unknown Event';
+        const teamName = invitation.teamName || `Team ${invitation.teamId}`;
+        
+        setConfirmDialog({
+            isOpen: true,
+            type: action,
+            invitation,
+            teamName,
+            eventName
+        });
+    };
+
+    const confirmInvitationAction = async () => {
+        if (!confirmDialog.invitation || !user) return;
+
+        setIsUpdatingInvitation(true);
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                showError('No access token found');
+                return;
+            }
+
+            const { invitation, type } = confirmDialog;
+            const result = await updateInvitation(
+                invitation.teamId,
+                user.id,
+                type, // "accept" or "decline"
+                accessToken
+            );
+
+            if (result.success) {
+                // Update local state - update the invitation status in the list
+                const newStatus = type === 'accept' ? 'accepted' : 'declined';
+                setAllInvitations(prev => 
+                    prev.map(inv => 
+                        inv.id === invitation.id 
+                            ? { ...inv, invitationStatus: newStatus }
+                            : inv
+                    )
+                );
+                
+                // If accepted, refresh user registrations and teams to update both Events and Teams tabs
+                if (type === 'accept') {
+                    // Re-fetch user registrations to update the Events tab
+                    const regResult = await getRegistrationsByUser(accessToken);
+                    if (regResult.success && regResult.data) {
+                        const userEventIds = regResult.data.user?.map((reg: any) => reg.eventId) || [];
+                        const teamEventIds = regResult.data.team?.filter((reg: any) => 
+                            reg.invitationStatus === "accepted" && reg.teamId && reg.eventId
+                        ).map((reg: any) => reg.eventId) || [];
+                        const allEventIds = [...userEventIds, ...teamEventIds];
+
+                        const formatDate = (dateString?: string) => {
+                            if (!dateString) return 'TBD';
+                            const date = new Date(dateString.replace(' ', 'T'));
+                            if (isNaN(date.getTime())) return dateString;
+                            return date.toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                            });
+                        };
+
+                        const userRegisteredEvents = allEventIds.map(eventId => {
+                            const event = allEvents.find(e => e.id === eventId);
+                            return event ? {
+                                id: event.id,
+                                name: event.name,
+                                date: formatDate(event.rounds?.[0]?.time),
+                                hasCertificate: false,
+                                logoUrl: event.logoUrl,
+                                tagline: event.tagline
+                            } : null;
+                        }).filter(Boolean);
+
+                        setRegisteredEvents(userRegisteredEvents);
+                    }
+
+                    // Re-fetch teams to update the Teams tab (newly accepted team will now show)
+                    const teamsResult = await fetchUserTeams(accessToken);
+                    if (teamsResult.success && teamsResult.teams) {
+                        const teamsWithMembers = await Promise.all(
+                            teamsResult.teams.map(async (team) => {
+                                try {
+                                    const membersResult = await teamMembers(team.id, accessToken);
+                                    const members = membersResult.success ? (membersResult.members || []) : [];
+                                    
+                                    const currentUserInTeam = members.find((member: any) => member.userId === user.id);
+                                    
+                                    return {
+                                        ...team,
+                                        members,
+                                        userInvitationStatus: currentUserInTeam?.invitationStatus || 'pending'
+                                    };
+                                } catch (error) {
+                                    return {
+                                        ...team,
+                                        members: [],
+                                        userInvitationStatus: 'pending'
+                                    };
+                                }
+                            })
+                        );
+
+                        const acceptedTeams = teamsWithMembers.filter(team => 
+                            team.userInvitationStatus === 'accepted'
+                        );
+
+                        setUserTeams(acceptedTeams);
+                    }
+                }
+
+                showSuccess(`Invitation ${type === 'accept' ? 'accepted' : 'declined'} successfully!`);
+            } else {
+                showError(result.message || `Failed to ${type} invitation`);
+            }
+        } catch (error) {
+            showError(`Failed to ${confirmDialog.type} invitation`);
+        } finally {
+            setIsUpdatingInvitation(false);
+            setConfirmDialog({ isOpen: false, type: 'accept', invitation: null });
+        }
+    };
+
+    const cancelInvitationAction = () => {
+        setConfirmDialog({ isOpen: false, type: 'accept', invitation: null });
     };
 
     // const renderAboutSection = () => {
@@ -320,31 +563,53 @@ const Profile: React.FC = () => {
         );
     };
 
-    const renderEventsSection = () => (
-        <div className="space-y-6">
-            {registeredEvents.map((event) => (
-                <div
-                    key={event.id}
-                    className="bg-blue-300/5 backdrop-blur-lg border border-blue-300/10 rounded-md p-6 shadow-xl"
-                >
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="text-lg font-semibold text-white/90 mb-1">
-                                {event.name}
-                            </h3>
-                            <p className="text-sm text-white/60">
-                                {event.date}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-2 text-green-400">
-                            <CheckCircle className="w-5 h-5" />
-                            <span className="font-medium">Registered</span>
+    const renderEventsSection = () => {
+        if (registeredEvents.length === 0) {
+            return (
+                <div className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md p-8 text-center">
+                    <Calendar className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                    <p className="text-white/90 mb-4">
+                        No events registered yet!
+                    </p>
+                    <p className="text-white/60 text-sm mb-6">
+                        Explore exciting events and register to participate in competitions.
+                    </p>
+                    <button 
+                        onClick={() => router.push('/events')}
+                        className="bg-accent text-white px-6 py-2 rounded-md hover:bg-accent-hover transition-colors"
+                    >
+                        Explore Events →
+                    </button>
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-6">
+                {registeredEvents.map((event) => (
+                    <div
+                        key={event.id}
+                        className="bg-blue-300/5 backdrop-blur-lg border border-blue-300/10 rounded-md p-6 shadow-xl"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-white/90 mb-1">
+                                    {event.name}
+                                </h3>
+                                <p className="text-sm text-white/60">
+                                    {event.date}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 text-green-400">
+                                <CheckCircle className="w-5 h-5" />
+                                <span className="font-medium">Registered</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            ))}
-        </div>
-    );
+                ))}
+            </div>
+        );
+    };
 
     const renderTeamsSection = () => {
         if (userTeams.length === 0) {
@@ -398,7 +663,7 @@ const Profile: React.FC = () => {
                                                         {member.name}
                                                     </span>
                                                     {member.admin && (
-                                                        <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+                                                        <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded">
                                                             Admin
                                                         </span>
                                                     )}
@@ -428,6 +693,238 @@ const Profile: React.FC = () => {
         );
     };
 
+    const renderInvitationsSection = () => {
+        if (loadingInvitations) {
+            return (
+                <div className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md p-8 text-center">
+                    <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-white/90">Loading invitations...</p>
+                </div>
+            );
+        }
+
+        if (allInvitations.length === 0) {
+            return (
+                <div className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md p-8 text-center">
+                    <Mail className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                    <p className="text-white/90 mb-4">
+                        No team invitations yet!
+                    </p>
+                    <p className="text-white/60 text-sm">
+                        Team invitations will appear here when you receive them.
+                    </p>
+                </div>
+            );
+        }
+
+        // Separate invitations by status - only show invitations with complete data (teamId and eventId)
+        const pendingInvitations = allInvitations.filter(inv => 
+            inv.invitationStatus === "pending" && inv.teamId && inv.eventId
+        );
+        const acceptedInvitations = allInvitations.filter(inv => 
+            inv.invitationStatus === "accepted" && inv.teamId && inv.eventId
+        );
+        const declinedInvitations = allInvitations.filter(inv => 
+            inv.invitationStatus === "declined" && inv.teamId && inv.eventId
+        );
+
+        return (
+            <div className="space-y-8">
+                {/* Pending Invitations Section */}
+                {pendingInvitations.length > 0 && (
+                    <div>
+                        <h3 className="text-xl font-semibold text-white/90 mb-4 flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-yellow-400" />
+                            Pending Invitations ({pendingInvitations.length})
+                        </h3>
+                        <div className="space-y-6">
+                            {pendingInvitations.map((invitation) => (
+                                <div
+                                    key={invitation.id}
+                                    className="bg-blue-300/5 backdrop-blur-lg border border-blue-300/10 rounded-md p-6 shadow-xl"
+                                >
+                                    {/* Top section: Logo/Event/Team on left, Buttons on right */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            {invitation.event?.logoUrl && (
+                                                <Image
+                                                    src={invitation.event.logoUrl}
+                                                    alt={invitation.event?.name || 'Event Logo'}
+                                                    width={100}
+                                                    height={100}
+                                                    className="w-12 h-12 rounded-md object-cover bg-white/10 p-1"
+                                                />
+                                            )}
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-white/90">
+                                                    {invitation.event?.name || 'Unknown Event'}
+                                                </h3>
+                                                <p className="text-sm text-white/60">
+                                                    {invitation.teamName || `Team ${invitation.teamId}`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => handleInvitationAction(invitation, 'decline')}
+                                                className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-md hover:bg-red-500/30 transition-colors"
+                                            >
+                                                Decline
+                                            </button>
+                                            <button
+                                                onClick={() => handleInvitationAction(invitation, 'accept')}
+                                                className="px-4 py-2 bg-green-500/20 text-green-400 border border-green-500/30 rounded-md hover:bg-green-500/30 transition-colors"
+                                            >
+                                                Accept
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Bottom section: Received invite from info */}
+                                    {invitation.teamAdmin && (
+                                        <div className="bg-blue-300/10 rounded-md p-3 border-t border-white/10">
+                                            <p className="text-white/80 text-sm mb-2">
+                                                <span className="font-medium">Received invite from:</span>
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-blue-400" />
+                                                <span className="text-white/90 font-medium">
+                                                    {invitation.teamAdmin.name}
+                                                </span>
+                                                <span className="text-white/60 text-sm">
+                                                    ({invitation.teamAdmin.email})
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Accepted Invitations Section */}
+                {acceptedInvitations.length > 0 && (
+                    <div>
+                        <h3 className="text-xl font-semibold text-white/90 mb-4 flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-green-400" />
+                            Accepted Invitations ({acceptedInvitations.length})
+                        </h3>
+                        <div className="space-y-6">
+                            {acceptedInvitations.map((invitation) => (
+                                <div
+                                    key={invitation.id}
+                                    className="bg-green-500/5 backdrop-blur-lg border border-green-500/20 rounded-md p-6 shadow-xl"
+                                >
+                                    <div className="flex items-center gap-3 mb-3">
+                                        {invitation.event?.logoUrl && (
+                                            <Image
+                                                src={invitation.event.logoUrl}
+                                                alt={invitation.event?.name || 'Event Logo'}
+                                                width={40}
+                                                height={40}
+                                                className="w-10 h-10 rounded-md object-contain bg-white/10 p-1"
+                                            />
+                                        )}
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold text-white/90">
+                                                {invitation.event?.name || 'Unknown Event'}
+                                            </h3>
+                                            <p className="text-sm text-white/60">
+                                                {invitation.teamName || `Team ${invitation.teamId}`}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-green-400">
+                                            <CheckCircle className="w-5 h-5" />
+                                            <span className="font-medium">Accepted</span>
+                                        </div>
+                                    </div>
+
+                                    {invitation.teamAdmin && (
+                                        <div className="bg-green-500/10 rounded-md p-3">
+                                            <p className="text-white/80 text-sm mb-1">
+                                                <span className="font-medium text-white/90">Invited by:</span>
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-green-400" />
+                                                <span className="text-white/90 font-medium">
+                                                    {invitation.teamAdmin.name}
+                                                </span>
+                                                <span className="text-white/60 text-sm">
+                                                    ({invitation.teamAdmin.email})
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Declined Invitations Section */}
+                {declinedInvitations.length > 0 && (
+                    <div>
+                        <h3 className="text-xl font-semibold text-white/90 mb-4 flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">✕</span>
+                            Declined Invitations ({declinedInvitations.length})
+                        </h3>
+                        <div className="space-y-6">
+                            {declinedInvitations.map((invitation) => (
+                                <div
+                                    key={invitation.id}
+                                    className="bg-red-500/5 backdrop-blur-lg border border-red-500/20 rounded-md p-6 shadow-xl opacity-75"
+                                >
+                                    <div className="flex items-center gap-3 mb-3">
+                                        {invitation.event?.logoUrl && (
+                                            <Image
+                                                src={invitation.event.logoUrl}
+                                                alt={invitation.event?.name || 'Event Logo'}
+                                                width={40}
+                                                height={40}
+                                                className="w-10 h-10 rounded-md object-contain bg-white/10 p-1 opacity-60"
+                                            />
+                                        )}
+                                        <div className="flex-1">
+                                            <h3 className="text-lg font-semibold text-white/70">
+                                                {invitation.event?.name || 'Unknown Event'}
+                                            </h3>
+                                            <p className="text-sm text-white/50">
+                                                {invitation.teamName || `Team ${invitation.teamId}`}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-red-400">
+                                            <span className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">✕</span>
+                                            <span className="font-medium">Declined</span>
+                                        </div>
+                                    </div>
+
+                                    {invitation.teamAdmin && (
+                                        <div className="bg-red-500/10 rounded-md p-3">
+                                            <p className="text-white/60 text-sm mb-1">
+                                                <span className="font-medium text-white/70">Invited by:</span>
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-red-400" />
+                                                <span className="text-white/70 font-medium">
+                                                    {invitation.teamAdmin.name}
+                                                </span>
+                                                <span className="text-white/50 text-sm">
+                                                    ({invitation.teamAdmin.email})
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     const sectionVariants = {
         hidden: { opacity: 0, x: 50 },
         visible: {
@@ -442,7 +939,7 @@ const Profile: React.FC = () => {
         },
     };
 
-    if (isLoading || loadingEvents || loadingTeams) return <PageLoader text="Loading user data..." />;
+    if (isLoading || loadingEvents || loadingTeams || loadingInvitations) return <PageLoader text="Loading user data..." />;
 
     return (
         <motion.div
@@ -452,7 +949,7 @@ const Profile: React.FC = () => {
             className=" text-white "
         >
             <div className="max-w-7xl mx-auto px-4 pt-12">
-                {/* Error Toasts */}
+                {/* Toast Messages */}
                 <AnimatePresence>
                     {errorList.map((e) => (
                         <ToastCard
@@ -464,7 +961,7 @@ const Profile: React.FC = () => {
                                     prev.filter((err) => err.id !== e.id)
                                 )
                             }
-                            textColor="text-red-500"
+                            textColor={e.type === 'success' ? "text-green-700" : "text-red-500"}
                         />
                     ))}
                 </AnimatePresence>
@@ -539,6 +1036,7 @@ const Profile: React.FC = () => {
                                         "about",
                                         "events",
                                         "teams",
+                                        "invitations",
                                     ] as const
                                 ).map((tab) => {
                                     const isActive = activeTab === tab;
@@ -594,6 +1092,8 @@ const Profile: React.FC = () => {
                                             renderEventsSection()}
                                         {activeTab === "teams" &&
                                             renderTeamsSection()}
+                                        {activeTab === "invitations" &&
+                                            renderInvitationsSection()}
                                     </motion.div>
                                 </AnimatePresence>
                             </div>
@@ -609,6 +1109,22 @@ const Profile: React.FC = () => {
             >
                 <MessageCircle className="w-6 h-6" />
             </button>
+
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.type === 'accept' ? 'Accept Invitation' : 'Decline Invitation'}
+                message={confirmDialog.type === 'accept' 
+                    ? `Are you sure you want to accept the invitation to join "${confirmDialog.teamName}" for "${confirmDialog.eventName}"?`
+                    : `Are you sure you want to decline the invitation to join "${confirmDialog.teamName}" for "${confirmDialog.eventName}"?`
+                }
+                confirmText={confirmDialog.type === 'accept' ? 'Accept' : 'Decline'}
+                cancelText="Cancel"
+                onConfirm={confirmInvitationAction}
+                onCancel={cancelInvitationAction}
+                variant={confirmDialog.type}
+                isLoading={isUpdatingInvitation}
+            />
         </motion.div>
     );
 };

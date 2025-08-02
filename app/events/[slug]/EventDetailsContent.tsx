@@ -151,6 +151,8 @@ export default function EventDetailsContent({ event }: { event: Event }) {
     const [isRegistering, setIsRegistering] = useState(false);
     const [checkingRegistration, setCheckingRegistration] = useState(false);
     const [registrationData, setRegistrationData] = useState<any>(null);
+    const [invitationStatus, setInvitationStatus] = useState<'none' | 'pending' | 'accepted' | 'declined'>('none');
+    const [teamName, setTeamName] = useState<string>('');
     
     const notifyError = () =>
         setErrorList((prev) => [
@@ -208,17 +210,32 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                     const currentEventId = event.id;
                     
                     if (event.teamMaxSize === 1) {
-                        // Individual event - check user registrations
+                        // Individual event - check user registrations only (no status check needed)
                         const userRegistration = regRes.data.user?.find(
                             (reg: any) => reg.eventId === currentEventId
                         );
                         setIsRegistered(!!userRegistration);
+                        setInvitationStatus('none'); // Individual events don't have invitations
                     } else {
-                        // Team event - check team registrations
+                        // Team event - check team registrations and invitation status
                         const teamRegistration = regRes.data.team?.find(
-                            (reg: any) => reg.eventId === currentEventId
+                            (reg: any) => reg.eventId === currentEventId && reg.teamId
                         );
-                        setIsRegistered(!!teamRegistration);
+                        
+                        if (teamRegistration) {
+                            setInvitationStatus(teamRegistration.invitationStatus || 'none');
+                            setTeamName(teamRegistration.teamName || 'Team');
+                            
+                            // Only set as registered if invitation is accepted
+                            if (teamRegistration.invitationStatus === 'accepted') {
+                                setIsRegistered(true);
+                            } else {
+                                setIsRegistered(false);
+                            }
+                        } else {
+                            setIsRegistered(false);
+                            setInvitationStatus('none');
+                        }
                     }
                 }
             } catch (error) {
@@ -361,6 +378,30 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                             <Loader2 className="animate-spin w-5 h-5 inline-block mr-2" />
                                             Checking...
                                         </motion.button>
+                                    ) : invitationStatus === 'pending' ? (
+                                        <>
+                                            <motion.div
+                                                className="flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.1, delay: 0.5 }}
+                                            >
+                                                <Mail className="w-5 h-5 text-yellow-400" />
+                                                <span className="text-yellow-400 font-semibold">Pending Invitation</span>
+                                            </motion.div>
+                                            <motion.button
+                                                className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => router.push('/profile?tab=invitations')}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.1, delay: 0.5 }}
+                                            >
+                                                <User className="w-5 h-5 inline-block mr-2" />
+                                                View Invitations
+                                            </motion.button>
+                                        </>
                                     ) : isRegistered ? (
                                         <>
                                             <motion.div
@@ -422,6 +463,30 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                             <Loader2 className="animate-spin w-5 h-5 inline-block mr-2" />
                                             Checking...
                                         </motion.button>
+                                    ) : invitationStatus === 'pending' ? (
+                                        <>
+                                            <motion.div
+                                                className="flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.1, delay: 0.5 }}
+                                            >
+                                                <Mail className="w-5 h-5 text-yellow-400" />
+                                                <span className="text-yellow-400 font-semibold">Pending Invitation</span>
+                                            </motion.div>
+                                            <motion.button
+                                                className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                onClick={() => router.push('/profile?tab=invitations')}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.1, delay: 0.5 }}
+                                            >
+                                                <User className="w-5 h-5 inline-block mr-2" />
+                                                View Invitations
+                                            </motion.button>
+                                        </>
                                     ) : isRegistered ? (
                                         <>
                                             <motion.div
