@@ -16,13 +16,8 @@ export enum EventType {
 export interface Event {
     id: number;
     name: string;
-<<<<<<< HEAD
     type: string;
     description: string;
-=======
-    type: EventType;
-    description?: string;
->>>>>>> 321b0f0d9a5dda68faf8aa4b037fb4de2b065ba0
     teamMinSize: number;
     teamMaxSize: number;
     closed: boolean;
