@@ -23,7 +23,6 @@ const useAxiosPrivate = () => {
                     Authorization: `Bearer ${refreshToken}`,
                 },
             });
-            console.log(res.data);
             return res.data.accessToken;
         } catch (err: any) {
             console.log(err.response?.status);
@@ -54,7 +53,9 @@ const useAxiosPrivate = () => {
             async (error: AxiosError) => {
                 if (error.response?.status === 401) {
                     const accessToken = await refresh();
+                    
                     if (accessToken) {
+                        localStorage.setItem("accessToken", accessToken);
                         axiosPrivate.defaults.headers.common[
                             "Authorization"
                         ] = `Bearer ${accessToken}`;

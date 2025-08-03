@@ -100,18 +100,13 @@ function CreateTeamPageContent() {
     if (!user) return;
     
     setLoadingExistingMembers(true);
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      setLoadingExistingMembers(false);
-      return;
-    }
 
     try {
       console.log("=== FETCHING EXISTING MEMBERS ===");
       console.log("Current user:", user);
       
       // Get user's teams
-      const teamsRes = await userTeams(accessToken);
+      const teamsRes = await userTeams();
       console.log("userTeams API response:", teamsRes);
       
       if (!teamsRes.success || !teamsRes.teams) {
@@ -129,7 +124,7 @@ function CreateTeamPageContent() {
       for (const team of teamsRes.teams) {
         try {
           console.log(`\n--- Fetching members for team ${team.id} (${team.name}) ---`);
-          const membersRes = await teamMembers(team.id, accessToken);
+          const membersRes = await teamMembers(team.id);
           console.log(`teamMembers API response for team ${team.id}:`, membersRes);
           
           if (membersRes.success && membersRes.members) {
@@ -198,7 +193,7 @@ function CreateTeamPageContent() {
 
       try {
         // ONLY check registration status - minimal API call
-        const regRes = await getRegistrationsByUser(accessToken);
+        const regRes = await getRegistrationsByUser();
         if (!regRes.success || !regRes.data) {
           setCheckingRegistration(false);
           setRegistrationStatus('new');
@@ -226,8 +221,8 @@ function CreateTeamPageContent() {
           
           // Fetch team details in parallel
           const [teamsRes, membersRes] = await Promise.all([
-            userTeams(accessToken),
-            fetchTeamMembers(existingRegistration.teamId, accessToken)
+            userTeams(),
+            fetchTeamMembers(existingRegistration.teamId)
           ]);
           
           // Set team name
@@ -299,9 +294,9 @@ function CreateTeamPageContent() {
   };
 
   // Fetch team members (for post-registration state) - OPTIMIZED
-  const fetchTeamMembers = async (teamId: number, accessToken: string) => {
+  const fetchTeamMembers = async (teamId: number) => {
     try {
-      const membersRes = await teamMembers(teamId, accessToken);
+      const membersRes = await teamMembers(teamId);
       if (membersRes.success && membersRes.members) {
         setTeamMembersList(membersRes.members);
         // Only count accepted and pending members (exclude declined)
@@ -332,20 +327,13 @@ function CreateTeamPageContent() {
     }
 
     setLoading(true);
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      showError("Access token not found. Please login again.");
-      setLoading(false);
-      return;
-    }
-
     const allEmails = getAllTeamEmails();
     let createdTeamId: number | null = null;
     let inviteResults: { email: string; success: boolean; message?: string }[] = [];
 
     try {
       // Step 1: Create Team
-        const teamRes = await createTeam(teamName, accessToken);
+        const teamRes = await createTeam(teamName);
         console.log("createTeam API response:", teamRes);
         
       if (!teamRes.success || !teamRes.teamId) {
@@ -361,7 +349,7 @@ function CreateTeamPageContent() {
       // Step 2: Send Invites to all emails (from inputs + selected)
       for (const email of allEmails) {
         try {
-          const inviteRes = await inviteTeam(createdTeamId, email, accessToken);
+          const inviteRes = await inviteTeam(createdTeamId, email);
           inviteResults.push({
             email,
             success: inviteRes.success,
@@ -388,8 +376,15 @@ function CreateTeamPageContent() {
 
       // Step 3: Register for Event
       const eventIdNum = Number(eventId);
-        const regRes = await teamRegister(eventIdNum, createdTeamId, accessToken);
-        console.log(regRes);
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        showError("Access token not found. Please login again.");
+        setLoading(false);
+        return;
+      }
+      
+      const regRes = await teamRegister(eventIdNum, createdTeamId);
+      console.log(regRes);
         
       if (!regRes.success) {
         showError(regRes.message || "Failed to register team for event.");
@@ -410,7 +405,7 @@ function CreateTeamPageContent() {
       }
 
       // Fetch team members to show current state
-      await fetchTeamMembers(createdTeamId, accessToken);
+      await fetchTeamMembers(createdTeamId);
 
     } catch (error) {
       showError("Registration failed. Please try again.");
@@ -432,15 +427,9 @@ function CreateTeamPageContent() {
     }
     
     setInviteLoading(true);
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      showError("Access token not found. Please login again.");
-      setInviteLoading(false);
-      return;
-    }
 
     try {
-      const res = await inviteTeam(teamId, inviteEmail, accessToken);
+      const res = await inviteTeam(teamId, inviteEmail);
       if (!res.success) {
         showError(res.message === "User not found" 
           ? `${inviteEmail}: User does not exist, ask them to create account`
@@ -452,7 +441,7 @@ function CreateTeamPageContent() {
       setInviteEmail("");
       setShowInviteForm(false);
       // Refresh team members
-      await fetchTeamMembers(teamId, accessToken);
+      await fetchTeamMembers(teamId);
     } catch {
       showError("Failed to send invite.");
     } finally {

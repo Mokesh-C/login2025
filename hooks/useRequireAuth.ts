@@ -8,6 +8,14 @@ const useRequireAuth = () => {
     const axiosPrivate = useAxiosPrivate();
 
     useEffect(() => {
+        // Only fetch user data if refresh token exists
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+            setUser(null);
+            setIsLoading(false);
+            return;
+        }
+
         const fetchUser = async () => {
             try {
                 const res = await axiosPrivate.get("/user");

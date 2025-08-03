@@ -202,7 +202,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
 
             setCheckingRegistration(true);
             try {
-                const regRes = await getRegistrationsByUser(accessToken);
+                const regRes = await getRegistrationsByUser();
                 if (regRes.success && regRes.data) {
                     setRegistrationData(regRes.data);
                     
@@ -262,7 +262,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
             // Solo registration            
             setIsRegistering(true);
             try {
-                const res = await soloRegister(event.id, accessToken);
+                const res = await soloRegister(event.id);
                 if (res.success) {
                     setIsRegistered(true);
                     showSuccess(`Registration successful for ${event.name}!`);

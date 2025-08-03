@@ -33,6 +33,8 @@ export default function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const { logout } = useAuth()
+  
+  // Always call useRequireAuth, but make it conditional internally
   const { user, isLoading } = useRequireAuth()
 
   // Check for JWT token and user role in localStorage

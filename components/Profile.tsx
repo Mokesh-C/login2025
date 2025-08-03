@@ -112,7 +112,7 @@ const Profile: React.FC = () => {
                     return;
                 }
 
-                const result = await getRegistrationsByUser(accessToken);
+                const result = await getRegistrationsByUser();
                 
                 if (result.success && result.data) {
                     // Extract event IDs only from accepted registrations
@@ -176,13 +176,13 @@ const Profile: React.FC = () => {
                     return;
                 }
 
-                const result = await getRegistrationsByUser(accessToken);
+                const result = await getRegistrationsByUser();
                 if (result.success && result.data) {
                     // Get ALL team invitations (pending, accepted, declined)
                     const allTeamInvitations = result.data.team || [];
 
                     // Get all user teams to find team names
-                    const teamsResult = await fetchUserTeams(accessToken);
+                    const teamsResult = await fetchUserTeams();
                     const allTeams = teamsResult.success ? teamsResult.teams : [];
 
                     // Get event and team details for each invitation
@@ -195,7 +195,7 @@ const Profile: React.FC = () => {
                             // Get team members to find admin and team name
                             if (invitation.teamId) {
                                 try {
-                                    const teamResult = await teamMembers(invitation.teamId, accessToken);
+                                    const teamResult = await teamMembers(invitation.teamId);
                                     if (teamResult.success && teamResult.members) {
                                         // Find the admin who sent the invite
                                         teamAdmin = teamResult.members.find((member: any) => member.admin === true);
@@ -243,14 +243,9 @@ const Profile: React.FC = () => {
             
             setLoadingTeams(true);
             try {
-                const accessToken = localStorage.getItem('accessToken');
-                if (!accessToken) {
-                    showError('No access token found');
-                    return;
-                }
 
                 // Step 1: Get user teams
-                const teamsResult = await fetchUserTeams(accessToken);
+                const teamsResult = await fetchUserTeams();
                 if (!teamsResult.success || !teamsResult.teams) {
                     showError(teamsResult.message || 'Failed to fetch teams');
                     return;
@@ -260,7 +255,7 @@ const Profile: React.FC = () => {
                 const teamsWithMembers = await Promise.all(
                     teamsResult.teams.map(async (team) => {
                         try {
-                            const membersResult = await teamMembers(team.id, accessToken);
+                            const membersResult = await teamMembers(team.id);
                             const members = membersResult.success ? (membersResult.members || []) : [];
                             
                             // Find current user in the team members
@@ -367,8 +362,7 @@ const Profile: React.FC = () => {
             const result = await updateInvitation(
                 invitation.teamId,
                 user.id,
-                type, // "accept" or "decline"
-                accessToken
+                type // "accept" or "decline"
             );
 
             if (result.success) {
@@ -385,7 +379,7 @@ const Profile: React.FC = () => {
                 // If accepted, refresh user registrations and teams to update both Events and Teams tabs
                 if (type === 'accept') {
                     // Re-fetch user registrations to update the Events tab
-                    const regResult = await getRegistrationsByUser(accessToken);
+                    const regResult = await getRegistrationsByUser();
                     if (regResult.success && regResult.data) {
                         const userEventIds = regResult.data.user?.map((reg: any) => reg.eventId) || [];
                         const teamEventIds = regResult.data.team?.filter((reg: any) => 
@@ -420,12 +414,12 @@ const Profile: React.FC = () => {
                     }
 
                     // Re-fetch teams to update the Teams tab (newly accepted team will now show)
-                    const teamsResult = await fetchUserTeams(accessToken);
+                    const teamsResult = await fetchUserTeams();
                     if (teamsResult.success && teamsResult.teams) {
                         const teamsWithMembers = await Promise.all(
                             teamsResult.teams.map(async (team) => {
                                 try {
-                                    const membersResult = await teamMembers(team.id, accessToken);
+                                    const membersResult = await teamMembers(team.id);
                                     const members = membersResult.success ? (membersResult.members || []) : [];
                                     
                                     const currentUserInTeam = members.find((member: any) => member.userId === user.id);
