@@ -39,12 +39,19 @@ const useTeam = () => {
   // Generic authenticated request handler
   const makeAuthenticatedRequest = async (requestConfig: any) => {
     try {
-      // First attempt with current token from state
+      // Get token from state or localStorage
+      const token = accessToken || (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
+      
+      if (!token) {
+        throw new Error('No access token available');
+      }
+
+      // First attempt with current token
       const response = await api.request({
         ...requestConfig,
         headers: {
           ...requestConfig.headers,
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${token}`
         }
       });
       return response;
@@ -81,6 +88,16 @@ const useTeam = () => {
         data: { name },
         headers: { 'Content-Type': 'application/json' }
       });
+      
+      // Check if the response contains an error message even with 2xx status
+      if (res.data?.message && (
+        res.data.message.toLowerCase().includes('already exists') ||
+        res.data.message.toLowerCase().includes('error') ||
+        !res.data.teamId
+      )) {
+        return { success: false, message: res.data.message };
+      }
+      
       return { success: true, teamId: res.data?.teamId };
     } catch (err: any) {
       console.error("Create team error:", err.response?.data);

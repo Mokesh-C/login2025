@@ -39,12 +39,19 @@ const useRegister = () => {
   // Generic authenticated request handler
   const makeAuthenticatedRequest = async (requestConfig: any) => {
     try {
-      // First attempt with current token from state
+      // Get token from state or localStorage
+      const token = accessToken || (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
+      
+      if (!token) {
+        throw new Error('No access token available');
+      }
+
+      // First attempt with current token
       const response = await api.request({
         ...requestConfig,
         headers: {
           ...requestConfig.headers,
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${token}`
         }
       });
       return response;

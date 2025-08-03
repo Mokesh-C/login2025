@@ -220,27 +220,35 @@ function CreateTeamPageContent() {
           setRegistrationStatus('existing');
           
           // Fetch team details in parallel
-          const [teamsRes, membersRes] = await Promise.all([
-            userTeams(),
-            fetchTeamMembers(existingRegistration.teamId)
-          ]);
-          
-          // Set team name
-          if (teamsRes.success && teamsRes.teams) {
-            const currentTeam = teamsRes.teams.find(team => team.id === existingRegistration.teamId);
-            setTeamName(currentTeam?.name || "My Team");
-          } else {
+          try {
+            console.log("Fetching team details for teamId:", existingRegistration.teamId);
+            const [teamsRes, membersRes] = await Promise.all([
+              userTeams(),
+              fetchTeamMembers(existingRegistration.teamId)
+            ]);
+            
+            // Set team name
+            if (teamsRes.success && teamsRes.teams) {
+              const currentTeam = teamsRes.teams.find(team => team.id === existingRegistration.teamId);
+              console.log("Found current team:", currentTeam);
+              if (currentTeam) {
+                setTeamName(currentTeam.name);
+              } else {
+                setTeamName("My Team");
+              }
+            } else {
+              setTeamName("My Team");
+            }
+          } catch (error) {
             setTeamName("My Team");
           }
           
-          // No toast needed - this is just a silent check when user visits the page
         } else {
           // User NOT registered - show form immediately
           setRegistrationStatus('new');
         }
           
       } catch (error) {
-        console.error("Error checking registration:", error);
         setRegistrationStatus('error');
       } finally {
         setCheckingRegistration(false);
@@ -364,12 +372,17 @@ function CreateTeamPageContent() {
         }
       }
 
-      // Check if minimum team size achieved with successful invites
+      // Check if minimum team size can be achieved with all invites (successful + pending)
       const successfulInvites = inviteResults.filter(result => result.success);
-      const totalTeamSize = successfulInvites.length + 1; // +1 for current user
+      const totalPotentialTeamSize = successfulInvites.length + 1; // +1 for current user
+      
+      // For minimum team size validation, we should allow registration if enough invites were sent
+      // Even if they haven't been accepted yet, the team has the potential to meet min requirements
+      const totalInvitesSent = getAllTeamEmails().length;
+      const totalTeamSizeWithAllInvites = totalInvitesSent + 1; // +1 for current user
 
-      if (totalTeamSize < minTeamSize) {
-        showError(`Cannot register: Need at least ${minTeamSize} team members. Only ${totalTeamSize} achieved.`);
+      if (totalTeamSizeWithAllInvites < minTeamSize) {
+        showError(`Cannot register: Need at least ${minTeamSize} team members. Send ${minTeamSize - 1} invitations (currently ${totalInvitesSent}).`);
         setLoading(false);
         return;
       }
