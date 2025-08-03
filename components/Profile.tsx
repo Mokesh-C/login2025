@@ -592,13 +592,31 @@ const Profile: React.FC = () => {
                         className="bg-blue-300/5 backdrop-blur-lg border border-blue-300/10 rounded-md p-6 shadow-xl"
                     >
                         <div className="flex items-center justify-between">
-                            <div>
-                                <h3 className="text-lg font-semibold text-white/90 mb-1">
-                                    {event.name}
-                                </h3>
-                                <p className="text-sm text-white/60">
-                                    {event.date}
-                                </p>
+                            <div className="flex items-center gap-3">
+                                {event.logoUrl && (
+                                    <div className="w-15 h-15 rounded-full bg-blue-300/10 backdrop-blur-sm border border-white/20 flex items-center justify-center p-1">
+                                        <Image
+                                            src={event.logoUrl}
+                                            alt={event.name || 'Event Logo'}
+                                            width={100}
+                                            height={100}
+                                            className="w-12 h-12 rounded-full object-contain"
+                                        />
+                                    </div>
+                                )}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white/90 mb-1">
+                                        {event.name}
+                                    </h3>
+                                    <p className="text-sm text-white/60">
+                                        {event.date}
+                                    </p>
+                                    {/* {event.tagline && (
+                                        <p className="text-xs text-white/50 mt-1">
+                                            {event.tagline}
+                                        </p>
+                                    )} */}
+                                </div>
                             </div>
                             <div className="flex items-center gap-2 text-green-400">
                                 <CheckCircle className="w-5 h-5" />
@@ -632,9 +650,11 @@ const Profile: React.FC = () => {
         return (
             <div className="space-y-6">
                 {userTeams.map((team) => {
-                    // Sort members: admins first
+                    // Filter out declined members and sort: admins first
                     const sortedMembers = team.members && Array.isArray(team.members)
-                        ? [...team.members].sort((a, b) => (b.admin ? 1 : 0) - (a.admin ? 1 : 0))
+                        ? [...team.members]
+                            .filter(member => member.invitationStatus !== 'declined') // Hide declined members
+                            .sort((a, b) => (b.admin ? 1 : 0) - (a.admin ? 1 : 0))
                         : [];
                     return (
                         <div
@@ -647,7 +667,7 @@ const Profile: React.FC = () => {
                                     {team.name}
                                 </h3>
                                 <span className="text-sm text-white/60">
-                                    {team.total_members} Member{team.total_members !== 1 ? 's' : ''}
+                                    {sortedMembers.length} Member{sortedMembers.length !== 1 ? 's' : ''}
                                 </span>
                             </div>
 
@@ -747,13 +767,15 @@ const Profile: React.FC = () => {
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-3">
                                             {invitation.event?.logoUrl && (
-                                                <Image
-                                                    src={invitation.event.logoUrl}
-                                                    alt={invitation.event?.name || 'Event Logo'}
-                                                    width={100}
-                                                    height={100}
-                                                    className="w-12 h-12 rounded-md object-cover bg-white/10 p-1"
-                                                />
+                                                <div className="w-12 h-12 rounded-full bg-blue-300/10 backdrop-blur-sm border border-white/20 flex items-center justify-center p-1">
+                                                    <Image
+                                                        src={invitation.event.logoUrl}
+                                                        alt={invitation.event?.name || 'Event Logo'}
+                                                        width={100}
+                                                        height={100}
+                                                        className="w-12 h-12 rounded-full object-contain"
+                                                    />
+                                                </div>
                                             )}
                                             <div>
                                                 <h3 className="text-lg font-semibold text-white/90">
@@ -819,13 +841,15 @@ const Profile: React.FC = () => {
                                 >
                                     <div className="flex items-center gap-3 mb-3">
                                         {invitation.event?.logoUrl && (
-                                            <Image
-                                                src={invitation.event.logoUrl}
-                                                alt={invitation.event?.name || 'Event Logo'}
-                                                width={40}
-                                                height={40}
-                                                className="w-10 h-10 rounded-md object-contain bg-white/10 p-1"
-                                            />
+                                            <div className="w-12 h-12 rounded-full bg-green-300/10 backdrop-blur-sm border border-white/20 flex items-center justify-center p-1">
+                                                <Image
+                                                    src={invitation.event.logoUrl}
+                                                    alt={invitation.event?.name || 'Event Logo'}
+                                                    width={100}
+                                                    height={100}
+                                                    className="w-12 h-12 rounded-full object-contain"
+                                                />
+                                            </div>
                                         )}
                                         <div className="flex-1">
                                             <h3 className="text-lg font-semibold text-white/90">
@@ -878,13 +902,15 @@ const Profile: React.FC = () => {
                                 >
                                     <div className="flex items-center gap-3 mb-3">
                                         {invitation.event?.logoUrl && (
-                                            <Image
-                                                src={invitation.event.logoUrl}
-                                                alt={invitation.event?.name || 'Event Logo'}
-                                                width={40}
-                                                height={40}
-                                                className="w-10 h-10 rounded-md object-contain bg-white/10 p-1 opacity-60"
-                                            />
+                                            <div className="w-12 h-12 rounded-full bg-red-300/10 backdrop-blur-sm border border-white/20 flex items-center justify-center p-1 opacity-60">
+                                                <Image
+                                                    src={invitation.event.logoUrl}
+                                                    alt={invitation.event?.name || 'Event Logo'}
+                                                    width={100}
+                                                    height={100}
+                                                    className="w-12 h-12 rounded-full object-contain"
+                                                />
+                                            </div>
                                         )}
                                         <div className="flex-1">
                                             <h3 className="text-lg font-semibold text-white/70">
@@ -970,12 +996,14 @@ const Profile: React.FC = () => {
                 <div className="bg-blue-300/10 backdrop-blur-lg border border-blue-300/10 rounded-md shadow-xl p-6 mb-6">
                     <div className="flex flex-wrap items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-20 h-20 bg-blue-300e/20 rounded-full flex items-center justify-center">
-                                {user?.avatarUrl ? (
-                                    <img
-                                        src={user.avatarUrl}
-                                        alt="Profile"
-                                        className="w-full h-full rounded-full object-cover"
+                            <div className="w-20 h-20 rounded-full bg-blue-300/0 backdrop-blur-sm border border-white/20 flex items-center justify-center p-1.5">
+                                {user?.avatarUrl || user?.gender ? (
+                                    <Image
+                                        src={user?.avatarUrl || (user?.gender?.toLowerCase() === 'male' ? '/boyAvatar.png' : '/girlAvatar.png')}
+                                        alt="Profile Avatar"
+                                        width={80}
+                                        height={80}
+                                        className="w-full h-full rounded-full object-cover bg-blue-300/5"
                                     />
                                 ) : (
                                     <User className="w-12 h-12 text-white" />

@@ -9,9 +9,10 @@ const useTeam = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-      });
-      return { success: true, teamId: res.data?.id };
+      });      
+      return { success: true, teamId: res.data?.teamId };
     } catch (err: any) {
+      console.error("Create team error:", err.response?.data);
       return {
         success: false,
         message: err.response?.data?.message || 'Failed to create team',
@@ -22,17 +23,26 @@ const useTeam = () => {
   // Invite a member to a team
   const inviteTeam = async (teamId: number, email: string, accessToken: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      await api.post(`/teams/${teamId}/invite`, { email }, {
+      const res = await api.post(`/teams/${teamId}/invite`, { email }, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
       });
+      
+      // Check if the response contains an error message even with status 200
+      if (res.data?.message && res.data.message.toLowerCase().includes('does not exist')) {
+        return {
+          success: false,
+          message: res.data.message,
+        };
+      }
+      
       return { success: true };
-    } catch (err: any) {
+    } catch (err: any) {      
       return {
         success: false,
-        message: err.response?.data?.message || 'Failed to invite member',
+        message: err.response?.data?.message || err.response?.data?.error?.details?.[0]?.message || 'Failed to invite member',
       };
     }
   };

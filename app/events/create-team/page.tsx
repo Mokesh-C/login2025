@@ -304,7 +304,11 @@ function CreateTeamPageContent() {
       const membersRes = await teamMembers(teamId, accessToken);
       if (membersRes.success && membersRes.members) {
         setTeamMembersList(membersRes.members);
-        setCurrentTeamSize(membersRes.members.length);
+        // Only count accepted and pending members (exclude declined)
+        const activeMembers = membersRes.members.filter(member => 
+          member.invitationStatus !== 'declined'
+        );
+        setCurrentTeamSize(activeMembers.length);
       }
       return membersRes; // Return for Promise.all usage
     } catch (error) {
@@ -342,6 +346,7 @@ function CreateTeamPageContent() {
     try {
       // Step 1: Create Team
         const teamRes = await createTeam(teamName, accessToken);
+        console.log("createTeam API response:", teamRes);
         
       if (!teamRes.success || !teamRes.teamId) {
           // Don't clear emails if team name already exists  
@@ -461,7 +466,7 @@ function CreateTeamPageContent() {
     teamSizeDisplay = `${eventMinSize} - ${teamMaxSize}`;
   }
 
-  // Check if user can send more invites
+  // Check if user can send more invites - based on active members only
   const canSendInvite = () => {
     return currentTeamSize < maxTeamSize;
   };
@@ -493,7 +498,7 @@ function CreateTeamPageContent() {
           <div className="bg-blue-300/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-blue-300/10 rounded-full flex items-center justify-center overflow-hidden">
+                <div className="w-20 h-20 bg-blue-300/10 rounded-full flex items-center justify-center overflow-hidden p-2">
                   <Image src={eventLogo} alt="Event Logo" width={80} height={80} className="object-contain w-full h-full" />
                 </div>
                 <div>
@@ -546,7 +551,7 @@ function CreateTeamPageContent() {
         <div className="bg-blue-300/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-6 mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 bg-blue-300/10 rounded-full flex items-center justify-center overflow-hidden">
+              <div className="w-20 h-20 bg-blue-300/10 rounded-full flex items-center justify-center overflow-hidden p-2">
                 <Image src={eventLogo} alt="Event Logo" width={80} height={80} className="object-contain w-full h-full" />
               </div>
               <div>
@@ -787,6 +792,7 @@ function CreateTeamPageContent() {
                 {teamMembersList.length > 0 ? (
                   <div className="space-y-2">
                     {teamMembersList
+                      .filter(member => member.invitationStatus !== 'declined') // Hide declined members
                       .sort((a, b) => b.admin - a.admin) // Sort admin first
                       .map((member, index) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-blue-300/5 rounded-md">
@@ -820,6 +826,21 @@ function CreateTeamPageContent() {
                   </div>
                 ) : (
                   <p className="text-white/60">Loading team members...</p>
+                )}
+                
+                {/* Show pending invitations message */}
+                {teamMembersList.length > 0 && teamMembersList.some(member => member.invitationStatus === 'pending') && (
+                  <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-md">
+                    <div className="flex items-start gap-3">
+                      <Mail className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="text-yellow-300 font-medium mb-1">Pending Invitations</h4>
+                        <p className="text-yellow-200/80 text-sm">
+                          Invitations have been sent to team members. Ask them to check their invitation box in their profile to accept and join the team.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 

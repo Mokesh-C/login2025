@@ -287,7 +287,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
 
     // Handle view team navigation
     const handleViewTeam = () => {
-        router.push(`/events/create-team?eventId=${event.id}&eventName=${encodeURIComponent(event.name)}&eventLogo=${encodeURIComponent(event.logoUrl || "/logo.png")}&teamSize=${event.teamMaxSize}&eventMinSize=${event.teamMinSize}`);
+        router.push(`/events/create-team?eventId=${event.id}&eventName=${encodeURIComponent(event.name)}&eventLogo=${encodeURIComponent(event.logoUrl || "")}&teamSize=${event.teamMaxSize}&eventMinSize=${event.teamMinSize}`);
     };
 
     /* ---------------- Render ----------------------- */
@@ -338,24 +338,13 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                             className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-blue-300/10
                                         backdrop-blur-sm border border-white/20 flex items-center justify-center"
                                         >
-                                            {event.logoUrl ? (
-                                                <Image
-                                                    src={event.logoUrl}
-                                                    alt={event.name}
-                                                    width={112}
-                                                    height={112}
-                                                    className="object-contain"
-                                                />
-                                            ) : (
-                                                <div
-                                                    className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white/10
-                                        backdrop-blur-sm border border-white/20 flex items-center justify-center"
-                                                >
-                                                    <p className="text-white text-2xl font-bold">
-                                                        {event.name.charAt(0)}
-                                                    </p>
-                                                </div>
-                                            )}
+                                            <Image
+                                                src={event.logoUrl || ""}
+                                                alt={event.name}
+                                                width={112}
+                                                height={112}
+                                                className="object-contain"
+                                            />
                                         </div>
                                     </div>
                                     <div>
@@ -416,7 +405,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                     ) : isRegistered ? (
                                         <>
                                             <motion.div
-                                                className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                                className="flex items-center justify-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ duration: 0.1, delay: 0.5 }}

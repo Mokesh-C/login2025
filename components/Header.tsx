@@ -7,7 +7,8 @@ import { Menu, X, Home, Calendar, Clock, Users, Handshake, GraduationCap, LogIn,
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import clsx from 'clsx'
-import useAuth from '@/hooks/useAuth';
+import useAuth from '@/hooks/useAuth'
+import useRequireAuth from '@/hooks/useRequireAuth'
 
 type NavItem = 
   | { id: 'home'; label: string; icon: React.ComponentType<any>; href?: never }
@@ -31,7 +32,8 @@ export default function Header() {
   const profileRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const router = useRouter()
-  const { logout } = useAuth();
+  const { logout } = useAuth()
+  const { user, isLoading } = useRequireAuth()
 
   // Check for JWT token and user role in localStorage
   useEffect(() => {
@@ -149,9 +151,19 @@ export default function Header() {
               <div className="relative z-[100]" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300/10 hover:bg-blue-300/20 transition-colors"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300/10 border border-white/20 hover:bg-blue-300/20 transition-colors p-0.5"
                 >
-                  <User className="w-5 h-5" />
+                  {!isLoading && (user?.avatarUrl || user?.gender) ? (
+                    <Image
+                      src={user?.avatarUrl || (user?.gender?.toLowerCase() === 'male' ? '/boyAvatar.png' : '/girlAvatar.png')}
+                      alt="Profile Avatar"
+                      width={40}
+                      height={40}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
                 </button>
                 <AnimatePresence>
                   {profileOpen && (
@@ -329,9 +341,19 @@ export default function Header() {
                 <div className="relative" ref={profileRef}>
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300/10 hover:bg-blue-300/20 transition-colors"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-300/10 border border-white/20 hover:bg-blue-300/20 transition-colors p-0.5"
                   >
-                    <User className="w-5 h-5" />
+                    {!isLoading && (user?.avatarUrl || user?.gender) ? (
+                      <Image
+                        src={user?.avatarUrl || (user?.gender?.toLowerCase() === 'male' ? '/boyAvatar.png' : '/girlAvatar.png')}
+                        alt="Profile Avatar"
+                        width={40}
+                        height={40}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-5 h-5" />
+                    )}
                   </button>
                   <AnimatePresence>
                     {profileOpen && (
