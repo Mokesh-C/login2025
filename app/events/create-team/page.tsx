@@ -263,10 +263,11 @@ function CreateTeamPageContent() {
     return uniqueEmails;
   };
 
-  // Check if minimum team size is achieved (including selected members)
+  // Check if minimum team size is achieved (including current user + selected members)
   const isMinimumSizeAchieved = () => {
     const allEmails = getAllTeamEmails();
-    return allEmails.length >= minEmailsRequired;
+    const totalTeamSize = allEmails.length + 1; // +1 for current user
+    return totalTeamSize >= minTeamSize;
   };
 
   // Get total team size including current user
@@ -739,7 +740,7 @@ function CreateTeamPageContent() {
                   <div className="text-sm w-full text-red-300 text-start">
                     {getAllTeamEmails().length === 0 
                       ? `Enter at least ${minEmailsRequired} email${minEmailsRequired > 1 ? 's' : ''} or select from existing members to enable registration`
-                      : `Add ${minEmailsRequired - getAllTeamEmails().length} more member${minEmailsRequired - getAllTeamEmails().length > 1 ? 's' : ''} to enable registration`
+                      : `Add ${minTeamSize - (getAllTeamEmails().length + 1)} more member${minTeamSize - (getAllTeamEmails().length + 1) > 1 ? 's' : ''} to enable registration`
                     }
                   </div>
                 )}
