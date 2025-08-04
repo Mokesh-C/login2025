@@ -237,9 +237,15 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                             setInvitationStatus('none');
                         }
                     }
+                } else {
+                    // Don't show error for permission issues on fresh registrations
+                    if (regRes.message && !regRes.message.toLowerCase().includes('permission')) {
+                        console.log('Failed to fetch registration status:', regRes.message);
+                    }
                 }
             } catch (error) {
                 console.error("Error checking registration status:", error);
+                // Don't show error toast for permission issues on fresh registrations
             } finally {
                 setCheckingRegistration(false);
             }
@@ -267,10 +273,14 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                     setIsRegistered(true);
                     showSuccess(`Registration successful for ${event.name}!`);
                 } else {
-                    showError(res.message || "Failed to register for event.");
+                    // Don't show error for permission issues on fresh registrations
+                    if (res.message && !res.message.toLowerCase().includes('permission')) {
+                        showError(res.message || "Failed to register for event.");
+                    }
                 }
             } catch (error) {
-                showError("Failed to register for event.");
+                console.error("Registration error:", error);
+                // Don't show error toast for permission issues on fresh registrations
             } finally {
                 setIsRegistering(false);
             }

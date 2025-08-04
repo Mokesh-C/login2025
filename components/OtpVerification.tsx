@@ -65,7 +65,7 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
             ref={el => {
               otpInputsRef.current[i] = el;
             }}
-            className="h-14 w-14 rounded bg-white text-center text-xl text-black border-2 border-transparent focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition"
+            className="h-14 w-14 rounded bg-blue-300/20 text-center text-xl text-whilte/90 border-2 border-transparent focus:border-violet-500 focus:ring-2 focus:ring-violet-200 outline-none transition"
             disabled={loading}
           />
         ))}
@@ -77,7 +77,7 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
         <button
           type="button"
           disabled={timer > 0 || loading}
-          className={timer > 0 || loading ? 'cursor-not-allowed opacity-50' : 'text-violet-400 hover:text-violet-300'}
+          className={timer > 0 || loading ? 'cursor-not-allowed opacity-50' : 'text-purple-400 hover:text-purple-300'}
           onClick={onResend}
         >
           {resendButtonText}

@@ -1,5 +1,5 @@
 import api from '@/utils/api';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 const useRegister = () => {
   // Shared token state for all methods
@@ -8,7 +8,7 @@ const useRegister = () => {
   );
 
   // Token refresh logic (same as useAxiosPrivate)
-  const refreshToken = async () => {
+  const refreshToken = useCallback(async () => {
     if (typeof window === 'undefined') return null;
     
     const refreshToken = localStorage.getItem("refreshToken");
@@ -34,10 +34,10 @@ const useRegister = () => {
       }
       return null;
     }
-  };
+  }, []);
 
   // Generic authenticated request handler
-  const makeAuthenticatedRequest = async (requestConfig: any) => {
+  const makeAuthenticatedRequest = useCallback(async (requestConfig: any) => {
     try {
       // Get token from state or localStorage
       const token = accessToken || (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
@@ -72,7 +72,7 @@ const useRegister = () => {
       }
       throw error;
     }
-  };
+  }, [accessToken, refreshToken]);
 
   // Helper function for consistent error handling
   const handleApiError = (err: any, defaultMessage: string) => ({

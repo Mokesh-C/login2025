@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
 import Image from "next/image";
 import {
     User,
@@ -21,7 +20,6 @@ import type { Easing } from "framer-motion";
 import { useRouter } from "next/navigation";
 import ToastCard from "@/components/ToastCard";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 import useAuth from "@/hooks/useAuth";
 import useRequireAuth from "@/hooks/useRequireAuth";
 import useRegister from "@/hooks/useRegister";
@@ -99,27 +97,47 @@ const Profile: React.FC = () => {
         },
     ];
 
-    // Fetch user registrations
+    // Load user data first, then load other data in background
     useEffect(() => {
-        const fetchUserRegistrations = async () => {
-            if (!user || !allEvents.length) return;
+        // Show profile page immediately once user is loaded
+        if (!isLoading && user) {
+            setPageLoaded(true);
+        }
+    }, [isLoading, user]);
+
+    // Load additional data in background after user is loaded
+    useEffect(() => {
+        const fetchBackgroundData = async () => {
+            // Don't fetch if still loading user data or user is not available
+            if (isLoading || !user || !allEvents.length) return;
             
+            // Keep loading states for individual sections
             setLoadingEvents(true);
+            setLoadingInvitations(true);
+            setLoadingTeams(true);
+            
             try {
                 const accessToken = localStorage.getItem('accessToken');
                 if (!accessToken) {
-                    showError('No access token found');
+                    console.log('No access token found, skipping background data fetch');
+                    setLoadingEvents(false);
+                    setLoadingInvitations(false);
+                    setLoadingTeams(false);
                     return;
                 }
 
-                const result = await getRegistrationsByUser();
+                console.log('Fetching background data: registrations, invitations, and teams...');
                 
-                if (result.success && result.data) {
-                    // Extract event IDs only from accepted registrations
-                    // For user array: no status check needed (individual registrations are automatically accepted)
-                    // For team array: check invitationStatus === "accepted" AND has complete data (teamId, eventId)
-                    const userEventIds = result.data.user?.map((reg: any) => reg.eventId) || [];
-                    const teamEventIds = result.data.team?.filter((reg: any) => 
+                // Fetch registrations and teams data in parallel
+                const [registrationsResult, teamsResult] = await Promise.all([
+                    getRegistrationsByUser(),
+                    fetchUserTeams()
+                ]);
+                
+                // Process registered events
+                if (registrationsResult.success && registrationsResult.data) {
+                    const userEventIds = registrationsResult.data.user?.map((reg: any) => reg.eventId) || [];
+                    const teamEventIds = registrationsResult.data.team?.filter((reg: any) => 
                         reg.invitationStatus === "accepted" && reg.teamId && reg.eventId
                     ).map((reg: any) => reg.eventId) || [];
                     const allEventIds = [...userEventIds, ...teamEventIds];
@@ -150,147 +168,130 @@ const Profile: React.FC = () => {
                     }).filter(Boolean);
 
                     setRegisteredEvents(userRegisteredEvents);
-                } else {
-                    showError(result.message || 'Failed to fetch registrations');
-                }
-            } catch (error) {
-                showError('Failed to fetch user registrations');
-            } finally {
-                setLoadingEvents(false);
-            }
-        };
+                    setLoadingEvents(false);
 
-        fetchUserRegistrations();
-    }, [user?.id, allEvents.length]); // Only depend on user ID and events length
-
-    // Fetch all invitations (pending, accepted, declined)
-    useEffect(() => {
-        const fetchAllInvitations = async () => {
-            if (!user) return;
-
-            setLoadingInvitations(true);
-            try {
-                const accessToken = localStorage.getItem('accessToken');
-                if (!accessToken) {
-                    showError('No access token found');
-                    return;
-                }
-
-                const result = await getRegistrationsByUser();
-                if (result.success && result.data) {
-                    // Get ALL team invitations (pending, accepted, declined)
-                    const allTeamInvitations = result.data.team || [];
-
-                    // Get all user teams to find team names
-                    const teamsResult = await fetchUserTeams();
+                    // Process invitations using teams data - OPTIMIZED to avoid N+1 queries
+                    const allTeamInvitations = registrationsResult.data.team || [];
                     const allTeams = teamsResult.success ? teamsResult.teams : [];
 
-                    // Get event and team details for each invitation
-                    const invitationsWithDetails = await Promise.all(
-                        allTeamInvitations.map(async (invitation: any) => {
-                            const event = allEvents.find(e => e.id === invitation.eventId);
-                            let teamAdmin = null;
-                            let teamName = `Team ${invitation.teamId}`; // Fallback
-                            
-                            // Get team members to find admin and team name
-                            if (invitation.teamId) {
-                                try {
-                                    const teamResult = await teamMembers(invitation.teamId);
-                                    if (teamResult.success && teamResult.members) {
-                                        // Find the admin who sent the invite
-                                        teamAdmin = teamResult.members.find((member: any) => member.admin === true);
-                                        
-                                        // Try to get team name from userTeams first
-                                        const userTeam = allTeams?.find(t => t.id === invitation.teamId);
-                                        if (userTeam?.name) {
-                                            teamName = userTeam.name;
-                                        }
-                                    }
-                                } catch (error) {
-                                    console.error('Error fetching team details:', error);
+                    // Group invitations by teamId to batch team member requests
+                    const teamIdSet = new Set(allTeamInvitations.map((inv: any) => inv.teamId).filter(Boolean));
+                    const teamMembersCache = new Map();
+                    
+                    // Batch fetch all team members at once instead of individual API calls
+                    await Promise.all(
+                        Array.from(teamIdSet).map(async (teamId) => {
+                            try {
+                                const teamResult = await teamMembers(Number(teamId));
+                                if (teamResult.success && teamResult.members) {
+                                    teamMembersCache.set(teamId, teamResult.members);
                                 }
+                            } catch (error) {
+                                console.error(`Error fetching team ${teamId} details:`, error);
                             }
-
-                            return {
-                                ...invitation,
-                                event,
-                                teamAdmin,
-                                teamName
-                            };
                         })
                     );
 
-                    setAllInvitations(invitationsWithDetails);
-                } else {
-                    showError(result.message || 'Failed to fetch invitations');
-                }
-            } catch (error) {
-                showError('Failed to fetch invitations');
-            } finally {
-                setLoadingInvitations(false);
-            }
-        };
-
-        if (allEvents.length > 0) {
-            fetchAllInvitations();
-        }
-    }, [user?.id, allEvents.length]);
-
-    // Fetch user teams with members
-    useEffect(() => {
-        const fetchTeamsWithMembers = async () => {
-            if (!user) return;
-            
-            setLoadingTeams(true);
-            try {
-
-                // Step 1: Get user teams
-                const teamsResult = await fetchUserTeams();
-                if (!teamsResult.success || !teamsResult.teams) {
-                    showError(teamsResult.message || 'Failed to fetch teams');
-                    return;
-                }
-
-                // Step 2: For each team, get members and check if current user is accepted
-                const teamsWithMembers = await Promise.all(
-                    teamsResult.teams.map(async (team) => {
-                        try {
-                            const membersResult = await teamMembers(team.id);
-                            const members = membersResult.success ? (membersResult.members || []) : [];
+                    // Now process invitations with cached data - much faster!
+                    const invitationsWithDetails = allTeamInvitations.map((invitation: any) => {
+                        const event = allEvents.find(e => e.id === invitation.eventId);
+                        let teamAdmin = null;
+                        let teamName = `Team ${invitation.teamId}`; // Fallback
+                        
+                        // Get team members from cache instead of making another API call
+                        const members = teamMembersCache.get(invitation.teamId);
+                        if (members) {
+                            // Find the admin who sent the invite
+                            teamAdmin = members.find((member: any) => member.admin === true);
                             
-                            // Find current user in the team members
-                            const currentUserInTeam = members.find((member: any) => member.userId === user.id);
-                            
-                            return {
-                                ...team,
-                                members,
-                                userInvitationStatus: currentUserInTeam?.invitationStatus || 'pending'
-                            };
-                        } catch (error) {
-                            return {
-                                ...team,
-                                members: [],
-                                userInvitationStatus: 'pending'
-                            };
+                            // Try to get team name from userTeams first
+                            const userTeam = allTeams?.find(t => t.id === invitation.teamId);
+                            if (userTeam?.name) {
+                                teamName = userTeam.name;
+                            }
                         }
-                    })
-                );
 
-                // Step 3: Filter teams - only show teams where current user has accepted
-                const acceptedTeams = teamsWithMembers.filter(team => 
-                    team.userInvitationStatus === 'accepted'
-                );
+                        return {
+                            ...invitation,
+                            event,
+                            teamAdmin,
+                            teamName
+                        };
+                    });
 
-                setUserTeams(acceptedTeams);
+                    setAllInvitations(invitationsWithDetails);
+                    setLoadingInvitations(false);
+                } else {
+                    console.log('Failed to fetch registrations/invitations:', registrationsResult.message);
+                    // Don't show error for permission issues on fresh registrations
+                    if (!registrationsResult.message?.toLowerCase().includes('permission')) {
+                        showError(registrationsResult.message || 'Failed to fetch registrations and invitations');
+                    }
+                    setLoadingEvents(false);
+                    setLoadingInvitations(false);
+                }
+
+                // Process teams data (using the same teamsResult from above)
+                if (teamsResult.success && teamsResult.teams) {
+                    // For each team, get members and check if current user is accepted
+                    const teamsWithMembers = await Promise.all(
+                        teamsResult.teams.map(async (team) => {
+                            try {
+                                const membersResult = await teamMembers(team.id);
+                                const members = membersResult.success ? (membersResult.members || []) : [];
+                                
+                                // Find current user in the team members
+                                const currentUserInTeam = members.find((member: any) => member.userId === user.id);
+                                
+                                return {
+                                    ...team,
+                                    members,
+                                    userInvitationStatus: currentUserInTeam?.invitationStatus || 'pending'
+                                };
+                            } catch (error) {
+                                return {
+                                    ...team,
+                                    members: [],
+                                    userInvitationStatus: 'pending'
+                                };
+                            }
+                        })
+                    );
+
+                    // Filter teams - only show teams where current user has accepted
+                    const acceptedTeams = teamsWithMembers.filter(team => 
+                        team.userInvitationStatus === 'accepted'
+                    );
+
+                    setUserTeams(acceptedTeams);
+                    setLoadingTeams(false);
+                } else {
+                    console.log('Failed to fetch teams:', teamsResult.message);
+                    // Don't show error for permission issues on fresh registrations  
+                    if (!teamsResult.message?.toLowerCase().includes('permission')) {
+                        showError(teamsResult.message || 'Failed to fetch teams');
+                    }
+                    setLoadingTeams(false);
+                }
             } catch (error) {
-                showError('Failed to fetch user teams');
-            } finally {
+                console.error('Error fetching background data:', error);
+                // Don't show error toast for permission issues on fresh registrations
+                setLoadingEvents(false);
+                setLoadingInvitations(false);
                 setLoadingTeams(false);
             }
         };
 
-        fetchTeamsWithMembers();
-    }, [user?.id]);
+        // Load background data without delay since page is already shown
+        if (!isLoading && user && allEvents.length > 0) {
+            fetchBackgroundData();
+        } else if (!isLoading && user) {
+            // If events not loaded yet, set loading to false for now
+            setLoadingEvents(false);
+            setLoadingInvitations(false);
+            setLoadingTeams(false);
+        }
+    }, [isLoading, user?.id, allEvents.length]); // Add isLoading as dependency
 
     const totalEvents = allEvents.length; // Real total events from backend
     const registeredEventsCount = registeredEvents.length; // User's registered events count
@@ -307,12 +308,6 @@ const Profile: React.FC = () => {
         );
         return () => timers.forEach(clearTimeout);
     }, [errorList]);
-
-    // Page load animation
-    useEffect(() => {
-        const timer = setTimeout(() => setPageLoaded(true), 300);
-        return () => clearTimeout(timer);
-    }, []);
 
     // Error handling
     const showError = (msg: string) => {
@@ -528,16 +523,43 @@ const Profile: React.FC = () => {
             );
         }
 
-        const college = user.studentData?.college
-            ? user.studentData.college
-            : "N/A";
+        // Check if user registration is incomplete - simplified check for email and college only
+        const hasEmail = user.email;
+        const hasCollege = user.studentData && user.studentData.college;
+        const isRegistrationComplete = hasEmail && hasCollege;
 
+        // If registration is incomplete, show only the completion prompt
+        if (!isRegistrationComplete) {
+            return (
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold text-yellow-400 mb-2">
+                                Complete Your Registration
+                            </h3>
+                            <p className="text-yellow-300/80 text-sm">
+                                Your profile is incomplete. Please complete your registration to participate in events.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => router.push("/register?step=details")}
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md transition-colors font-medium"
+                        >
+                            Complete Registration
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // If registration is complete, show the user details
+        const college = user.studentData?.college || "N/A";
         const fields = [
             { label: "Name", value: user.name },
             { label: "Login Id", value: user.id.toString() },
-            { label: "Email", value: user.email },
+            { label: "Email", value: user.email || "Not provided" },
             { label: "Phone", value: user.mobile },
-            { label: "Gender", value: user.gender },
+            { label: "Gender", value: user.gender || "Not provided" },
             { label: "College", value: college },
         ];
 
@@ -548,7 +570,7 @@ const Profile: React.FC = () => {
                         <p className="w-[15%] text-sm font-medium text-white/60">
                             {field.label}
                         </p>
-                        <p className="font-medium text-white/90">
+                        <p className={`font-medium ${field.value === "Not provided" || field.value === "N/A" ? "text-white/50 italic" : "text-white/90"}`}>
                             {field.value}
                         </p>
                     </div>
@@ -959,7 +981,7 @@ const Profile: React.FC = () => {
         },
     };
 
-    if (isLoading || loadingEvents || loadingTeams || loadingInvitations) return <PageLoader text="Loading user data..." />;
+    if (isLoading) return <PageLoader text="Loading user data..." />;
 
     return (
         <motion.div
@@ -1083,16 +1105,7 @@ const Profile: React.FC = () => {
                                                     }}
                                                 />
                                             )}
-                                            <span
-                                                className={
-                                                    isActive
-                                                        ? "text-white"
-                                                        : "text-white/60"
-                                                }
-                                            >
-                                                {tab.charAt(0).toUpperCase() +
-                                                    tab.slice(1)}
-                                            </span>
+                                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
                                         </button>
                                     );
                                 })}

@@ -1,5 +1,5 @@
 import api from "@/utils/api";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
 const useAxiosPrivate = () => {
@@ -9,7 +9,7 @@ const useAxiosPrivate = () => {
         withCredentials: true,
     });
 
-    const refresh = async () => {
+    const refresh = useCallback(async () => {
         if (window.location.pathname === "/login") {
             return null;
         }
@@ -33,7 +33,7 @@ const useAxiosPrivate = () => {
             }
             return null;
         }
-    };
+    }, []);
 
     useEffect(() => {
         const requestIntercept = axiosPrivate.interceptors.request.use(
@@ -71,7 +71,7 @@ const useAxiosPrivate = () => {
             axiosPrivate.interceptors.request.eject(requestIntercept);
             axiosPrivate.interceptors.response.eject(responseIntercept);
         };
-    }, [refresh]);
+    }, [axiosPrivate, refresh]);
 
     return axiosPrivate;
 };

@@ -58,8 +58,18 @@ export default function ParticipantRegister() {
     const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
     const router = useRouter();
 
-    const { createUser, updateUser, registerStudent, refreshAccessToken } = useUser();
+    const { createUser, updateUser, registerStudent, refreshAccessToken, getUser } = useUser();
     const { sendOtp, verifyOtp } = useAuth();
+
+    /* ── handle URL parameters for direct step navigation ── */
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const stepParam = urlParams.get('step');
+        
+        if (stepParam === 'details') {
+            setStep(STEPS.DETAILS);
+        }
+    }, []);
 
     /* ── fetch college list once ── */
     useEffect(() => {
@@ -155,6 +165,23 @@ export default function ParticipantRegister() {
         try {
             const userRes = await createUser(form.name, form.mobile);
             if (!userRes.success) {
+                // Check if user already exists
+                if (userRes.message?.toLowerCase().includes("already exists")) {
+                    console.log("User already exists, proceeding with OTP for existing user");
+                    // Skip createUser, proceed directly to OTP for existing user
+                    const otpRes = await sendOtp(form.mobile);
+                    if (!otpRes.success) {
+                        showError(otpRes.message || "Failed to send OTP");
+                        setLoading(false);
+                        return;
+                    }
+                    showSuccess("OTP sent to existing user");
+                    setTimer(OTP_TIMEOUT);
+                    setStep(STEPS.OTP);
+                    setLoading(false);
+                    return;
+                }
+                // Handle other errors
                 showError(userRes.message || "Failed to create user");
                 setLoading(false);
                 return;
@@ -202,7 +229,32 @@ export default function ParticipantRegister() {
             localStorage.setItem("refreshToken", res.refreshToken);
             localStorage.setItem("accessToken", accessToken);
             localStorage.setItem('userRole', 'student');
-            setStep(STEPS.DETAILS);
+            
+            // Check if user registration is complete
+            try {
+                const userData = await getUser(accessToken);
+                console.log("User data:", userData);
+                
+                // Check if user has completed registration (simplified: email and college only)
+                const hasEmail = userData.email;
+                const hasCollege = userData.student && userData.student.college;
+                
+                if (hasEmail && hasCollege) {
+                    showSuccess("Login successful!");
+                    window.dispatchEvent(new Event('storageChange'));
+                    setTimeout(() => router.push("/"), 1000);
+                    setLoading(false);
+                    return;
+                }
+                
+                // User exists but registration incomplete, proceed to details step
+                console.log("User registration incomplete, proceeding to details step");
+                setStep(STEPS.DETAILS);
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                // If we can't fetch user data, proceed to details step to be safe
+                setStep(STEPS.DETAILS);
+            }
         } catch {
             showError("OTP verification failed");
         } finally {
@@ -301,7 +353,8 @@ export default function ParticipantRegister() {
                             textColor={
                                 e.message.toLowerCase().includes("otp sent") ||
                                 e.message.toLowerCase().includes("success") ||
-                                e.message.toLowerCase().includes("verified")
+                                e.message.toLowerCase().includes("verified") ||
+                                e.message.toLowerCase().includes("login successful")
                                     ? "text-green-400"
                                     : "text-red-500"
                             }

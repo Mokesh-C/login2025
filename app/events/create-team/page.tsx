@@ -102,20 +102,17 @@ function CreateTeamPageContent() {
     setLoadingExistingMembers(true);
 
     try {
-      console.log("=== FETCHING EXISTING MEMBERS ===");
-      console.log("Current user:", user);
-      
       // Get user's teams
       const teamsRes = await userTeams();
-      console.log("userTeams API response:", teamsRes);
       
       if (!teamsRes.success || !teamsRes.teams) {
-        console.log("No teams found or API failed:", teamsRes);
+        // Don't show error for permission issues on fresh registrations
+        if (teamsRes.message && !teamsRes.message.toLowerCase().includes('permission')) {
+          console.log('Failed to fetch teams:', teamsRes.message);
+        }
         setLoadingExistingMembers(false);
         return;
       }
-
-      console.log("User teams:", teamsRes.teams);
 
       // Get all members from all user's teams
       const allMembers: any[] = [];
@@ -123,22 +120,14 @@ function CreateTeamPageContent() {
 
       for (const team of teamsRes.teams) {
         try {
-          console.log(`\n--- Fetching members for team ${team.id} (${team.name}) ---`);
           const membersRes = await teamMembers(team.id);
-          console.log(`teamMembers API response for team ${team.id}:`, membersRes);
           
           if (membersRes.success && membersRes.members) {
-            console.log(`Team ${team.name} members:`, membersRes.members);
-            
             membersRes.members.forEach((member: any) => {
-              console.log(`Processing member:`, member);
-              
               // Skip current user and avoid duplicates
               // Use more flexible email comparison
               const currentUserEmail = user.email?.toLowerCase();
               const memberEmail = member.email?.toLowerCase();
-              
-              console.log(`Comparing emails: currentUser="${currentUserEmail}" vs member="${memberEmail}"`);
               
               if (memberEmail && memberEmail !== currentUserEmail && !memberEmails.has(memberEmail)) {
                 memberEmails.add(memberEmail);
@@ -146,32 +135,17 @@ function CreateTeamPageContent() {
                   ...member,
                   teamName: team.name // Add team name for context
                 });
-                console.log(`✅ Added member: ${member.name} (${member.email}) from ${team.name}`);
-              } else {
-                if (!memberEmail) {
-                  console.log(`❌ Skipped member: ${member.name} - No email`);
-                } else if (memberEmail === currentUserEmail) {
-                  console.log(`❌ Skipped member: ${member.name} (${member.email}) - Current user`);
-                } else if (memberEmails.has(memberEmail)) {
-                  console.log(`❌ Skipped member: ${member.name} (${member.email}) - Duplicate`);
-                }
               }
             });
-          } else {
-            console.log(`❌ Failed to fetch members for team ${team.id}:`, membersRes);
           }
         } catch (error) {
-          console.error(`❌ Error fetching members for team ${team.id}:`, error);
+          console.error(`Error fetching members for team ${team.id}:`, error);
         }
       }
-
-      console.log("\n=== FINAL RESULTS ===");
-      console.log("Final existing members list:", allMembers);
-      console.log("Total unique members found:", allMembers.length);
       
       setExistingMembers(allMembers);
     } catch (error) {
-      console.error("❌ Error fetching existing members:", error);
+      console.error("Error fetching existing members:", error);
     } finally {
       setLoadingExistingMembers(false);
     }
@@ -195,6 +169,10 @@ function CreateTeamPageContent() {
         // ONLY check registration status - minimal API call
         const regRes = await getRegistrationsByUser();
         if (!regRes.success || !regRes.data) {
+          // Don't show error for permission issues on fresh registrations
+          if (regRes.message && !regRes.message.toLowerCase().includes('permission')) {
+            console.log('Failed to fetch registration status:', regRes.message);
+          }
           setCheckingRegistration(false);
           setRegistrationStatus('new');
           return;
@@ -221,7 +199,6 @@ function CreateTeamPageContent() {
           
           // Fetch team details in parallel
           try {
-            console.log("Fetching team details for teamId:", existingRegistration.teamId);
             const [teamsRes, membersRes] = await Promise.all([
               userTeams(),
               fetchTeamMembers(existingRegistration.teamId)
@@ -249,7 +226,9 @@ function CreateTeamPageContent() {
         }
           
       } catch (error) {
+        console.error("Error checking registration:", error);
         setRegistrationStatus('error');
+        // Don't show error toast for permission issues on fresh registrations
       } finally {
         setCheckingRegistration(false);
       }
@@ -341,8 +320,7 @@ function CreateTeamPageContent() {
 
     try {
       // Step 1: Create Team
-        const teamRes = await createTeam(teamName);
-        console.log("createTeam API response:", teamRes);
+      const teamRes = await createTeam(teamName);
         
       if (!teamRes.success || !teamRes.teamId) {
           // Don't clear emails if team name already exists  
@@ -397,10 +375,14 @@ function CreateTeamPageContent() {
       }
       
       const regRes = await teamRegister(eventIdNum, createdTeamId);
-      console.log(regRes);
         
       if (!regRes.success) {
-        showError(regRes.message || "Failed to register team for event.");
+        // Don't show error for permission issues on fresh registrations
+        if (regRes.message && !regRes.message.toLowerCase().includes('permission')) {
+          showError(regRes.message || "Failed to register team for event.");
+        } else if (regRes.message && regRes.message.toLowerCase().includes('permission')) {
+          console.log('Permission error (expected for new users):', regRes.message);
+        }
         setLoading(false);
         return;
       }
@@ -420,8 +402,16 @@ function CreateTeamPageContent() {
       // Fetch team members to show current state
       await fetchTeamMembers(createdTeamId);
 
-    } catch (error) {
-      showError("Registration failed. Please try again.");
+    } catch (error: any) {
+      console.error("Registration failed:", error);
+      // Don't show error toast for permission issues on fresh registrations
+      if (error?.message && !error.message.toLowerCase().includes('permission')) {
+        showError("Registration failed. Please try again.");
+      } else if (error?.message && error.message.toLowerCase().includes('permission')) {
+        console.log('Permission error (expected for new users):', error.message);
+      } else if (!error?.message) {
+        showError("Registration failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
