@@ -97,7 +97,7 @@ export default function Header() {
   /* ── shared styles ────────────────────────────────────── */
   const base = 'relative flex items-center gap-2 px-2 py-2 rounded-t-md transition-colors duration-300'
   const active = 'bg-gradient-to-t from-accent/60 to-transparent text-neutral-white font-semibold border-b-4 border-violet-500'
-  const inactive = 'text-neutral-muted hover:text-neutral-white'
+  const inactive = 'text-gray-300 hover:text-neutral-white'
 
   return (
     <>

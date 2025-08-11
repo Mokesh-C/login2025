@@ -14,13 +14,17 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'assets.leetcode.com', // keep if you still use Unsplash demo images
+        hostname: 'assets.leetcode.com',  // keep if you still use Unsplash demo images
       },
       {
         protocol: 'https',
-        hostname: 'cdn.discordapp.com', // keep if you still use Unsplash demo images
-      }
-
+        hostname: 'cdn.discordapp.com',// keep if you still use Unsplash demo images
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com', // keep if you still use Unsplash demo images
+      },   
+      
     ],
   },
   /* config options here */

@@ -1,172 +1,115 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
-import { motion } from 'framer-motion'
+import Image from 'next/image';
+import { motion } from 'framer-motion';
 
-const SPONSORS = [
-  { name: 'Arcesium', logo: '/sponsors/ARCESIUM.png' },
-  { name: 'Annapoorna', logo: '/sponsors/ANNAPOORNA.png' },
+type Sponsor = { name: string; logo: string; year?: string };
+
+const CURRENT_SPONSORS: Sponsor[] = [
+  { name: '247.ai', logo: '/sponsors/247-ai-logo.png' },
+];
+
+const PREVIOUS_SPONSORS: Sponsor[] = [
+  { name: 'FourKites', logo: '/sponsors/FourKites_New-Logo_Positive_RGB.png' },
   { name: 'KLA', logo: '/sponsors/KLA.png' },
-  { name: 'Drunken Monkey', logo: '/sponsors/DrunkenMonkey.png' },
-  { name: 'ABS', logo: '/sponsors/ABS.png' },
-]
+  { name: 'Expedia', logo: '/sponsors/Expedia-Logo-2048x1152.png' },
+  { name: 'Walker Scott', logo: '/sponsors/walkerscott-logo.webp' },
+  { name: 'eBay', logo: '/sponsors/EBAY-a442b3a2.png' },
+  { name: 'Root Quotient', logo: '/sponsors/Rootquotient-Logo-Full-BlackText.png' },
+  { name: 'ST Courier', logo: '/sponsors/STCourier.png' },
+  { name: 'Intel', logo: '/sponsors/INTC.png' },
+  // { name: 'Malabar Gold and Diamonds', logo: '/sponsors/malabardiamondlogo.png' },
+  { name: 'Cognizant', logo: '/sponsors/Cognizant-Logo.png' },
+  { name: 'Visteon', logo: '/sponsors/visteon.png' },
+  { name: 'DE Shaw', logo: '/sponsors/DEShaw.webp' },
+  { name: 'Skava', logo: '/sponsors/logo_SKAVA_sinfondo.png' },
+  { name: 'TVS', logo: '/sponsors/tvs-logo-tvs-icon-transparent-free-png.webp' },
+  { name: 'AECC', logo: '/sponsors/aecc.png' },
+  { name: 'Air Media', logo: '/sponsors/airmedia.png' },
+  { name: 'HP', logo: '/sponsors/hp.png' },
+  { name: 'Yamaha', logo: '/sponsors/Yamaha.webp' },
 
-const mod = (n: number, m: number) => ((n % m) + m) % m
+];
 
-export default function OurSponsors() {
-  const [view, setView] = useState(0)
-  const [side, setSide] = useState(0)
-  const [vert, setVert] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const measure = () => {
-      const mobile = window.innerWidth < 640
-      setVert(mobile)
-      if (!wrapRef.current) return
-      const w = wrapRef.current.offsetWidth
-      const len = mobile ? w * 0.5 : w / 3 // Three cards on non-mobile
-      setSide(len)
-      wrapRef.current.style.height = mobile ? `${len * 3}px` : 'auto'
-    }
-    measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [])
-
-  useEffect(() => {
-    const id = setInterval(() => move(view + 1), 3000)
-    return () => clearInterval(id)
-  }, [view, vert])
-
-  const slides = [SPONSORS.at(-1)!, ...SPONSORS, SPONSORS[0]]
-  const real = mod(view, SPONSORS.length)
-  const delta = -((view + 1) * side - side)
-  const trans = vert ? `translateY(${delta}px)` : `translateX(${delta}px)`
-
-  const move = (to: number) => {
-    if (!trackRef.current) return
-    trackRef.current.style.transition = 'transform 0.35s cubic-bezier(.4,1,.4,1)'
-    setView(to)
-  }
-
-  const onEnd = () => {
-    if (!trackRef.current) return
-    if (view === -1 || view === SPONSORS.length) {
-      const to = view === -1 ? SPONSORS.length - 1 : 0
-      const jump = -((to + 1) * side - side)
-      trackRef.current.style.transition = 'none'
-      trackRef.current.style.transform = vert
-        ? `translateY(${jump}px)`
-        : `translateX(${jump}px)`
-      trackRef.current.getBoundingClientRect()
-      trackRef.current.style.transition = 'transform 0.35s cubic-bezier(.4,1,.4,1)'
-      setView(to)
-    }
-  }
-
-  return (
-    <section className="w-full min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white overflow-hidden">
-      <motion.h2
-        initial={{ opacity: 0, y: -40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
-        className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mt-8 sm:mt-10 mb-2"
+const Card = ({ sponsor }: { sponsor: Sponsor }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5 }}
+    whileHover={{ y: -6 }}
+    className="group relative w-72 rounded-lg overflow-hidden bg-white/10 backdrop-blur-md shadow-lg hover:shadow-purple-500/40"
+  >
+    <div className="flex items-center justify-center h-48 w-full bg-violet-500/5 py-8">
+      <Image
+        src={sponsor.logo}
+        alt={sponsor.name}
+        width={192}
+        height={192}
+        unoptimized
+        className="h-48 w-full object-contain transition-all duration-300 group-hover:scale-105 bg-white p-3 md:p-6 "
+      />
+    </div>
+    {/* overlay */}
+    <div className="absolute inset-0 flex items-end justify-center pointer-events-none">
+      <div
+        className="w-full translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 bg-gradient-to-t from-violet-900/50 to-transparent p-3 text-center backdrop-blur-sm"
       >
-        Our Sponsors
+        <p className="text-lg  text-violet-700 font-bold tracking-wide">
+          {sponsor.name}
+        </p>
+        {sponsor.year && (
+          <p className="text-sm text-purple-200">{sponsor.year}</p>
+        )}
+      </div>
+    </div>
+  </motion.div>
+);
+
+const Section = ({ title, sponsors }: { title: string; sponsors: Sponsor[] }) => (
+  <>
+    <motion.h3
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="text-2xl text-gradient sm:text-3xl font-bold text-center mt-12"
+    >
+      {title}
+    </motion.h3>
+
+    <div className="flex flex-wrap justify-center gap-8 mt-8 max-w-7xl mx-auto px-4">
+      {sponsors.map((s) => (
+        <Card key={s.name} sponsor={s} />
+      ))}
+    </div>
+  </>
+);
+
+export default function SponsorsPage() {
+  return (
+    <section className="min-h-screen w-full bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white py-16">
+      <motion.h2
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-3xl text-cyan-400 sm:text-4xl md:text-5xl font-bold text-center"
+      >
+        Partner With Us
       </motion.h2>
 
       <motion.p
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.6 }}
-        className="text-base sm:text-lg md:text-xl text-gradient text-center my-6 sm:mb-10 font-medium"
+        transition={{ delay: 0.2, duration: 0.6 }}
+        className="text-base text-gray-300 sm:text-lg md:text-xl text-center mt-4 max-w-4xl mx-auto"
       >
-        Thank you to our amazing sponsors!
+        We are proud to collaborate with organisations whose support drives the success of LOGIN. 
+        Here’s a look at our valued partners who have contributed to the success of LOGIN.
       </motion.p>
 
-      <div
-        ref={wrapRef}
-        className="relative w-full overflow-hidden px-2 sm:px-4"
-        style={{ maxWidth: '95%', margin: '0 auto' }}
-      >
-        <div
-          ref={trackRef}
-          className={`flex ${vert && 'flex-col'}`}
-          style={{
-            width: vert ? '100%' : slides.length * side,
-            height: vert ? slides.length * side : 'auto',
-            transform: trans,
-            transition: 'transform 0.35s cubic-bezier(.4,1,.4,1)',
-          }}
-          onTransitionEnd={onEnd}
-        >
-          {slides.map((s, i) => {
-            const realIdx = mod(i - 1, SPONSORS.length)
-            const focused = realIdx === real
-            return (
-              <motion.div
-                key={i + s.name}
-                style={{
-                  width: vert ? '100%' : side,
-                  height: vert ? side : '20rem',
-                }}
-                className={`flex flex-col items-center justify-center px-2 sm:px-3 ${
-                  focused ? 'z-10' : ''
-                }`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                  className={`transparent p-3 sm:p-4   max-w-[16rem] sm:max-w-[20rem] h-full max-h-[16rem] sm:max-h-[20rem] flex items-center justify-center ${
-                    focused
-                      ? 'scale-110'
-                      : 'scale-90 opacity-60'
-                  }`}
-                >
-                  <Image
-                    src={s.logo}
-                    alt={s.name}
-                    width={200}
-                    height={200}
-                    unoptimized
-                    className="object-contain h-full w-full"
-                  />
-                </motion.div>
-                { (
-                  <motion.p
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-base sm:text-lg font-medium"
-                  >
-                    {s.name}
-                  </motion.p>
-                )}
-              </motion.div>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="flex justify-center mt-6 sm:mt-8 gap-2 sm:gap-3">
-        {SPONSORS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => move(i)}
-            aria-label={`Go to sponsor ${SPONSORS[i].name}`}
-            className={`h-2 w-2 sm:h-3 sm:w-3 rounded-full transition-all duration-300 ${
-              real === i ? 'bg-[#8b5cf6] scale-125' : 'bg-violet-400'
-            }`}
-          />
-        ))}
-      </div>
+      <Section title="2025 Sponsors" sponsors={CURRENT_SPONSORS} />
+      <Section title="Our Previous Sponsors" sponsors={PREVIOUS_SPONSORS} />
     </section>
-  )
+  );
 }

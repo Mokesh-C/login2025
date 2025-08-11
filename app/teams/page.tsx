@@ -26,28 +26,28 @@ const OFFICE_BEARERS: TeamMember[] = [
     about: 'Secretary',
     imageUrl: '/coordinators/MohanPrasath.jpg',
     email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+    socials: { instagram: 'https://instagram.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Nivethithaa',
     about: 'Treasurer',
     imageUrl: '/coordinators/Nivethithaa.jpg',
     email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+    socials: { instagram: 'https://instagram.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Kalaivanan',
     about: 'Event Coordinator',
     imageUrl: '/coordinators/Kalaivanan.jpg',
     email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+    socials: { instagram: 'https://instagram.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Sanjay',
     about: 'Event Coordinator',
     imageUrl: '/coordinators/Sanjay.jpg',
     email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+    socials: { instagram: 'https://instagram.com/', linkedin: 'https://www.linkedin.com/' },
   },
 ]
 
@@ -57,21 +57,21 @@ const DEV_TEAM: TeamMember[] = [
     about: 'Web Development Team Lead',
     imageUrl: '/coordinators/Praveen.JPG',
     email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+    socials: { instagram: 'https://instagram.com/', linkedin: 'https://instagram.com/' },
   },
   {
     name: 'Jeffry Patrick',
     about: 'Backend Developer',
     imageUrl: '/coordinators/Jeffrypatrick.jpg',
     email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+    socials: { instagram: 'https://instagram.com/', linkedin: 'https://www.linkedin.com/' },
   },
   {
     name: 'Mokesh',
     about: 'Frontend Developer and UI Designer',
     imageUrl: '/coordinators/Mokesh.jpg',
     email: 'hello@example.com',
-    socials: { github: 'https://github.com/', linkedin: 'https://www.linkedin.com/' },
+    socials: { instagram: 'https://instagram.com/', linkedin: 'https://www.linkedin.com/' },
   },
 //   {
 //     name: 'Balaji',
@@ -201,7 +201,7 @@ function TeamCard({
                 className="bg-accent-mystic rounded-full p-2 shadow-[2px_2px_6px_#b8bac0,-2px_-2px_6px_#ffffff] transition-all duration-200 hover:scale-110"
               >
                 {/* Instagram SVG */}
-                <svg viewBox="0 0 16 15.999" height="20" width="20" fill="#888" className="hover:fill-[#6c63ff] transition-all">
+                <svg viewBox="0 0 16 15.999" height="20" width="20" fill="#888" className="hover:fill-[#e1306be0] transition-all">
                   <path transform="translate(6 598)" d="M6-582H-2a4,4,0,0,1-4-4v-8a4,4,0,0,1,4-4H6a4,4,0,0,1,4,4v8A4,4,0,0,1,6-582ZM2-594a4,4,0,0,0-4,4,4,4,0,0,0,4,4,4,4,0,0,0,4-4A4.005,4.005,0,0,0,2-594Zm4.5-2a1,1,0,0,0-1,1,1,1,0,0,0,1,1,1,1,0,0,0,1-1A1,1,0,0,0,6.5-596ZM2-587.5A2.5,2.5,0,0,1-.5-590,2.5,2.5,0,0,1,2-592.5,2.5,2.5,0,0,1,4.5-590,2.5,2.5,0,0,1,2-587.5Z"></path>
                 </svg>
               </a>

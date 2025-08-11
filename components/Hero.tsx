@@ -221,7 +221,7 @@ useEffect(() => {
           {/* Right: Date, Description, Stats, Buttons */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left gap-4 md:gap-6 md:w-[35%] max-w-lg justify-center p-2">
             <span className="text-gradient-1 font-extrabold text-2xl sm:text-3xl md:text-3xl lg:text-4xl">September 20, 21</span>
-            <span className="text-gray-200 text-justify text-base md:text-lg lg:text-xl mt-2 max-w-md px-2">Experience the 34<sup>th</sup> National Level Inter-Collegiate Tech-Symposium where innovation meets reality in the digital realm.</span>
+            <span className="text-gray-200 text-justify text-base md:text-lg lg:text-xl mt-2 max-w-md px-2">Experience the 34<sup>th</sup> International Inter-Collegiate Tech-Symposium where innovation meets reality in the digital realm.</span>
             <div className="flex flex-row gap-6 md:gap-8 justify-center md:justify-start mt-2">
               <div className="flex flex-col items-center">
                 <span className="text-xl md:text-2xl font-bold text-gradient-1">10+</span>
@@ -326,14 +326,14 @@ useEffect(() => {
           {/* Event Info */}
           <div className="p-4 md:p-6">
             <h3 className="text-xl md:text-2xl font-bold text-gradient-1 mb-3">
-              National Level Inter‑Collegiate Tech‑Symposium For PG Students
+              International-Level Intercollegiate Tech Symposium for PG Students
             </h3>
-            <div className="bg-blue-300/10 border border-blue-300/20 rounded-lg p-3">
+            {/* <div className="bg-blue-300/10 border border-blue-300/20 rounded-lg p-3">
               <p className="text-cyan-500 text-sm md:text-base font-semibold">
                 <span className="font-bold">Note:</span>{' '}
                 Only M.E., M.Tech., MBA, MCA, M.Sc., and other PG students can register and participate.
               </p>
-            </div>
+            </div> */}
           </div>
         </motion.div>
       </section>

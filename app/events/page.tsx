@@ -62,15 +62,11 @@ export default function EventsSlider() {
                             className="w-3/4 flex items-center justify-center bg-blue-300/10 rounded-md animate-fade-in"
                         >
                             <Image
-                                src={
-                                    events[active]
-                                        ? events[active].images[0]?.url
-                                        : ""
-                                }
-                                alt={events[active].name}
+                                src={events[active]?.images?.[0]?.url || "https://images.unsplash.com/photo-1739184523594-564cb9b61126?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
+                                alt={events[active]?.name || "Event image"}
                                 width={450}
                                 height={450}
-                                className="object-cover m-2 max-w-full h-auto rounded-md transition-all duration-500"
+                                className="object-contain m-2  max-w-full h-auto rounded-md transition-all duration-500"
                                 priority
                             />
                         </div>
@@ -132,7 +128,7 @@ export default function EventsSlider() {
 
                 {/* Rotating image wheel */}
                 <div
-                    className="absolute left-1/2 bottom-[-28%] md:bottom-[-45%] aspect-square w-[800px] md:w-[1100px] -translate-x-1/2 translate-y-1/2 rounded-full  outline-3 outline-dashed outline-white/30 transition-transform duration-500 outline-offset-[-100px] z-10 pointer-events-none"
+                    className="absolute left-1/2 bottom-[-28%] md:bottom-[-50%] aspect-square w-[800px] md:w-[1200px] -translate-x-1/2 translate-y-1/2 rounded-full  outline-3 outline-dashed outline-white/30 transition-transform duration-500 outline-offset-[-100px] z-10 pointer-events-none"
                     style={{
                         transform: `translate(-50%,50%) rotate(${rotateDeg}deg)`,
                     }}

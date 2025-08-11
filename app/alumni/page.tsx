@@ -1,5 +1,7 @@
 "use client";
 
+import Link from 'next/link';
+
 const alumni = [
   // Entrepreneur (orange circled)
   {
@@ -62,8 +64,17 @@ const categories = [
 
 export default function AlumniPage() {
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third py-12 px-4 "> {/*bg-[#e0e5ec]*/}
-      <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-10 text-white drop-shadow-sm">
+    <div className="relative min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third py-12 px-4 "> {/*bg-[#e0e5ec]*/}
+      {/* Source link */}
+      <Link
+        href="https://www.psgtech.edu/alumni.php"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative botton-5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2  rounded-lg shadow"
+      >
+        Source &rarr;
+      </Link>
+      <h1 className="text-3xl md:text-4xl font-extrabold text-center mb-10 text-white drop-shadow-sm pt-8 md:pt-2">
         Our Distinguished Alumni
       </h1>
       <div className="flex flex-col gap-16 items-center">
@@ -150,6 +161,28 @@ export default function AlumniPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* See More */}
+      <div className="mt-12 flex justify-center">
+        <Link
+          href="https://www.psgtech.edu/alumni.php"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold shadow"
+        >
+          See More
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M13 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     </div>
   );

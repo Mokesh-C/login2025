@@ -33,7 +33,7 @@ export default function FAQ() {
     {
       question: 'What are the dates for LOGIN 2025?',
       answer:
-        'The symposium is scheduled for September 21st and 22nd, 2025, at PSG College of Technology, Coimbatore.',
+        'The symposium is scheduled for September 20th and 21st, 2025, at PSG College of Technology, Coimbatore.',
     },
     {
       question: 'What types of events are included in LOGIN 2025?',
