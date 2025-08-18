@@ -7,6 +7,7 @@ import { Pacifico } from "next/font/google";
 import { useRouter } from "next/navigation";
 import useEvents from "@/hooks/useEvents";
 import { PageLoader } from "@/components/LoadingSpinner";
+import Link from "next/link";
 // import { Play, Pause } from 'lucide-react'
 
 // Google font via next/font
@@ -91,14 +92,12 @@ export default function EventsSlider() {
                                     <p className="mt-2 text-base md:text-lg leading-relaxed">
                                         {e.tagline}
                                     </p>
-                                    <button
-                                        onClick={() =>
-                                            router.push(`/events/${e.id}`)
-                                        }
+                                    <Link
+                                        href={`/events/${e.id}`}
                                         className="mt-4 bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-2 px-5 md:px-6 rounded-md hover:shadow-purple-500/25 z-30"
                                     >
                                         Explore More
-                                    </button>
+                                    </Link>
                                 </article>
                             );
                         })}

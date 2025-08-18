@@ -104,7 +104,7 @@ export default function Timeline() {
               const Icon = event.icon
 
               return (
-                <section key={`${dayIdx}-${idx}`} className="relative flex min-h-[180px] items-center justify-center">
+                <section key={`${dayIdx}-${idx}`} className="relative flex min-h-[180px] items-center justify-center overflow-hidden">
                   {/* Step number */}
                   <motion.div
                     className={`

@@ -15,7 +15,7 @@ const PREVIOUS_SPONSORS: Sponsor[] = [
   { name: 'Expedia', logo: '/sponsors/Expedia-Logo-2048x1152.png' },
   { name: 'Walker Scott', logo: '/sponsors/walkerscott-logo.webp' },
   { name: 'eBay', logo: '/sponsors/EBAY-a442b3a2.png' },
-  { name: 'Root Quotient', logo: '/sponsors/Rootquotient-Logo-Full-BlackText.png' },
+  { name: 'Root Quotient', logo: '/sponsors/Rootquotient-Logo-Full-BlackText.png'},
   { name: 'ST Courier', logo: '/sponsors/STCourier.png' },
   { name: 'Intel', logo: '/sponsors/INTC.png' },
   // { name: 'Malabar Gold and Diamonds', logo: '/sponsors/malabardiamondlogo.png' },

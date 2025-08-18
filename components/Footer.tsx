@@ -1,5 +1,3 @@
-'use client'
-
 import { Instagram, Mail, Linkedin } from 'lucide-react'
 import Link from 'next/link'
 
