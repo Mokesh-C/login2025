@@ -23,8 +23,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com', // keep if you still use Unsplash demo images
-      },   
-      
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos', // keep if you still use Unsplash demo images
+      },
     ],
   },
   /* config options here */

@@ -24,7 +24,7 @@ export default function About() {
       id="about"
       className="
         scroll-mt-24 w-full min-h-screen flex items-center justify-center
-        py-4 md:py-16 px-4
+        py-4 md:py-16 px-4 font-manrope text-justify tracking-wide
       "
     >
       <motion.div
@@ -57,7 +57,7 @@ export default function About() {
             {/* Right column: CONTENT */}
             <motion.div
             variants={child}
-            className="lg:w-1/2 flex flex-col justify-center font-montserrat p-8 pb-0 md:pb-8"
+            className="lg:w-1/2 flex flex-col justify-center  p-8 pb-0 md:pb-8"
             >
             <h2 className="text-2xl lg:text-4xl font-bold mb-6 text-white">
                 About LOGIN
@@ -77,7 +77,7 @@ export default function About() {
         </motion.div>
         <motion.div 
         variants={child}
-        className='font-montserrat p-8 pt-0 pl-12'>
+        className=' p-8 pt-0 pl-12 '>
             <p className="text-md lg:text-lg leading-7 text-neutral-white/90 space-y-4">
                 This year, LOGIN’25 embraces the theme “The Immersive Point: Redefining Reality through
                 Immersive Systems”—a journey into technologies that blur the line between the physical and the

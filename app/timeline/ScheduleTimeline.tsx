@@ -2,33 +2,46 @@
 
 import React, { useRef, useLayoutEffect, useState } from 'react'
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
-import { Calendar, Clock, MapPin, Star, Coffee, Utensils } from 'lucide-react'
+import { Calendar, Clock, MapPin, Star, Coffee, Utensils, 
+  Code2, Brain, Gavel, Gamepad2, Camera, Lightbulb, Compass, Award, HelpCircle  } from 'lucide-react'
 
 const schedule = [
   {
+    day: '0',
+    date: 'September 14 – 18, 2025',
+    eventType: 'online',
+    events: [
+      { title: 'NetHunt',          time: 'Sep 14 · 6:00 PM – 8:00 PM', icon: Compass,   type: 'event' },
+      { title: 'Treasure Hunt',    time: 'Sep 15 · 6:00 PM – 7:00 PM', icon: MapPin,    type: 'event' },
+      { title: 'Thinklytics',      time: 'Sep 16 · 6:00 PM – 7:00 PM', icon: Lightbulb, type: 'event' },
+      { title: 'Crickbid Auction', time: 'Sep 16 · 6:00 PM – 7:00 PM', icon: Gavel,     type: 'event' },
+      { title: 'CodeSprint',       time: 'Sep 17 · 6:00 PM – 7:00 PM', icon: Code2,     type: 'event' },
+      { title: 'CodeSprint',       time: 'Sep 18 · 6:00 PM – 8:00 PM', icon: Code2,     type: 'event' },
+    ],
+  },
+  {
     day: '01',
     date: 'September 20, 2025',
+    eventType: 'offline',
     events: [
-      { title: 'INAUGURATION OF LOGIN 2025', time: '9:30 AM – 10:20 AM', venue: 'F‑Block Assembly Hall (2nd Floor)', icon: Star, type: 'ceremony' },
-      { title: 'TEA BREAK',                  time: '10:20 AM – 10:40 AM', venue: 'F‑Block Canteen (Ground Floor)',    icon: Coffee, type: 'break'   },
-      { title: 'OFFLINE EVENTS',             time: '10:40 AM – 12:45 PM',                                             icon: Calendar, type: 'event'  },
-      { title: 'LUNCH',                      time: '12:45 PM – 01:45 PM', venue: 'F‑Block Canteen (Ground Floor)',    icon: Utensils, type: 'break'  },
-      { title: 'OFFLINE EVENTS',             time: '01:45 PM – 04:15 PM',                                             icon: Calendar, type: 'event'  },
-      { title: 'TEA BREAK',                  time: '04:15 PM – 04:45 PM', venue: 'F‑Block Canteen (Ground Floor)',    icon: Coffee, type: 'break'   },
+      { title: 'Witty Mindz', time: '10:30 AM – 1:00 PM',icon: Brain,     type: 'event' },
+      { title: 'Quiz Arena',  time: '10:30 AM – 1:00 PM',icon: HelpCircle,type: 'event' },
+      { title: 'Big O Battle',time: '2:00 PM – 6:00 PM', icon: Code2,     type: 'event' },
+      { title: 'Valo Strike', time: '2:00 PM – 6:00 PM', icon: Gamepad2,  type: 'event' },
     ],
   },
   {
     day: '02',
     date: 'September 21, 2025',
+     eventType: 'offline',
     events: [
-      { title: 'OFFLINE EVENTS', time: '08:30 AM – 12:20 PM',                                              icon: Calendar, type: 'event'    },
-      { title: 'LUNCH BREAK',    time: '12:20 PM – 01:45 PM', venue: 'F‑Block Canteen (Ground Floor)',     icon: Utensils, type: 'break'    },
-      { title: 'STAR OF LOGIN',  time: '01:45 PM – 04:00 PM',                                              icon: Star,     type: 'special'  },
-      { title: 'VALEDICTORY',    time: '04:00 PM – 06:00 PM', venue: 'F‑Block Conference Hall (1st Floor)', icon: Star,     type: 'ceremony' },
-      { title: 'TEA BREAK',      time: '06:00 PM – 06:30 PM',                                              icon: Coffee,   type: 'break'    },
+      { title: 'Treasure Hunt (Finals)',  time: '8:30 AM – 10:00 AM',  icon: MapPin,    type: 'event' },
+      { title: 'Picture Perfect',         time: '8:30 AM – 10:00 AM',  icon: Camera,    type: 'event' },
+      { title: 'Thinklytics (Finals)',    time: '10:00 AM – 12:30 PM', icon: Lightbulb, type: 'event' },
+      { title: 'Crickbid Auction (Finals)', time: '10:00 AM – 12:30 PM', icon: Gavel,  type: 'event' },
+      { title: 'Star of Login',           time: '1:30 PM',             icon: Star,      type: 'special' },
     ],
   },
-  
 ]
 
 export default function Timeline() {
@@ -60,7 +73,7 @@ export default function Timeline() {
   let seq = -1
 
   return (
-    <div className="relative flex flex-col items-center justify-center px-2">
+    <div className="relative flex flex-col items-center justify-center px-2 font-manrope">
       {/* Timeline rail */}
       <div className="absolute top-0 left-6 sm:left-[12%] mob:left-1/2 mob:-translate-x-1/2 h-full w-2 bg-gray-700/40 z-0 rounded-full" />
 
@@ -91,9 +104,14 @@ export default function Timeline() {
         {schedule.map((dayBlock, dayIdx) => (
           <React.Fragment key={dayIdx}>
             {/* DAY heading */}
-            <section className="relative flex lg:items-start items-center flex-col py-8">
+            <section className="relative flex md:items-start items-center flex-col py-8">
+                {dayBlock.day !== '0' && (
+                  <span className="top-2 left-0 text-sm font-bold text-gradient-1 tracking-wider">
+                    {dayBlock.eventType.toUpperCase()} EVENTS
+                  </span>
+                )}  
               <h2 className="text-3xl md:text-4xl font-extrabold text-violet-400">
-                DAY {dayBlock.day}
+                 {dayBlock.day === '0' ? `${dayBlock.eventType.toUpperCase()} EVENTS` : `DAY ${dayBlock.day} `}
               </h2>
               <span className="mt-1 text-sm tracking-wide text-violet-300">{dayBlock.date}</span>
             </section>
@@ -150,12 +168,12 @@ export default function Timeline() {
                         <Clock className="h-4 w-4" />
                         <span className="text-sm">{event.time}</span>
                       </div>
-                      {event.venue && (
+                      {/* {event.venue && (
                         <div className="flex items-center gap-2 text-gray-300">
                           <MapPin className="h-4 w-4" />
                           <span className="text-sm">{event.venue}</span>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </motion.div>
                 </section>

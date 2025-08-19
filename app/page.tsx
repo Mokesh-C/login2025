@@ -2,6 +2,7 @@ import Hero   from '@/components/Hero'
 import About  from '@/components/About'
 import Footer from '@/components/Footer'
 import FAQ from '@/components/FAQ'
+import Gallery from '@/components/Gallery'
 
 export default function Home() {
   return (
@@ -12,6 +13,9 @@ export default function Home() {
       <section id="home">
         <About />
       </section>    
+      <section id="gallery">
+        <Gallery />
+      </section>
       <section id="faq">
         <FAQ />
       </section>

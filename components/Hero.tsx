@@ -184,7 +184,7 @@ useEffect(() => {
   return (
     <>
       {/* HERO SECTION */}
-      <section className="flex flex-col sm:justify-center min-h-[calc(100vh-5rem)] w-full overflow-hidden px-4 md:px-12 lg:px-24 pb-0">
+      <section className="flex flex-col sm:justify-center min-h-[calc(100vh-5rem)] w-full overflow-hidden px-4 md:px-12 lg:px-24 pb-0 font-manrope">
         {/* Decorative Mountain Wave at Bottom */}
         <div className="absolute bottom-0 left-0 w-full ">
           {/* Main mountain wave */}
@@ -219,10 +219,13 @@ useEffect(() => {
             />
           </div>
           {/* Right: Date, Description, Stats, Buttons */}
-          <div className="flex flex-col items-center md:items-start text-center md:text-left gap-4 md:gap-6 md:w-[35%] max-w-lg justify-center p-2">
+          <div className="flex flex-col items-center md:items-start text-center md:text-left gap-4 md:gap-3 md:w-[35%] max-w-lg justify-center p-2 font-manrope tracking-wide">
             <span className="text-gradient-1 font-extrabold text-2xl sm:text-3xl md:text-3xl lg:text-4xl">September 20, 21</span>
-            <span className="text-gray-200 text-justify text-base md:text-lg lg:text-xl mt-2 max-w-md px-2">Experience the 34<sup>th</sup> International Inter-Collegiate Tech-Symposium where innovation meets reality in the digital realm.</span>
-            <div className="flex flex-row gap-6 md:gap-8 justify-center md:justify-start mt-2">
+            <span className="text-gray-200 text-justify text-base md:text-lg lg:text-lg  max-w-md ">Experience the 34<sup>th</sup> International Inter-Collegiate Tech-Symposium where innovation meets reality in the digital realm.</span>
+            <span className="text-xl md:text-lg font-semibold font-montserrat text-gradient ">
+              <span className='font-bolder'>Note: </span>A Global Tech Stage Only for Postgraduate Students
+            </span>
+            <div className="flex flex-row gap-6 md:gap-8 justify-center md:justify-start ">
               <div className="flex flex-col items-center">
                 <span className="text-xl md:text-2xl font-bold text-gradient-1">10+</span>
                 <span className="text-sm md:text-base font-medium text-slate-300">EVENTS</span>
@@ -276,14 +279,14 @@ useEffect(() => {
       <section
         ref={prizeRef}
         id="prize-section"
-        className="relative min-h-[65vh] sm:min-h-[80vh] md:min-h-[90vh] flex flex-col items-center justify-center text-white overflow-hidden px-4"
+        className="relative min-h-[65vh] sm:min-h-[70vh] md:min-h-[80vh] flex  flex-col md:flex-row items-center justify-center text-white overflow-hidden px-4 font-manrope"
       >
-        {/* Main Prize Content */}
+        {/* Left: Cash Prize (70%) */}
         <motion.div
           initial={{ y: 60, opacity: 0 }}
           animate={prizeSectionInView ? { y: 0, opacity: 1 } : { y: 60, opacity: 0 }}
           transition={{ duration: 1 }}
-          className="relative z-10 text-center max-w-4xl"
+          className="relative z-10 text-center w-full md:w-[60%] max-w-3xl"
         >
           {/* Prize Card */}
           <div className="mb-8">
@@ -292,7 +295,6 @@ useEffect(() => {
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white/90 tracking-wide">
                 CASH PRIZE WORTH
               </h2>
-              
               {/* Prize Amount */}
               <div className="relative">
                 <h1 
@@ -302,14 +304,12 @@ useEffect(() => {
                   ₹ {prize.toLocaleString('en-IN')}
                 </h1>
               </div>
-
               {/* Subtitle */}
               <p className="text-lg md:text-xl text-white/80 font-medium">
                 Worth of Prizes to be Won!
               </p>
             </div>
           </div>
-
           {/* Countdown Timer */}
           <div className="mb-8">
             <h3 className="text-xl md:text-2xl font-bold text-gradient mb-4">
@@ -319,23 +319,42 @@ useEffect(() => {
               <TimeBox label="DAYS" value={timeLeft.days} />
               <TimeBox label="HRS" value={timeLeft.hours} />
               <TimeBox label="MIN" value={timeLeft.minutes} />
-              <TimeBox label="SEC" value={timeLeft.seconds} />
+              <TimeBox label="SEC" value={timeLeft.seconds} /> 
             </div>
           </div>
-
           {/* Event Info */}
-          <div className="p-4 md:p-6">
-            <h3 className="text-xl md:text-2xl font-bold text-gradient-1 mb-3">
-              International-Level Intercollegiate Tech Symposium for PG Students
-            </h3>
-            {/* <div className="bg-blue-300/10 border border-blue-300/20 rounded-lg p-3">
-              <p className="text-cyan-500 text-sm md:text-base font-semibold">
-                <span className="font-bold">Note:</span>{' '}
-                Only M.E., M.Tech., MBA, MCA, M.Sc., and other PG students can register and participate.
-              </p>
-            </div> */}
-          </div>
+          
         </motion.div>
+
+        {/* Right: Idea Quest Promo Card (30%) */}
+        <div className="w-full md:w-[40%] flex justify-center items-center max-h-[80%]">
+              <div className="bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 border-2 border-yellow-500 rounded-2xl shadow-[0_3px_12px_rgba(230,194,0,0.5)] p-4 md:p-6 lg:p-8 flex flex-col items-center justify-between gap-4 max-w-md w-[80%] lg:w-[70%] animate-pulse h-full">
+            <div className="flex flex-col w-full">
+              <div className="flex items-center gap-2 mb-2">
+                <Image src="/IQ.png" alt="IdeaQuest Logo" width={40} height={40} className="object-contain rounded-full" />
+                <span className="font-bold text-xl text-yellow-900">IdeaQuest'25</span>
+              </div>
+              <span className="text-base font-semibold text-yellow-900  mb-2">Tech for Tomorrow</span>
+              <span className="text-sm text-yellow-900  mb-2">National-Level Onsite Hackathon @ PSG College of Technology</span>
+            </div>
+            <div className="w-full flex flex-col gap-2 text-yellow-900 text-xs font-medium">
+              <div className="flex items-center gap-2"><span className="font-bold">Prizes:</span> Cash & Certificates</div>
+              <div className="flex items-center gap-2"><span className="font-bold">Domains:</span> Fintech, HealthTech, Sustainability</div>
+              <div className="flex items-center gap-2"><span className="font-bold">Eligibility:</span> Engineering &amp; PG Students</div>
+              <div className="flex items-center gap-2"><span className="font-bold">Dates:</span> 19 – 20 September 2025</div>
+              <div className="flex items-center gap-2"><span className="font-bold">Venue:</span> PSG College of Technology, Coimbatore</div>
+            </div>
+            <Link
+                  href="/idea-quest"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 px-5 py-2 bg-yellow-300 text-white rounded-[20px] font-semibold text-base shadow-[0_2px_8px_#e6c200,0_-2px_8px_#fffbe6] border-none transition-all duration-200 hover:bg-yellow-200 hover:text-yellow-900 focus:outline-none hover:shadow-[inset_2px_2px_8px_#e6c200,inset_-2px_-2px_8px_#fffbe6]"
+                  style={{ boxShadow: '0 2px 8px #e6c200, 0 -2px 8px #fffbe6' }}
+            >
+              Learn More
+            </Link>
+          </div>
+        </div>
       </section>
     </>
   )

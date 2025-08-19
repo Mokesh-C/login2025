@@ -64,7 +64,7 @@ const categories = [
 
 export default function AlumniPage() {
   return (
-    <div className="relative min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third py-12 px-4 "> {/*bg-[#e0e5ec]*/}
+    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third py-12 px-4 overflow-x-visible"> {/*bg-[#e0e5ec]*/}
       {/* Source link */}
       <Link
         href="https://www.psgtech.edu/alumni.php"

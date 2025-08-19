@@ -11,7 +11,7 @@ export default function Footer() {
         shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]
         text-neutral-white
         border-t border-neutral-muted
-        border border-white/10
+        border border-white/10 font-manrope
 
       "
     >

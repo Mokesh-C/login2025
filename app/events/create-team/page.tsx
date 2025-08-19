@@ -522,7 +522,7 @@ function CreateTeamPageContent() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex flex-col items-center bg-gradient-to-br from-accent-first via-accent-second to-accent-third px-4">
+    <div className="min-h-[calc(100vh-5rem)] flex flex-col items-center bg-gradient-to-br from-accent-first via-accent-second to-accent-third px-4 overflow-x-visible">
       {/* Toasts */}
       {errorList.map((e) => (
         <ToastCard

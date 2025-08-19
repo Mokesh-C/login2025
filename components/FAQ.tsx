@@ -57,8 +57,8 @@ export default function FAQ() {
       id="faq"
       className="
         scroll-mt-24 w-full 
-        text-neutral-white font-montserrat
-        py-8 mb-16
+        text-neutral-white
+        py-8 mb-16 font-manrope
       "
       variants={parent}
       initial="hidden"
