@@ -99,6 +99,10 @@ export default function Header() {
   const active = 'bg-gradient-to-t from-accent/60 to-transparent text-neutral-white font-semibold border-b-4 border-violet-500'
   const inactive = 'text-gray-300 hover:text-neutral-white'
 
+  const path = usePathname()
+  const hideNavbar = path.startsWith("/idea-quest")
+  if (hideNavbar) return null;
+
   return (
     <>
       {/* Initial Header (visible before scroll, scrolls naturally) */}
