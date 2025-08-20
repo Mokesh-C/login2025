@@ -13,6 +13,7 @@ import useAuth from '@/hooks/useAuth';
 import OtpVerification from '@/components/OtpVerification';
 import { OtpPayload, OtpResponse, AccessTokenResponse } from '@/types/auth';
 import { getUser } from '@/services/user'
+import { Suspense } from 'react';
 
 /* ------------------------------------------------------------------
  * Constants & types

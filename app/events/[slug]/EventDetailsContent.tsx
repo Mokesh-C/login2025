@@ -428,6 +428,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                         </>
                                     ) : isRegistered ? (
                                         <>
+                                            
                                             <motion.div
                                                 className="flex items-center justify-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
                                                 initial={{ opacity: 0, y: 20 }}

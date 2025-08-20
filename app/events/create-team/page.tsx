@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import useRequireAuth from "@/hooks/useRequireAuth";
 import { PageLoader } from "@/components/LoadingSpinner";
@@ -28,6 +28,7 @@ function CreateTeamPageContent() {
   const [errorId, setErrorId] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [hasTeam, setHasTeam] = useState(false);
   const [teamId, setTeamId] = useState<number | null>(null);
   const [teamMembersList, setTeamMembersList] = useState<any[]>([]);
   const [showInviteForm, setShowInviteForm] = useState(false);
@@ -225,15 +226,15 @@ function CreateTeamPageContent() {
       );
 
       if (existingRegistration && existingRegistration.teamId) {
-        // User IS registered - now fetch team details
+        // User HAS a team - now fetch team details and check minimum team size
         setTeamId(existingRegistration.teamId);
-        setIsRegistered(true);
+        setHasTeam(true); // User has a team
         if (withLoader) setRegistrationStatus('existing');
 
         // Fetch team details in parallel
         try {
           // Fetch members first to avoid using function before its declaration in TS order
-          await fetchTeamMembers(existingRegistration.teamId);
+          const membersRes = await fetchTeamMembers(existingRegistration.teamId);
           const teamsRes = await userTeams();
 
           // Set team name
@@ -247,13 +248,32 @@ function CreateTeamPageContent() {
           } else {
             setTeamName("My Team");
           }
+
+          // Check registration status immediately after fetching members
+          if (membersRes.success && membersRes.members) {
+            const acceptedMembers = membersRes.members.filter(member => 
+              member.invitationStatus === 'accepted'
+            );
+            const acceptedCount = acceptedMembers.length;
+            
+            // Only show "Registered" if minimum team size is met
+            if (acceptedCount >= minTeamSize) {
+              setIsRegistered(true);
+            } else {
+              setIsRegistered(false);
+            }
+          } else {
+            setIsRegistered(false);
+          }
         } catch (error) {
           setTeamName("My Team");
+          setIsRegistered(false);
         }
       } else {
         // User NOT registered - show form immediately
         if (withLoader) setRegistrationStatus('new');
         setIsRegistered(false);
+        setHasTeam(false);
       }
     } catch (error) {
       console.error("Error checking registration:", error);
@@ -261,7 +281,7 @@ function CreateTeamPageContent() {
     } finally {
       if (withLoader) setCheckingRegistration(false);
     }
-  }, [user?.id, eventId, getRegistrationsByUser, userTeams, fetchTeamMembers]);
+  }, [user?.id, eventId, getRegistrationsByUser, userTeams, fetchTeamMembers, minTeamSize]);
 
   // Initial check on mount or when dependencies change
   useEffect(() => {
@@ -286,6 +306,8 @@ function CreateTeamPageContent() {
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [user?.id, eventId]); // Remove checkExistingRegistration dependency
+
+
 
   // Handle mobile input changes
   const handleMobileChange = (index: number, value: string) => {
@@ -367,6 +389,16 @@ function CreateTeamPageContent() {
     return allMobiles.length + 1; // +1 for current user
   };
 
+  // Get count of pending invitations
+  const getPendingInvitationsCount = () => {
+    return teamMembersList.filter(member => member.invitationStatus === 'pending').length;
+  };
+
+  // Get count of accepted members
+  const getAcceptedMembersCount = () => {
+    return teamMembersList.filter(member => member.invitationStatus === 'accepted').length;
+  };
+
   // Check if team size exceeds maximum
   const exceedsMaxSize = () => {
     return getTotalTeamSize() > maxTeamSize;
@@ -437,6 +469,7 @@ function CreateTeamPageContent() {
       
       createdTeamId = teamRes.teamId;
       setTeamId(createdTeamId);
+      setHasTeam(true); // User now has a team
       console.log("Team created successfully with ID:", createdTeamId);
 
       // Step 2: Send Invites to all mobiles (from inputs + selected) - PARALLEL for speed
@@ -521,8 +554,7 @@ function CreateTeamPageContent() {
       }
 
       // Success! Show results
-      setIsRegistered(true);
-      showSuccess(`Team registered successfully for ${eventName}!`);
+      showSuccess(`Team created successfully for ${eventName}! Invitations have been sent.`);
       
       // Clear all inputs only on successful registration
       setTeamName("");
@@ -594,8 +626,9 @@ function CreateTeamPageContent() {
       showSuccess(`Invite sent successfully to ${cleanMobile}!`);
       setInviteMobile("");
       setShowInviteForm(false);
-      // Refresh team members
+      // Refresh team members and re-check registration status
       await fetchTeamMembers(teamId);
+      await checkExistingRegistration(false);
     } catch (error) {
       console.error("Invite error:", error);
       showError("Failed to send invite.");
@@ -713,7 +746,7 @@ function CreateTeamPageContent() {
 
         {/* Main Content Card */}
         <div className="w-full bg-blue-300/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-8">
-          {!isRegistered ? (
+          {!hasTeam ? (
             /* Pre-Registration Form */
             <form onSubmit={handleRegister} className="w-full space-y-6">
               {/* Team Name Input */}
@@ -923,9 +956,21 @@ function CreateTeamPageContent() {
                   <FaUsersGear className="w-6 h-6 text-cyan-400" />
                   {teamName}
                 </div>
-                <div className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded px-4 py-2">
-                  <CheckCircle className="w-5 h-5 text-green-400" />
-                  <span className="text-green-400 font-semibold">Registered</span>
+                <div className={`flex items-center gap-2 rounded px-4 py-2 ${
+                  isRegistered 
+                    ? 'bg-green-500/20 border border-green-500/30' 
+                    : 'bg-yellow-500/20 border border-yellow-500/30'
+                }`}>
+                  {isRegistered ? (
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                  ) : (
+                    <Mail className="w-5 h-5 text-yellow-400" />
+                  )}
+                  <span className={`font-semibold ${
+                    isRegistered ? 'text-green-400' : 'text-yellow-400'
+                  }`}>
+                    {isRegistered ? 'Registered' : 'Registration Pending'}
+                  </span>
                 </div>
               </div>
 
@@ -982,10 +1027,17 @@ function CreateTeamPageContent() {
                     <div className="flex items-start gap-3">
                       <Mail className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h4 className="text-yellow-300 font-medium mb-1">Pending Invitations</h4>
+                        <h4 className="text-yellow-300 font-medium mb-1">
+                          {getPendingInvitationsCount()} Pending Invitation{getPendingInvitationsCount() > 1 ? 's' : ''}
+                        </h4>
                         <p className="text-yellow-200/80 text-sm">
                           Invitations have been sent to team members. Ask them to check their invitation box in their profile to accept and join the team.
                         </p>
+                        {!isRegistered && (
+                          <p className="text-yellow-200/80 text-sm mt-2 font-medium">
+                            Once pending invitations are accepted, you will be automatically registered for the event.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
