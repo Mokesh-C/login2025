@@ -67,7 +67,7 @@ export default function TeamCard({
       {/* Mail button */}
       <a
         href={email ? `mailto:${email}` : '#'}
-        className="absolute right-6 top-4 bg-[#e0e5ec] rounded-full p-2 shadow-[2px_2px_4px_#b8bac0,-2px_-2px_4px_#ffffff] z-20 transition-all duration-200 hover:scale-110"
+        className="absolute right-6 top-4 bg-[#] bg-[#e0e5ec]  rounded-full p-2 shadow-[2px_2px_4px_#b8bac0,-2px_-2px_4px_#ffffff] z-20 transition-all duration-200 hover:scale-110"
         aria-label="Send Email"
         tabIndex={-1}
         style={{ pointerEvents: 'auto' }}
@@ -76,7 +76,7 @@ export default function TeamCard({
           size={24}
           strokeWidth={2.2}
           style={{
-            stroke: isCardHovered ? '#8b5cf6' : '#b8bac0',
+            stroke: isCardHovered ? '#8b5cf6' : '#877dc4',
             transition: 'stroke 0.2s',
           }}
         />

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 
 const alumni = [
-  // Entrepreneur (orange circled)
   {
     name: "Mr. Nagarajan S",
     image: "https://www.psgtech.edu/educms/sorces/MCA/alum/Shanmugam%20Nagarajan.webp",
@@ -16,7 +16,6 @@ const alumni = [
     position: "Corporate Trainer, Co-founder of KonfHub Private Ltd., Bangalore",
     category: "Entrepreneur"
   },
-  // Executives (blue circled)
   {
     name: "Mr. Suresh M",
     image: "https://www.psgtech.edu/educms/sorces/MCA/alum/1722567702.jpg",
@@ -35,7 +34,6 @@ const alumni = [
     position: "Manager, Deloitte Consulting LLP, Alpharetta, Georgia, United States",
     category: "Executives"
   },
-  // Academia (red circled)
   {
     name: "Dr. S.R. Balasundaram",
     image: "https://www.psgtech.edu/educms/sorces/MCA/alum/1700736612.jpg",
@@ -64,13 +62,13 @@ const categories = [
 
 export default function AlumniPage() {
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third py-12 px-4 overflow-x-visible"> {/*bg-[#e0e5ec]*/}
+    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-accent-first via-accent-second to-accent-third py-12 px-4 overflow-x-visible font-manrope">
       {/* Source link */}
       <Link
         href="https://www.psgtech.edu/alumni.php"
         target="_blank"
         rel="noopener noreferrer"
-        className="relative botton-5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2  rounded-lg shadow"
+        className="relative botton-5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 px-4 py-2 rounded-lg shadow"
       >
         Source &rarr;
       </Link>
@@ -80,81 +78,58 @@ export default function AlumniPage() {
       <div className="flex flex-col gap-16 items-center">
         {categories.map(cat => (
           <div key={cat.key} className="w-full max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold  mb-10 text-center text-gradient">{cat.label}</h1>
+            <h1 className="text-3xl font-bold mb-10 text-center text-gradient">{cat.label}</h1>
             <div className="flex flex-wrap gap-16 w-full justify-center items-start">
               {alumni.filter(a => a.category === cat.key).map((a, i) => (
                 <div
                   key={a.name}
-                  className="flex flex-col items-center group"
-                  style={{ width: 300, height: 360 }}
+                  className="relative w-[340px] h-[340px] rounded-[5%_5%_5%_5%]  hover:rounded-[2%_15%_15%_15%] hover:transition-all duration-300 bg-[#e0e5ec] overflow-hidden  cursor-pointer text-white group"
+                  aria-label={`Alumni card ${a.name}`}
                 >
-                  <div
-                    className="flex items-center justify-center mb-0 transition-transform duration-300 group-hover:-translate-y-4"
-                    style={{
-                      width: 190,
-                      height: 190,
-                      borderRadius: "50%",
-                      background: "#e0e5ec",
-                      //boxShadow: "9px 9px 16px #b8bac0, -9px -9px 16px #ffffff",
-                      position: "relative",
-                      zIndex: 2,
-                    }}
-                  >
-                    <div
-                      className="flex items-center justify-center"
-                      style={{
-                        width: 150,
-                        height: 150,
-                        borderRadius: "50%",
-                        background: "#e0e5ec",
-                        boxShadow: "inset 6px 6px 12px #b8bac0, inset -6px -6px 12px #ffffff",
-                      }}
-                    >
-                      <img
-                        src={a.image}
-                        alt={a.name}
-                        className="w-24 h-24 rounded-full object-cover border-4 border-[#e0e5ec]"
-                        style={{
-                          width: 120,
-                          height: 120,
-                          boxShadow: "0 2px 8px #b8bac0, 0 -2px 8px #ffffff",
-                        }}
-                      />
-                    </div>
+                  {/* Info Icon */}
+                  <div className="absolute top-6 right-6 w-9 h-9 bg-[#e0e5ec] rounded-full text-[#5028b0] font-bold text-xl leading-9 text-center shadow-[2px_2px_6px_#b8bac0,-2px_-2px_6px_#ffffff] z-10 transition-all duration-300 group-hover:text-purple-500 group-hover:shadow-[inset_2px_2px_6px_#b8bac0,inset_-2px_-2px_6px_#ffffff]">
+                    &#9432;
                   </div>
-                  <div
-                    className="w-full mt-6 transition-transform duration-300 group-hover:-translate-y-4 delay-75"
-                    style={{
-                      width: 270,
-                      height:100,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <div
-                      className="w-full rounded-sm rounded-bl-3xl rounded-tr-3xl rounded-br-3xl  py-5 px-4 text-center"
-                      style={{
-                        width: 270,
-                        background: "#e0e5ec",
-                        // boxShadow: `
-                        //   8px 8px 16px #b8bac0,
-                        //   -8px -8px 16px #ffffff,
-                        //   inset 1px 1px 2px #ffffff,
-                        //   inset -1px -1px 2px #b8bac0
-                        // `,
-                      }}
-                    >
-                      <div className="font-bold text-lg text-gray-800 mb-1">{a.name}</div>
-                      <div className="text-sm text-gray-700  mb-1">{a.position}</div>
-                      <span className="inline-block text-[#8b5cf6] mt-1 px-3 py-1 rounded-full text-xs font-semibold"
+
+                  {/* Overlay */}
+                  <div className="absolute top-6 right-6 w-9 h-9 rounded-full bg-[#e0e5ec] z-[1] shadow-[2px_2px_6px_#b8bac0,-2px_-2px_6px_#ffffff] transition-all duration-300 ease-in-out group-hover:w-[85%] group-hover:h-[85%] group-hover:rounded-[50%_15%_15%_15%] group-hover:shadow-[inset_6px_6px_12px_#b8bac0,inset_-6px_-6px_12px_#ffffff]" />
+
+                  {/* Profile Picture */}
+                  <div className="relative w-[150px] h-[150px] mx-auto mt-[60px] rounded-full p-1.5 border-[5px] border-[#b8bac0] shadow-[2px_2px_6px_#b8bac0,-2px_-2px_6px_#ffffff] bg-[#e0e5ec] z-10 transition-all duration-350 ease-in-out group-hover:w-24 group-hover:h-24 group-hover:mt-[40px] group-hover:mb-2.5 group-hover:border-[#b8bac0] group-hover:shadow-[inset_2px_2px_6px_#b8bac0,inset_-2px_-2px_6px_#ffffff]">
+                    <Image
+                      src={a.image}
+                      alt={a.name}
+                      width={150}
+                      height={150}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  </div>
+
+                  {/* Card Text */}
+                  <div className="mt-5 font-bold text-xl text-center max-w-[280px] mx-auto text-[#444] transition-opacity duration-150 ease-in-out group-hover:opacity-0">
+                    {a.name}
+                  </div>
+                  <div className="mt-2 font-medium text-md text-center max-w-[280px] mx-auto text-[#888] transition-opacity duration-150 ease-in-out group-hover:opacity-0">
+                    <span className="inline-block text-[#8b5cf6] mt-1 px-3 py-1 pb-2 rounded-full  font-semibold"
                         style={{
                           background: "#e0e5ec",
                           boxShadow: "inset 1px 1px 3px #b8bac0, inset -1px -1px 3px #ffffff",
                         }}>
                         {a.category}
                       </span>
-                    </div>
+                  </div>
+
+                  {/* Overlay Content */}
+                  <div className="absolute top-[150px] left-1/2 w-[85%] max-w-[280px] -translate-x-1/2 text-[#333] opacity-0 pointer-events-none transition-opacity duration-150 ease-in-out group-hover:opacity-100 group-hover:pointer-events-auto group-hover:duration-600 group-hover:delay-200 font-semibold text-center text-base z-[15] leading-relaxed">
+                    <p className='font-bold text-md text-[#444]'>{a.name}</p>
+                    <p className='text-[#6d6d6d] py-2 text-sm'>{a.position}</p>
+                    <span className="inline-block text-[#8b5cf6] mt-1 px-3 py-1 pb-2 rounded-full text-sm group-hover:text-purple-500 font-semibold"
+                        style={{
+                          background: "#e0e5ec",
+                          boxShadow: "inset 1px 1px 3px #b8bac0, inset -1px -1px 3px #ffffff",
+                        }}>
+                        {a.category}
+                      </span>
                   </div>
                 </div>
               ))}

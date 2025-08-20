@@ -21,7 +21,7 @@ const TeamCardFooter = ({ name, about, socials }: { name: string; about: string;
                 className="bg-accent-mystic rounded-full p-2 shadow-[2px_2px_6px_#b8bac0,-2px_-2px_6px_#ffffff] transition-all duration-200 hover:scale-110"
               >
                 {/* Instagram SVG */}
-                <svg viewBox="0 0 16 15.999" height="20" width="20" fill="#888" className="hover:fill-[#e1306be0] transition-all">
+                <svg viewBox="0 0 16 15.999" height="20" width="20" fill="#888" className="fill-[#ee7e93] hover:fill-[#ec5587e0] transition-all">
                   <path transform="translate(6 598)" d="M6-582H-2a4,4,0,0,1-4-4v-8a4,4,0,0,1,4-4H6a4,4,0,0,1,4,4v8A4,4,0,0,1,6-582ZM2-594a4,4,0,0,0-4,4,4,4,0,0,0,4,4,4,4,0,0,0,4-4A4.005,4.005,0,0,0,2-594Zm4.5-2a1,1,0,0,0-1,1,1,1,0,0,0,1,1,1,1,0,0,0,1-1A1,1,0,0,0,6.5-596ZM2-587.5A2.5,2.5,0,0,1-.5-590,2.5,2.5,0,0,1,2-592.5,2.5,2.5,0,0,1,4.5-590,2.5,2.5,0,0,1,2-587.5Z"></path>
                 </svg>
               </Link>
@@ -66,7 +66,7 @@ const TeamCardFooter = ({ name, about, socials }: { name: string; about: string;
                 aria-label="Linkedin"
                 className="bg-accent-mystic rounded-full p-2 shadow-[2px_2px_6px_#b8bac0,-2px_-2px_6px_#ffffff] transition-all duration-200 hover:scale-110"
               >
-                <svg viewBox="0 0 448 512" width="20" height="20" fill="#888" className="hover:fill-blue-500 transition-all">
+                <svg viewBox="0 0 448 512" width="20" height="20" fill="#888" className="fill-[#5591cd] hover:fill-blue-500 transition-all">
                   <path d="M100.28 448H7.4V148.9h92.88zm-46.44-340.7C24.12 107.3 0 83.18 0 53.6 0 24.5 24.12 0 53.84 0c29.72 0 53.84 24.5 53.84 53.6 0 29.58-24.12 53.7-53.84 53.7zM447.8 448h-92.36V302.4c0-34.7-12.4-58.4-43.4-58.4-23.7 0-37.8 16-44 31.4-2.3 5.5-2.9 13.2-2.9 20.9V448h-92.4s1.2-241.2 0-266.1h92.4v37.7c12.3-19 34.4-46.1 83.7-46.1 61.1 0 106.9 39.8 106.9 125.4V448z" />
                 </svg>
               </Link>

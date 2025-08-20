@@ -27,7 +27,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos', // keep if you still use Unsplash demo images
-      },
+          },
+      {
+        protocol: 'https',
+        hostname: 'www.psgtech.edu',
+      }
     ],
   },
   /* config options here */
