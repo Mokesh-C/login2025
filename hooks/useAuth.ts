@@ -68,6 +68,21 @@ const useAuth = () => {
         localStorage.removeItem("accessToken");
     };
 
+    // Public lookup: get user by mobile (no token required)
+    const getByMobile = async (
+        mobile: number
+    ): Promise<{ success: boolean; data?: User; message?: string }> => {
+        try {
+            const res = await api.get(`/user/mobile/${mobile}`);
+            return { success: true, data: res.data as User };
+        } catch (err: any) {
+            return {
+                success: false,
+                message: err?.response?.data?.message || "User not found",
+            };
+        }
+    };
+
     const getUser = async (accessToken: string) => {
         if (!accessToken) {
             return;
@@ -86,6 +101,7 @@ const useAuth = () => {
         sendOtp,
         verifyOtp,
         logout,
+        getByMobile,
         user,
         isLoading,
     };

@@ -105,13 +105,13 @@ const useTeam = () => {
     }
   };
 
-  // Invite a member to a team - NO accessToken parameter!
-  const inviteTeam = async (teamId: number, email: string): Promise<{ success: boolean; message?: string }> => {
+  // Invite a member to a team via mobile - NO accessToken parameter!
+  const inviteTeam = async (teamId: number, mobile: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const res = await makeAuthenticatedRequest({
         method: 'POST',
         url: `/teams/${teamId}/invite`,
-        data: { email },
+        data: { mobile },
         headers: { 'Content-Type': 'application/json' }
       });
       

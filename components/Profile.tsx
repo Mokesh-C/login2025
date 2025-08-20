@@ -831,7 +831,7 @@ const Profile: React.FC = () => {
                                                     {invitation.teamAdmin.name}
                                                 </span>
                                                 <span className="text-white/60 text-sm">
-                                                    ({invitation.teamAdmin.email})
+                                                    ({invitation.teamAdmin.mobile})
                                                 </span>
                                             </div>
                                         </div>
@@ -892,7 +892,7 @@ const Profile: React.FC = () => {
                                                     {invitation.teamAdmin.name}
                                                 </span>
                                                 <span className="text-white/60 text-sm">
-                                                    ({invitation.teamAdmin.email})
+                                                    ({invitation.teamAdmin.mobile})
                                                 </span>
                                             </div>
                                         </div>
@@ -953,7 +953,7 @@ const Profile: React.FC = () => {
                                                     {invitation.teamAdmin.name}
                                                 </span>
                                                 <span className="text-white/50 text-sm">
-                                                    ({invitation.teamAdmin.email})
+                                                    ({invitation.teamAdmin.mobile})
                                                 </span>
                                             </div>
                                         </div>

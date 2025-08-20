@@ -37,6 +37,7 @@ import { Event } from "@/types/events";
 import { useRouter } from "next/navigation";
 import { PageLoader } from "@/components/LoadingSpinner";
 import useRegister from "@/hooks/useRegister";
+import useRequireAuth from "@/hooks/useRequireAuth";
 
 /* ---------------------------------------------------------------------
  * Types
@@ -193,6 +194,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
 
     const router = useRouter();
     const { soloRegister, getRegistrationsByUser } = useRegister();
+    const { user } = useRequireAuth();
 
     // Check registration status on component mount
     useEffect(() => {
@@ -205,6 +207,8 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                 const regRes = await getRegistrationsByUser();
                 if (regRes.success && regRes.data) {
                     setRegistrationData(regRes.data);
+                    console.log(regRes.data);
+                    
                     
                     // Check if user is registered for this event
                     const currentEventId = event.id;
@@ -216,7 +220,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                         );
                         setIsRegistered(!!userRegistration);
                         setInvitationStatus('none'); // Individual events don't have invitations
-                    } else {
+                    } else if(event.teamMaxSize > 1) {
                         // Team event - check team registrations and invitation status
                         const teamRegistration = regRes.data.team?.find(
                             (reg: any) => reg.eventId === currentEventId && reg.teamId
@@ -258,9 +262,18 @@ export default function EventDetailsContent({ event }: { event: Event }) {
     const handleRegister = async () => {
         // Check for authentication (accessToken in localStorage)
         const accessToken = localStorage.getItem("accessToken");
+        const nextUrl = `/events/${event.id}`;
         if (!accessToken) {
-            // Not authenticated, redirect to login
-            router.push("/login");
+            // Not authenticated, redirect to login with intent preserved
+            router.push(`/login?next=${encodeURIComponent(nextUrl)}`);
+            return;
+        }
+
+        // Gate: Require profile completeness before allowing registration
+        // Criteria: user has email and studentData.college
+        if (user && !(user.email && user.studentData && user.studentData.college)) {
+            showError("Please complete your profile before registering. Redirecting...");
+            setTimeout(() => router.push("/register?step=details"), 500);
             return;
         }
         
@@ -288,8 +301,8 @@ export default function EventDetailsContent({ event }: { event: Event }) {
         }
         
         if (event.teamMaxSize > 1) {
-            // Go to event-specific team creation page with eventId, eventName, eventLogo, teamSize, and eventMinSize as query params
-            router.push(`/events/create-team?eventId=${event.id}&eventName=${encodeURIComponent(event.name)}&eventLogo=${encodeURIComponent(event.logoUrl || "")}&teamSize=${event.teamMaxSize}&eventMinSize=${event.teamMinSize}`);
+            // Go to event-specific team creation page with only eventId
+            router.push(`/events/create-team?eventId=${event.id}`);
             return;
         }
         notifyError(); // fallback
@@ -297,7 +310,8 @@ export default function EventDetailsContent({ event }: { event: Event }) {
 
     // Handle view team navigation
     const handleViewTeam = () => {
-        router.push(`/events/create-team?eventId=${event.id}&eventName=${encodeURIComponent(event.name)}&eventLogo=${encodeURIComponent(event.logoUrl || "")}&teamSize=${event.teamMaxSize}&eventMinSize=${event.teamMinSize}`);
+        
+        router.push(`/events/create-team?eventId=${event.id}`);
     };
 
     /* ---------------- Render ----------------------- */

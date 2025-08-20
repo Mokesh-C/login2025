@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import ToastCard from '@/components/ToastCard'
@@ -40,6 +41,7 @@ export default function LoginPage() {
   /* ---------------- Refs & router -------- */
   const otpInputsRef = useRef<HTMLInputElement[]>([])
   const router       = useRouter()
+  const searchParams = useSearchParams()
 
   // Use sendOtp and verifyOtp from useAuth hook
   const { refreshAccessToken, getUser } = useUser();
@@ -75,14 +77,15 @@ export default function LoginPage() {
         if (res.success && res.accessToken) {
           localStorage.setItem('accessToken', res.accessToken);
           window.dispatchEvent(new Event('storageChange'));
-          router.push('/');
+          const next = searchParams.get('next');
+          router.push(next || '/');
           return;
         }
         setLoading(false);
       }
     };
     tryRefresh();
-  }, [router]);
+  }, [router, searchParams]);
 
   /* ---------------- Helpers -------------- */
   const showError = (msg: string) => {
@@ -164,7 +167,8 @@ export default function LoginPage() {
       
       window.dispatchEvent(new Event('storageChange'));
       showSuccess('Login successful');
-      router.push('/');
+      const next = searchParams.get('next');
+      router.push(next || '/');
     } catch {
       showError('Invalid OTP or login failed');
     } finally {

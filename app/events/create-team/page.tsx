@@ -10,6 +10,8 @@ import { Users, Loader2, UserPlus, Mail, ChevronUp, ChevronDown, CheckCircle, Us
 import { FaUsersGear, FaUserPlus } from "react-icons/fa6";
 import useTeam from "@/hooks/useTeam";
 import useRegister from "@/hooks/useRegister";
+import useEvents from "@/hooks/useEvents";
+import useAuth from "@/hooks/useAuth";
 
 function CreateTeamPageContent() {
   const { user, isLoading } = useRequireAuth();
@@ -17,14 +19,11 @@ function CreateTeamPageContent() {
   const router = useRouter();
 
   const eventId = searchParams.get("eventId") || "";
-  const eventName = searchParams.get("eventName") || "";
-  const teamMaxSize = searchParams.get("teamSize") || "";
-  const eventLogo = searchParams.get("eventLogo") || "";
-  const eventMinSize = searchParams.get("eventMinSize") || "";
 
   // New state for the redesigned flow
   const [teamName, setTeamName] = useState("");
-  const [memberEmails, setMemberEmails] = useState<string[]>([]);
+  const [memberMobiles, setMemberMobiles] = useState<string[]>([]);
+  const [mobileErrors, setMobileErrors] = useState<string[]>([]);
   const [errorList, setErrorList] = useState<{ id: number; message: string }[]>([]);
   const [errorId, setErrorId] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -32,7 +31,7 @@ function CreateTeamPageContent() {
   const [teamId, setTeamId] = useState<number | null>(null);
   const [teamMembersList, setTeamMembersList] = useState<any[]>([]);
   const [showInviteForm, setShowInviteForm] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteMobile, setInviteMobile] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [currentTeamSize, setCurrentTeamSize] = useState(0);
   const [checkingRegistration, setCheckingRegistration] = useState(false);
@@ -46,30 +45,37 @@ function CreateTeamPageContent() {
   
   const { createTeam, teamMembers, inviteTeam, userTeams } = useTeam();
   const { teamRegister, getRegistrationsByUser } = useRegister();
+  const { getByMobile } = useAuth();
 
   // Calculate team size constraints
-  const minTeamSize = Number(eventMinSize) || 1;
-  const maxTeamSize = Number(teamMaxSize) || 1;
-  const maxEmailInputs = maxTeamSize - 1; // Excluding current user
-  const minEmailsRequired = minTeamSize - 1; // Excluding current user
+  const { events } = useEvents();
+  const currentEvent = events.find(e => e.id === Number(eventId));
+  const eventName = currentEvent?.name || "";
+  const eventLogo = currentEvent?.logoUrl || "";
+  const minTeamSize = currentEvent?.teamMinSize ?? 1;
+  const maxTeamSize = currentEvent?.teamMaxSize ?? 1;
+  const maxMobileInputs = maxTeamSize - 1; // Excluding current user
+  const minMobilesRequired = minTeamSize - 1; // Excluding current user
 
-  // Initialize email inputs based on team size and selected members
+  // Initialize mobile inputs based on team size and selected members
   useEffect(() => {
-    if (maxEmailInputs > 0) {
+    if (maxMobileInputs > 0) {
       // Calculate available input slots (max - selected members)
-      const availableSlots = Math.max(0, maxEmailInputs - selectedMembers.length);
-      const newEmails = new Array(availableSlots).fill("");
+      const availableSlots = Math.max(0, maxMobileInputs - selectedMembers.length);
+      const newMobiles = new Array(availableSlots).fill("");
+      const newErrors = new Array(availableSlots).fill("");
       
-      // Preserve existing email values where possible
-      for (let i = 0; i < Math.min(memberEmails.length, availableSlots); i++) {
-        if (memberEmails[i]) {
-          newEmails[i] = memberEmails[i];
+      // Preserve existing mobile values where possible
+      for (let i = 0; i < Math.min(memberMobiles.length, availableSlots); i++) {
+        if (memberMobiles[i]) {
+          newMobiles[i] = memberMobiles[i];
         }
       }
       
-      setMemberEmails(newEmails);
+      setMemberMobiles(newMobiles);
+      setMobileErrors(newErrors);
     }
-  }, [maxEmailInputs, selectedMembers.length]);
+  }, [maxMobileInputs, selectedMembers.length]);
 
   // Toast helpers
   const showError = (msg: string) => {
@@ -95,6 +101,25 @@ function CreateTeamPageContent() {
     return () => tids.forEach(clearTimeout);
   }, [errorList]);
 
+  // Fetch team members (for post-registration state) - OPTIMIZED
+  const fetchTeamMembers = useCallback(async (teamId: number) => {
+    try {
+      const membersRes = await teamMembers(teamId);
+      if (membersRes.success && membersRes.members) {
+        setTeamMembersList(membersRes.members);
+        // Only count accepted and pending members (exclude declined)
+        const activeMembers = membersRes.members.filter(member => 
+          member.invitationStatus !== 'declined'
+        );
+        setCurrentTeamSize(activeMembers.length);
+      }
+      return membersRes; // Return for Promise.all usage
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      return { success: false };
+    }
+  }, []); // Remove teamMembers dependency to prevent recreation
+
   // Fetch user's existing team members (for hybrid approach)
   const fetchExistingMembers = async () => {
     if (!user) return;
@@ -116,7 +141,7 @@ function CreateTeamPageContent() {
 
       // Get all members from all user's teams
       const allMembers: any[] = [];
-      const memberEmails = new Set<string>(); // To avoid duplicates
+      const memberMobiles = new Set<string>(); // To avoid duplicates
 
       for (const team of teamsRes.teams) {
         try {
@@ -126,11 +151,11 @@ function CreateTeamPageContent() {
             membersRes.members.forEach((member: any) => {
               // Skip current user and avoid duplicates
               // Use more flexible email comparison
-              const currentUserEmail = user.email?.toLowerCase();
-              const memberEmail = member.email?.toLowerCase();
+              const currentUserMobile = user.mobile?.toLowerCase();
+              const memberMobile = member.mobile?.toLowerCase();
               
-              if (memberEmail && memberEmail !== currentUserEmail && !memberEmails.has(memberEmail)) {
-                memberEmails.add(memberEmail);
+              if (memberMobile && memberMobile !== currentUserMobile && !memberMobiles.has(memberMobile)) {
+                memberMobiles.add(memberMobile);
                 allMembers.push({
                   ...member,
                   teamName: team.name // Add team name for context
@@ -151,129 +176,195 @@ function CreateTeamPageContent() {
     }
   };
 
-  // Check for existing registration on page load - OPTIMIZED
-  useEffect(() => {
-    const checkExistingRegistration = async () => {
-      if (!user) return;
-      
+  // Check for existing registration (memoized) - used on mount and on focus/visibility
+  const checkExistingRegistration = useCallback(async (withLoader: boolean = false) => {
+    if (!user) return;
+    if (withLoader) {
       setCheckingRegistration(true);
       setRegistrationStatus('checking');
-      const accessToken = localStorage.getItem("accessToken");
-      if (!accessToken) {
+    }
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem("accessToken") : null;
+    if (!accessToken) {
+      if (withLoader) {
         setCheckingRegistration(false);
         setRegistrationStatus('new');
+      }
+      setIsRegistered(false);
+      return;
+    }
+
+    try {
+      // ONLY check registration status - minimal API call
+      const regRes = await getRegistrationsByUser();
+      if (!regRes.success || !regRes.data) {
+        if (regRes.message && !regRes.message.toLowerCase().includes('permission')) {
+          console.log('Failed to fetch registration status:', regRes.message);
+        }
+        if (withLoader) {
+          setCheckingRegistration(false);
+          setRegistrationStatus('new');
+        }
+        setIsRegistered(false);
         return;
       }
 
-      try {
-        // ONLY check registration status - minimal API call
-        const regRes = await getRegistrationsByUser();
-        if (!regRes.success || !regRes.data) {
-          // Don't show error for permission issues on fresh registrations
-          if (regRes.message && !regRes.message.toLowerCase().includes('permission')) {
-            console.log('Failed to fetch registration status:', regRes.message);
-          }
+      const { team } = regRes.data;
+      if (!team || !Array.isArray(team)) {
+        if (withLoader) {
           setCheckingRegistration(false);
           setRegistrationStatus('new');
-          return;
         }
+        setIsRegistered(false);
+        return;
+      }
 
-        const { team } = regRes.data;
-        if (!team || !Array.isArray(team)) {
-          setCheckingRegistration(false);
-          setRegistrationStatus('new');
-          return;
-        }
+      // Find team registration for current event
+      const currentEventId = Number(eventId);
+      const existingRegistration = team.find(
+        (reg: any) => reg.eventId === currentEventId && reg.teamId
+      );
 
-        // Find team registration for current event
-        const currentEventId = Number(eventId);
-        const existingRegistration = team.find(
-          (reg: any) => reg.eventId === currentEventId && reg.teamId
-        );
+      if (existingRegistration && existingRegistration.teamId) {
+        // User IS registered - now fetch team details
+        setTeamId(existingRegistration.teamId);
+        setIsRegistered(true);
+        if (withLoader) setRegistrationStatus('existing');
 
-        if (existingRegistration && existingRegistration.teamId) {
-          // User IS registered - now fetch team details
-          setTeamId(existingRegistration.teamId);
-          setIsRegistered(true);
-          setRegistrationStatus('existing');
-          
-          // Fetch team details in parallel
-          try {
-            const [teamsRes, membersRes] = await Promise.all([
-              userTeams(),
-              fetchTeamMembers(existingRegistration.teamId)
-            ]);
-            
-            // Set team name
-            if (teamsRes.success && teamsRes.teams) {
-              const currentTeam = teamsRes.teams.find(team => team.id === existingRegistration.teamId);
-              console.log("Found current team:", currentTeam);
-              if (currentTeam) {
-                setTeamName(currentTeam.name);
-              } else {
-                setTeamName("My Team");
-              }
+        // Fetch team details in parallel
+        try {
+          // Fetch members first to avoid using function before its declaration in TS order
+          await fetchTeamMembers(existingRegistration.teamId);
+          const teamsRes = await userTeams();
+
+          // Set team name
+          if (teamsRes.success && teamsRes.teams) {
+            const currentTeam = teamsRes.teams.find(team => team.id === existingRegistration.teamId);
+            if (currentTeam) {
+              setTeamName(currentTeam.name);
             } else {
               setTeamName("My Team");
             }
-          } catch (error) {
+          } else {
             setTeamName("My Team");
           }
-          
-        } else {
-          // User NOT registered - show form immediately
-          setRegistrationStatus('new');
+        } catch (error) {
+          setTeamName("My Team");
         }
-          
-      } catch (error) {
-        console.error("Error checking registration:", error);
-        setRegistrationStatus('error');
-        // Don't show error toast for permission issues on fresh registrations
-      } finally {
-        setCheckingRegistration(false);
+      } else {
+        // User NOT registered - show form immediately
+        if (withLoader) setRegistrationStatus('new');
+        setIsRegistered(false);
+      }
+    } catch (error) {
+      console.error("Error checking registration:", error);
+      if (withLoader) setRegistrationStatus('error');
+    } finally {
+      if (withLoader) setCheckingRegistration(false);
+    }
+  }, [user?.id, eventId, getRegistrationsByUser, userTeams, fetchTeamMembers]);
+
+  // Initial check on mount or when dependencies change
+  useEffect(() => {
+    if (!user || !eventId) return;
+    // Initial check with loader to avoid flicker later
+    checkExistingRegistration(true);
+  }, [user?.id, eventId]); // Remove checkExistingRegistration dependency
+
+  // Re-check on tab focus/visibility
+  useEffect(() => {
+    if (!user || !eventId) return;
+    const onFocus = () => { checkExistingRegistration(false); };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkExistingRegistration(false);
       }
     };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [user?.id, eventId]); // Remove checkExistingRegistration dependency
 
-    checkExistingRegistration();
-  }, [user, eventId]);
-
-  // Handle email input changes
-  const handleEmailChange = (index: number, value: string) => {
-    const newEmails = [...memberEmails];
-    newEmails[index] = value;
-    setMemberEmails(newEmails);
-  };
-
-  // Handle existing member selection
-  const handleMemberSelection = (email: string, checked: boolean) => {
-    if (checked) {
-      setSelectedMembers(prev => [...prev, email]);
-    } else {
-      setSelectedMembers(prev => prev.filter(e => e !== email));
+  // Handle mobile input changes
+  const handleMobileChange = (index: number, value: string) => {
+    const newMobiles = [...memberMobiles];
+    newMobiles[index] = value;
+    setMemberMobiles(newMobiles);
+    
+    // Clear error when user starts typing
+    if (mobileErrors[index]) {
+      const newErrors = [...mobileErrors];
+      newErrors[index] = "";
+      setMobileErrors(newErrors);
     }
   };
 
-  // Get all team members (emails + selected)
-  const getAllTeamEmails = () => {
-    const validEmails = memberEmails.filter(email => email.trim() !== "");
-    const allEmails = [...validEmails, ...selectedMembers];
+  // Validate mobile number
+  const validateMobile = async (mobile: string): Promise<string> => {
+    if (!mobile.trim()) return "";
     
-    // Remove duplicates
-    const uniqueEmails = Array.from(new Set(allEmails.map(email => email.toLowerCase())));
-    return uniqueEmails;
+    // Clean the mobile number (remove spaces, dashes, etc.)
+    const cleanMobile = mobile.trim().replace(/[\s\-\(\)]/g, '');
+    
+    // Check if it's a valid mobile number (10 digits)
+    if (!/^\d{10}$/.test(cleanMobile)) {
+      return "Mobile number must be 10 digits";
+    }
+    
+    try {
+      const res = await getByMobile(Number(cleanMobile));
+      if (!res.success) {
+        return res.message || "User not found";
+      }
+      return ""; // No error
+    } catch (error) {
+      console.error("Mobile validation error:", error);
+      return "Failed to validate mobile number";
+    }
+  };
+
+  // Handle mobile validation on blur
+  const handleMobileBlur = async (index: number, mobile: string) => {
+    if (!mobile.trim()) return; // Don't validate empty fields
+    
+    const error = await validateMobile(mobile);
+    const newErrors = [...mobileErrors];
+    newErrors[index] = error;
+    setMobileErrors(newErrors);
+  };
+
+  // Handle existing member selection
+  const handleMemberSelection = (mobile: string, checked: boolean) => {
+    if (checked) {
+      setSelectedMembers(prev => [...prev, mobile]);
+    } else {
+      setSelectedMembers(prev => prev.filter(e => e !== mobile));
+    }
+  };
+
+  // Get all team members (mobiles + selected)
+  const getAllTeamMobiles = () => {
+    const validMobiles = memberMobiles.filter(mobile => mobile.trim() !== "");
+    const allMobiles = [...validMobiles, ...selectedMembers];
+    
+    // Remove duplicates - mobile numbers should NOT be lowercase
+    const uniqueMobiles = Array.from(new Set(allMobiles));
+    return uniqueMobiles;
   };
 
   // Check if minimum team size is achieved (including current user + selected members)
   const isMinimumSizeAchieved = () => {
-    const allEmails = getAllTeamEmails();
-    const totalTeamSize = allEmails.length + 1; // +1 for current user
+    const allMobiles = getAllTeamMobiles();
+    const totalTeamSize = allMobiles.length + 1; // +1 for current user
     return totalTeamSize >= minTeamSize;
   };
 
   // Get total team size including current user
   const getTotalTeamSize = () => {
-    const allEmails = getAllTeamEmails();
-    return allEmails.length + 1; // +1 for current user
+    const allMobiles = getAllTeamMobiles();
+    return allMobiles.length + 1; // +1 for current user
   };
 
   // Check if team size exceeds maximum
@@ -281,28 +372,15 @@ function CreateTeamPageContent() {
     return getTotalTeamSize() > maxTeamSize;
   };
 
-  // Fetch team members (for post-registration state) - OPTIMIZED
-  const fetchTeamMembers = async (teamId: number) => {
-    try {
-      const membersRes = await teamMembers(teamId);
-      if (membersRes.success && membersRes.members) {
-        setTeamMembersList(membersRes.members);
-        // Only count accepted and pending members (exclude declined)
-        const activeMembers = membersRes.members.filter(member => 
-          member.invitationStatus !== 'declined'
-        );
-        setCurrentTeamSize(activeMembers.length);
-      }
-      return membersRes; // Return for Promise.all usage
-    } catch (error) {
-      console.error("Error fetching team members:", error);
-      return { success: false };
-    }
-  };
-
   // Main registration handler - Does all three steps in one click
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log("Starting team registration...");
+    console.log("Team name:", teamName);
+    console.log("Event ID:", eventId);
+    console.log("Min team size:", minTeamSize);
+    console.log("Max team size:", maxTeamSize);
     
     if (!teamName.trim()) {
       showError("Please enter a team name.");
@@ -310,21 +388,48 @@ function CreateTeamPageContent() {
     }
 
     if (!isMinimumSizeAchieved()) {
-      showError(`Please enter at least ${minEmailsRequired} team member email${minEmailsRequired > 1 ? 's' : ''}.`);
+      showError(`Please enter at least ${minMobilesRequired} team member mobile${minMobilesRequired > 1 ? 's' : ''}.`);
       return;
     }
 
+    // Validate all mobile numbers before proceeding
+    const allMobiles = getAllTeamMobiles();
+    console.log("All mobiles to validate:", allMobiles);
+    
+    const validationErrors: string[] = [];
+    
+    for (let i = 0; i < allMobiles.length; i++) {
+      const mobile = allMobiles[i];
+      console.log(`Validating mobile ${i + 1}:`, mobile);
+      const error = await validateMobile(mobile);
+      if (error) {
+        console.log(`Mobile validation failed for ${mobile}:`, error);
+        validationErrors.push(`${mobile}: ${error}`);
+      } else {
+        console.log(`Mobile validation passed for ${mobile}`);
+      }
+    }
+    
+    if (validationErrors.length > 0) {
+      console.log("Validation errors found:", validationErrors);
+      showError(`Please fix the following errors:\n${validationErrors.join('\n')}`);
+      return;
+    }
+
+    console.log("All mobile validations passed, proceeding with team creation...");
     setLoading(true);
-    const allEmails = getAllTeamEmails();
     let createdTeamId: number | null = null;
-    let inviteResults: { email: string; success: boolean; message?: string }[] = [];
+    let inviteResults: { mobile: string; success: boolean; message?: string }[] = [];
 
     try {
       // Step 1: Create Team
+      console.log("Creating team with name:", teamName);
       const teamRes = await createTeam(teamName);
+      console.log("Team creation response:", teamRes);
         
       if (!teamRes.success || !teamRes.teamId) {
-          // Don't clear emails if team name already exists  
+        console.log("Team creation failed:", teamRes.message);
+        // Don't clear inputs if team name already exists  
         showError(teamRes.message || "Failed to create team.");
         setLoading(false);
         return;
@@ -332,52 +437,79 @@ function CreateTeamPageContent() {
       
       createdTeamId = teamRes.teamId;
       setTeamId(createdTeamId);
+      console.log("Team created successfully with ID:", createdTeamId);
 
-      // Step 2: Send Invites to all emails (from inputs + selected)
-      for (const email of allEmails) {
+      // Step 2: Send Invites to all mobiles (from inputs + selected) - PARALLEL for speed
+      console.log("Starting to send invites to mobiles:", allMobiles);
+      
+      if (!createdTeamId) {
+        showError("Team ID not found after creation.");
+        setLoading(false);
+        return;
+      }
+      
+      // At this point, createdTeamId is guaranteed to be a number
+      const teamId = createdTeamId;
+      
+      // Send all invites in parallel instead of sequentially
+      const invitePromises = allMobiles.map(async (mobile) => {
         try {
-          const inviteRes = await inviteTeam(createdTeamId, email);
-          inviteResults.push({
-            email,
+          // Clean the mobile number before sending invite
+          const cleanMobile = mobile.trim().replace(/[\s\-\(\)]/g, '');
+          console.log(`Sending invite to mobile: ${cleanMobile}`);
+          const inviteRes = await inviteTeam(teamId, cleanMobile);
+          console.log(`Invite response for ${cleanMobile}:`, inviteRes);
+          return {
+            mobile: cleanMobile,
             success: inviteRes.success,
             message: inviteRes.message
-          });
+          };
         } catch (error) {
-          inviteResults.push({
-            email,
+          console.error("Invite error for mobile:", mobile, error);
+          return {
+            mobile,
             success: false,
             message: "Failed to send invite"
-          });
+          };
         }
-      }
+      });
+      
+      const inviteResults = await Promise.all(invitePromises);
+      console.log("All invites sent, results:", inviteResults);
 
       // Check if minimum team size can be achieved with all invites (successful + pending)
       const successfulInvites = inviteResults.filter(result => result.success);
       const totalPotentialTeamSize = successfulInvites.length + 1; // +1 for current user
+      console.log("Successful invites:", successfulInvites.length, "Total potential size:", totalPotentialTeamSize);
       
       // For minimum team size validation, we should allow registration if enough invites were sent
       // Even if they haven't been accepted yet, the team has the potential to meet min requirements
-      const totalInvitesSent = getAllTeamEmails().length;
+      const totalInvitesSent = getAllTeamMobiles().length;
       const totalTeamSizeWithAllInvites = totalInvitesSent + 1; // +1 for current user
 
       if (totalTeamSizeWithAllInvites < minTeamSize) {
+        console.log("Team size too small:", totalTeamSizeWithAllInvites, "<", minTeamSize);
         showError(`Cannot register: Need at least ${minTeamSize} team members. Send ${minTeamSize - 1} invitations (currently ${totalInvitesSent}).`);
         setLoading(false);
         return;
       }
 
       // Step 3: Register for Event
+      console.log("Registering team for event:", eventId, "Team ID:", createdTeamId);
       const eventIdNum = Number(eventId);
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) {
+        console.log("No access token found");
         showError("Access token not found. Please login again.");
         setLoading(false);
         return;
       }
       
       const regRes = await teamRegister(eventIdNum, createdTeamId);
+      console.log("Team registration response:", regRes);
         
       if (!regRes.success) {
+        console.log("Team registration failed:", regRes.message);
         // Don't show error for permission issues on fresh registrations
         if (regRes.message && !regRes.message.toLowerCase().includes('permission')) {
           showError(regRes.message || "Failed to register team for event.");
@@ -392,16 +524,25 @@ function CreateTeamPageContent() {
       setIsRegistered(true);
       showSuccess(`Team registered successfully for ${eventName}!`);
       
+      // Clear all inputs only on successful registration
+      setTeamName("");
+      setMemberMobiles(new Array(maxMobileInputs).fill(""));
+      setMobileErrors(new Array(maxMobileInputs).fill(""));
+      setSelectedMembers([]);
+      
       // Show invite results
       const failedInvites = inviteResults.filter(result => !result.success);
       if (failedInvites.length > 0) {
         failedInvites.forEach(failed => {
-          showError(`${failed.email}: ${failed.message || 'User does not exist, ask them to create account'}`);
+          showError(`${failed.mobile}: ${failed.message || 'User does not exist, ask them to create account'}`);
         });
       }
 
       // Fetch team members to show current state
       await fetchTeamMembers(createdTeamId);
+      
+      // Re-check registration status to update page state properly
+      await checkExistingRegistration(false);
 
     } catch (error: any) {
       console.error("Registration failed:", error);
@@ -421,8 +562,8 @@ function CreateTeamPageContent() {
   // Individual invite sender (post-registration)
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim()) {
-      showError("Please enter an email address.");
+    if (!inviteMobile.trim()) {
+      showError("Please enter a mobile number.");
       return;
     }
     if (!teamId) {
@@ -430,23 +571,33 @@ function CreateTeamPageContent() {
       return;
     }
     
+    // Validate mobile number before sending invite
+    const mobileError = await validateMobile(inviteMobile.trim());
+    if (mobileError) {
+      showError(`Invalid mobile number: ${mobileError}`);
+      return;
+    }
+    
     setInviteLoading(true);
 
     try {
-      const res = await inviteTeam(teamId, inviteEmail);
+      // Clean the mobile number before sending invite
+      const cleanMobile = inviteMobile.trim().replace(/[\s\-\(\)]/g, '');
+      const res = await inviteTeam(teamId, cleanMobile);
       if (!res.success) {
         showError(res.message === "User not found" 
-          ? `${inviteEmail}: User does not exist, ask them to create account`
+          ? `${cleanMobile}: User does not exist, ask them to create account`
           : res.message || "Failed to send invite.");
         setInviteLoading(false);
         return;
       }
-      showSuccess(`Invite sent successfully to ${inviteEmail}!`);
-      setInviteEmail("");
+      showSuccess(`Invite sent successfully to ${cleanMobile}!`);
+      setInviteMobile("");
       setShowInviteForm(false);
       // Refresh team members
       await fetchTeamMembers(teamId);
-    } catch {
+    } catch (error) {
+      console.error("Invite error:", error);
       showError("Failed to send invite.");
     } finally {
       setInviteLoading(false);
@@ -454,9 +605,9 @@ function CreateTeamPageContent() {
   };
 
   // Team size display logic
-  let teamSizeDisplay = teamMaxSize;
-  if (eventMinSize && eventMinSize !== teamMaxSize) {
-    teamSizeDisplay = `${eventMinSize} - ${teamMaxSize}`;
+  let teamSizeDisplay: string | number = maxTeamSize;
+  if (minTeamSize && minTeamSize !== maxTeamSize) {
+    teamSizeDisplay = `${minTeamSize} - ${maxTeamSize}`;
   }
 
   // Check if user can send more invites - based on active members only
@@ -585,37 +736,41 @@ function CreateTeamPageContent() {
                 </div>
               </div>
 
-              {/* Member Email Inputs */}
+              {/* Member Mobile Inputs */}
               <div>
                 <label className="block text-white/80 mb-2 text-lg font-medium">
-                  Team Member Emails
+                  Team Member Mobiles
                   <span className="text-sm text-white/60 ml-2">
-                    ({memberEmails.length > 0 
-                      ? `${memberEmails.length} more ${memberEmails.length === 1 ? 'member' : 'members'} needed` 
+                    ({memberMobiles.length > 0 
+                      ? `${memberMobiles.length} more ${memberMobiles.length === 1 ? 'member' : 'members'} needed` 
                       : 'All members selected from existing teams'
                     })
                   </span>
                 </label>
-                {memberEmails.length > 0 ? (
+                {memberMobiles.length > 0 ? (
                   <div className="space-y-3">
-                    {memberEmails.map((email, index) => (
+                    {memberMobiles.map((mobile, index) => (
                       <div key={index} className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-cyan-400 z-10" />
                         <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => handleEmailChange(index, e.target.value)}
+                          type="text"
+                          value={mobile}
+                          onChange={(e) => handleMobileChange(index, e.target.value)}
+                          onBlur={(e) => handleMobileBlur(index, e.target.value)}
                           className="w-full pl-12 pr-20 py-3 rounded-md bg-blue-300/5 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                          placeholder={`Team member ${index + 1} email`}
+                          placeholder={`Team member ${index + 1} mobile`}
                           disabled={loading}
                         />
                         <span className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-medium px-2 py-1 rounded ${
-                          (index + selectedMembers.length) < minEmailsRequired 
+                          (index + selectedMembers.length) < minMobilesRequired 
                             ? "bg-red-500/20 text-red-300" 
                             : "bg-green-500/20 text-green-300"
                         }`}>
-                          {(index + selectedMembers.length) < minEmailsRequired ? "Required" : "Optional"}
+                          {(index + selectedMembers.length) < minMobilesRequired ? "Required" : "Optional"}
                         </span>
+                        {mobileErrors[index] && (
+                          <p className="text-red-300 text-xs mt-1">{mobileErrors[index]}</p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -623,7 +778,7 @@ function CreateTeamPageContent() {
                   <div className="p-4 bg-blue-300/5 border border-white/10 rounded-md">
                     <p className="text-white/60 text-center">
                       All team positions are filled by selected existing members. 
-                      {selectedMembers.length < maxEmailInputs && " Unselect some members to add new emails."}
+                      {selectedMembers.length < maxMobileInputs && " Unselect some members to add new emails."}
                     </p>
                   </div>
                 )}
@@ -675,10 +830,10 @@ function CreateTeamPageContent() {
                       ) : existingMembers.length > 0 ? (
                         <div className="space-y-2 max-h-60 overflow-y-auto">
                           {existingMembers.map((member, index) => {
-                            const isDuplicate = memberEmails.some(email => 
-                              email.toLowerCase() === member.email.toLowerCase()
+                            const isDuplicate = memberMobiles.some(mobile => 
+                              mobile.toLowerCase() === member.mobile.toLowerCase()
                             );
-                            const isSelected = selectedMembers.includes(member.email);
+                            const isSelected = selectedMembers.includes(member.mobile);
                             
                             return (
                               <div 
@@ -696,14 +851,14 @@ function CreateTeamPageContent() {
                                   type="checkbox"
                                   id={`member-${index}`}
                                   checked={isSelected}
-                                  onChange={(e) => handleMemberSelection(member.email, e.target.checked)}
+                                  onChange={(e) => handleMemberSelection(member.mobile, e.target.checked)}
                                   disabled={isDuplicate || loading}
                                   className="w-4 h-4 text-purple-600 bg-blue-300/10 border-white/20 rounded focus:ring-purple-500 transition-all duration-200"
                                 />
                                 <label htmlFor={`member-${index}`} className={`flex-1 cursor-pointer transition-all duration-200 ${isDuplicate ? 'opacity-50' : 'hover:opacity-80'}`}>
                                   <div className="text-white font-medium">{member.name}</div>
                                   <div className="text-white/60 text-sm">
-                                    {member.email} • from {member.teamName}
+                                    {member.mobile} • from {member.teamName}
                                     {isDuplicate && " (already entered above)"}
                                   </div>
                                 </label>
@@ -719,7 +874,7 @@ function CreateTeamPageContent() {
                 </div>
 
                 {/* Live team size counter */}
-                {(getAllTeamEmails().length > 0 || selectedMembers.length > 0) && (
+                {(getAllTeamMobiles().length > 0 || selectedMembers.length > 0) && (
                   <div className="mt-3 p-3 bg-blue-300/5 border border-white/10 rounded-md">
                     <div className="flex items-center justify-between">
                       <span className="text-white/80">Current team size</span>
@@ -738,9 +893,9 @@ function CreateTeamPageContent() {
               <div className="flex flex-col items-end gap-2">
                 {!isMinimumSizeAchieved() && (
                   <div className="text-sm w-full text-red-300 text-start">
-                    {getAllTeamEmails().length === 0 
-                      ? `Enter at least ${minEmailsRequired} email${minEmailsRequired > 1 ? 's' : ''} or select from existing members to enable registration`
-                      : `Add ${minTeamSize - (getAllTeamEmails().length + 1)} more member${minTeamSize - (getAllTeamEmails().length + 1) > 1 ? 's' : ''} to enable registration`
+                    {getAllTeamMobiles().length === 0 
+                      ? `Enter at least ${minMobilesRequired} mobile${minMobilesRequired > 1 ? 's' : ''} or select from existing members to enable registration`
+                      : `Add ${minTeamSize - (getAllTeamMobiles().length + 1)} more member${minTeamSize - (getAllTeamMobiles().length + 1) > 1 ? 's' : ''} to enable registration`
                     }
                   </div>
                 )}
@@ -855,10 +1010,10 @@ function CreateTeamPageContent() {
                     <div className="p-4 bg-blue-300/5 border border-white/10 rounded-md">
                       <form onSubmit={handleSendInvite} className="flex items-center gap-4">
                         <input
-                          type="email"
-                          value={inviteEmail}
-                          onChange={(e) => setInviteEmail(e.target.value)}
-                          placeholder="Enter email of the member you want to invite"
+                          type="text"
+                          value={inviteMobile}
+                          onChange={(e) => setInviteMobile(e.target.value)}
+                          placeholder="Enter mobile of the member you want to invite"
                           className="flex-1 px-4 py-3 rounded-md bg-blue-300/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-accent"
                           disabled={inviteLoading}
                         />
