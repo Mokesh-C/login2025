@@ -12,7 +12,7 @@ export default function Hero() {
   const [userRole, setUserRole] = useState<string | null>(null)
 
   // COUNTDOWN LOGIC
-  const targetDate = new Date('2025-09-21T00:00:00')
+  const targetDate = new Date('2025-09-20T00:00:00')
   const calcTimeLeft = () => {
     const diff = Math.max(0, targetDate.getTime() - Date.now())
     const s = Math.floor(diff / 1000)
@@ -279,82 +279,47 @@ useEffect(() => {
       <section
         ref={prizeRef}
         id="prize-section"
-        className="relative min-h-[65vh] sm:min-h-[70vh] md:min-h-[80vh] flex  flex-col md:flex-row items-center justify-center text-white overflow-hidden px-4 font-manrope"
+        className="relative min-h-[55vh] sm:min-h-[60vh] md:min-h-[80vh] flex flex-col items-center justify-center text-white overflow-hidden px-4 font-manrope"
       >
-        {/* Left: Cash Prize (70%) */}
         <motion.div
           initial={{ y: 60, opacity: 0 }}
           animate={prizeSectionInView ? { y: 0, opacity: 1 } : { y: 60, opacity: 0 }}
           transition={{ duration: 1 }}
-          className="relative z-10 text-center w-full md:w-[60%] max-w-3xl"
+          className="relative z-10 flex flex-col items-center justify-center w-full"
         >
-          {/* Prize Card */}
-          <div className="mb-8">
-            {/* Prize Text */}
-            <div className="space-y-3">
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white/90 tracking-wide">
+          <div className="flex flex-col items-center justify-center w-full" style={{ width: '80%' }}>
+            <div className="w-full flex items-start">
+              <h2
+                className="text-base md:text-2xl font-black text-white/90 tracking-wide mb-2"
+                style={{ letterSpacing: '0.08em' }}
+              >
                 CASH PRIZE WORTH
               </h2>
-              {/* Prize Amount */}
-              <div className="relative">
-                <h1 
-                  id="cash-prize-text" 
-                  className="text-4xl md:text-6xl lg:text-7xl font-black text-gradient-1 tracking-tight leading-none"
-                >
-                  ₹ {prize.toLocaleString('en-IN')}
-                </h1>
-              </div>
-              {/* Subtitle */}
-              <p className="text-lg md:text-xl text-white/80 font-medium">
-                Worth of Prizes to be Won!
-              </p>
             </div>
-          </div>
-          {/* Countdown Timer */}
-          <div className="mb-8">
-            <h3 className="text-xl md:text-2xl font-bold text-gradient mb-4">
-              Event Starts In
-            </h3>
-            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
-              <TimeBox label="DAYS" value={timeLeft.days} />
-              <TimeBox label="HRS" value={timeLeft.hours} />
-              <TimeBox label="MIN" value={timeLeft.minutes} />
-              <TimeBox label="SEC" value={timeLeft.seconds} /> 
-            </div>
-          </div>
-          {/* Event Info */}
-          
-        </motion.div>
-
-        {/* Right: Idea Quest Promo Card (30%) */}
-        <div className="w-full md:w-[40%] flex justify-center items-center max-h-[80%]">
-              <div className="bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 border-2 border-yellow-500 rounded-2xl shadow-[0_3px_12px_rgba(230,194,0,0.5)] p-4 md:p-6 lg:p-8 flex flex-col items-center justify-between gap-4 max-w-md w-[80%] lg:w-[70%] animate-pulse h-full">
-            <div className="flex flex-col w-full">
-              <div className="flex items-center gap-2 mb-2">
-                <Image src="/IQ.png" alt="IdeaQuest Logo" width={40} height={40} className="object-contain rounded-full" />
-                <span className="font-bold text-xl text-yellow-900">IdeaQuest'25</span>
-              </div>
-              <span className="text-base font-semibold text-yellow-900  mb-2">Tech for Tomorrow</span>
-              <span className="text-sm text-yellow-900  mb-2">National-Level Onsite Hackathon @ PSG College of Technology</span>
-            </div>
-            <div className="w-full flex flex-col gap-2 text-yellow-900 text-xs font-medium">
-              <div className="flex items-center gap-2"><span className="font-bold">Prizes:</span> Cash & Certificates</div>
-              <div className="flex items-center gap-2"><span className="font-bold">Domains:</span> Fintech, HealthTech, Sustainability</div>
-              <div className="flex items-center gap-2"><span className="font-bold">Eligibility:</span> Engineering &amp; PG Students</div>
-              <div className="flex items-center gap-2"><span className="font-bold">Dates:</span> 19 – 20 September 2025</div>
-              <div className="flex items-center gap-2"><span className="font-bold">Venue:</span> PSG College of Technology, Coimbatore</div>
-            </div>
-            <Link
-                  href="/idea-quest"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 px-5 py-2 bg-yellow-300 text-white rounded-[20px] font-semibold text-base shadow-[0_2px_8px_#e6c200,0_-2px_8px_#fffbe6] border-none transition-all duration-200 hover:bg-yellow-200 hover:text-yellow-900 focus:outline-none hover:shadow-[inset_2px_2px_8px_#e6c200,inset_-2px_-2px_8px_#fffbe6]"
-                  style={{ boxShadow: '0 2px 8px #e6c200, 0 -2px 8px #fffbe6' }}
+            <h1
+              id="cash-prize-text"
+              className="text-[3rem] md:text-[8rem] lg:text-[10rem] font-black text-gradient-1 tracking-tight leading-none mb-4 flex items-center justify-center"
+              style={{ textAlign: 'center' }}
             >
-              Learn More
-            </Link>
+              <span className="inline text-[2.5rem] md:text-[8rem] lg:text-[10rem]">₹ </span>
+              <span className="inline text-[3rem] md:text-[8rem] lg:text-[10rem] ml-2">1,00,000</span>
+            </h1>
+            <p className="text-lg md:text-xl text-white/80 font-medium mb-8 text-center">
+              Worth of Prizes to be Won!
+            </p>
+            <div className="mb-8 w-full flex flex-col items-center">
+              <h3 className="text-xl md:text-2xl font-bold text-gradient mb-4 text-center">
+                Event Starts In
+              </h3>
+              <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
+                <TimeBox label="DAYS" value={timeLeft.days} />
+                <TimeBox label="HRS" value={timeLeft.hours} />
+                <TimeBox label="MIN" value={timeLeft.minutes} />
+                <TimeBox label="SEC" value={timeLeft.seconds} />
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </section>
     </>
   )

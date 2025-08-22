@@ -251,7 +251,7 @@ export function InlineLoader({ size = 'sm', text }: { size?: 'sm' | 'md' | 'lg',
 // Page loading component (doesn't cover header)
 export function PageLoader({ text = 'Loading...' }: { text?: string }) {
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center bg-gradient-to-br from-accent-first via-accent-second to-accent-third">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent-first via-accent-second to-accent-third">
       <div className="text-center relative">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">

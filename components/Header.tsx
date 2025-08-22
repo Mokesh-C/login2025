@@ -16,7 +16,7 @@ type NavItem =
 
 const navItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home },
-  { id: 'events', label: 'Events', icon: Calendar, href: '/events' },
+  { id: 'events', label: 'Events', icon: Calendar, href: '/event' },
   { id: 'timeline', label: 'Timeline', icon: Clock, href: '/timeline' },
   { id: 'teams', label: 'Teams', icon: Users, href: '/teams' },
   { id: 'sponsors', label: 'Sponsors', icon: Handshake, href: '/sponsors' },

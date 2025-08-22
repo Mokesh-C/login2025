@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -27,7 +27,7 @@ type ErrorMessage = { id: number; message: string }
  * Component
  * ----------------------------------------------------------------*/
 
-export default function LoginPage() {
+function LoginContent() {
   /* ---------------- State ---------------- */
   const [mobile, setMobile]       = useState('')
   const [otp, setOtp]             = useState<string[]>(Array(OTP_LENGTH).fill(''))
@@ -276,6 +276,14 @@ export default function LoginPage() {
       </div>
     </div>
   )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-white">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
 }
 
 /* ------------------------------------------------------------------
