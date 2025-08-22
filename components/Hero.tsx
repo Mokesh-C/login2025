@@ -266,7 +266,7 @@ useEffect(() => {
                 </Link>
               ) : null}
               <Link
-                href="/events"
+                href="/event"
                 className="border-2 border-accent text-violet-500 px-6 py-3 rounded-md font-semibold shadow transition-colors hover:bg-violet/10 hover:text-white/80 hover:border-violet-400 "
               >
                 Explore Events <span className="text-lg font-bold">→</span>
