@@ -222,7 +222,7 @@ useEffect(() => {
           <div className="flex flex-col items-center md:items-start text-center md:text-left gap-4 md:gap-3 md:w-[35%] max-w-lg justify-center p-2 font-manrope tracking-wide">
             <span className="text-gradient-1 font-extrabold text-2xl sm:text-3xl md:text-3xl lg:text-4xl">September 20, 21</span>
             <span className="text-gray-200 text-justify text-base md:text-lg lg:text-lg  max-w-md ">Experience the 34<sup>th</sup> International Inter-Collegiate Tech-Symposium where innovation meets reality in the digital realm.</span>
-            <span className="text-xl md:text-lg font-semibold font-montserrat text-gradient ">
+            <span className="text-md md:text-lg font-semibold font-montserrat text-gradient ">
               <span className='font-bolder'>Note: </span>A Global Tech Stage Only for Postgraduate Students
             </span>
             <div className="flex flex-row gap-6 md:gap-8 justify-center md:justify-start ">
@@ -279,7 +279,7 @@ useEffect(() => {
       <section
         ref={prizeRef}
         id="prize-section"
-        className="relative min-h-[55vh] sm:min-h-[60vh] md:min-h-[80vh] flex flex-col items-center justify-center text-white overflow-hidden px-4 font-manrope"
+        className="relative min-h-[45vh] sm:min-h-[60vh] md:min-h-[80vh] flex flex-col items-center justify-center text-white overflow-hidden px-4 font-manrope"
       >
         <motion.div
           initial={{ y: 60, opacity: 0 }}
@@ -290,7 +290,7 @@ useEffect(() => {
           <div className="flex flex-col items-center justify-center w-full" style={{ width: '80%' }}>
             <div className="w-full flex items-start">
               <h2
-                className="text-base md:text-2xl font-black text-white/90 tracking-wide mb-2"
+                className="text-base md:text-2xl font-black text-orange-300 tracking-wide mb-2"
                 style={{ letterSpacing: '0.08em' }}
               >
                 CASH PRIZE WORTH
@@ -302,7 +302,7 @@ useEffect(() => {
               style={{ textAlign: 'center' }}
             >
               <span className="inline text-[2.5rem] md:text-[8rem] lg:text-[10rem]">₹ </span>
-              <span className="inline text-[3rem] md:text-[8rem] lg:text-[10rem] ml-2">1,00,000</span>
+              <span className="inline text-[3rem] md:text-[8rem] lg:text-[8rem] ml-2">1,00,000</span>
             </h1>
             <p className="text-lg md:text-xl text-white/80 font-medium mb-8 text-center">
               Worth of Prizes to be Won!

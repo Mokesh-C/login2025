@@ -16,3 +16,4 @@ export default function EventLayout({
         </div>
     );
 }
+

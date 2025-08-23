@@ -159,22 +159,23 @@ export default function EventPage() {
         <div className="hidden md:block">
           <div className="list">
             <div className="item absolute inset-0 w-full h-full">
-              <div className="absolute top-[10%] left-[10%] w-[80%] max-w-[80%] pr-[30%] box-border text-white">
+              <div className="absolute top-[10%] left-[10%] w-[80%] max-w-[80%] pr-[10%] box-border text-white">
                 <div className={`author font-bold tracking-[8px] text-base transition-all duration-300 ${isFading ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>Our Events</div>
                 <div className={`title text-[5em] font-bold leading-[1.3em] flex flex-row items-center gap-6 transition-all duration-300 ${isFading ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
-                  <div className="w-20 h-20 bg-blue-200/10 border border-blue-200/20 rounded-full p-2 flex items-center justify-center">
+                  <div className="w-20 h-20 bg-blue-200/10 border border-blue-200/20 rounded-full p-2 flex items-center justify-center overflow-hidden">
                     <Image
                       src={events[activeIndex]?.logoUrl || "/event/1.png"}
                       alt={`${events[activeIndex]?.name || "Event"} logo`}
                       width={80}
                       height={80}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain rounded-full"
+                      
                     />
                   </div>
                   <span className="break-words">{events[activeIndex]?.name || "Loading..."}</span>
                 </div>
-                <div className={`topic text-[5em] font-bold leading-[1.3em] text-[#f7794f] mt-4 transition-all duration-300 ${isFading ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>{events[activeIndex]?.type || "Loading..."}</div>
-                <div className={`des mb-8 pr-[40%] text-lg leading-relaxed transition-all duration-300 ${isFading ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
+                <div className={`topic text-[2em] font-bold leading-[1.3em] text-[#f7794f] mt-4 transition-all duration-300 ${isFading ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>{events[activeIndex]?.type || "Loading..."}</div>
+                <div className={`des mb-8 pr-[30%] text-lg leading-relaxed text-justify transition-all duration-300 ${isFading ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>
                   {events[activeIndex]?.description || events[activeIndex]?.tagline || "Loading event details..."}
                 </div>
                 <button onClick={() => router.push(`/events/${events[activeIndex]?.id}`)} className={`border-none bg-[#eee] text-gray-800 tracking-[3px] p-3 rounded-md font-[Poppins] font-medium text-base transition-all duration-300 ${isFading ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'}`}>Explore More</button>
@@ -246,7 +247,7 @@ export default function EventPage() {
                       alt={`${events[activeIndex]?.name || "Event"} logo`}
                       width={80}
                       height={80}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain rounded-full"
                     />
                   </div>
                   <span className="break-words">{events[activeIndex]?.name || "Loading..."}</span>

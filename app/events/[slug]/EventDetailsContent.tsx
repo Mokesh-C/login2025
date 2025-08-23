@@ -38,6 +38,7 @@ import { useRouter } from "next/navigation";
 import { PageLoader } from "@/components/LoadingSpinner";
 import useRegister from "@/hooks/useRegister";
 import useRequireAuth from "@/hooks/useRequireAuth";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 /* ---------------------------------------------------------------------
  * Types
@@ -154,6 +155,11 @@ export default function EventDetailsContent({ event }: { event: Event }) {
     const [registrationData, setRegistrationData] = useState<any>(null);
     const [invitationStatus, setInvitationStatus] = useState<'none' | 'pending' | 'accepted' | 'declined'>('none');
     const [teamName, setTeamName] = useState<string>('');
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [confirmDialogData, setConfirmDialogData] = useState<{
+        eventName: string;
+        eventId: number;
+    } | null>(null);
     
     const notifyError = () =>
         setErrorList((prev) => [
@@ -278,25 +284,12 @@ export default function EventDetailsContent({ event }: { event: Event }) {
         }
         
         if (event.teamMaxSize === 1) {
-            // Solo registration            
-            setIsRegistering(true);
-            try {
-                const res = await soloRegister(event.id);
-                if (res.success) {
-                    setIsRegistered(true);
-                    showSuccess(`Registration successful for ${event.name}!`);
-                } else {
-                    // Don't show error for permission issues on fresh registrations
-                    if (res.message && !res.message.toLowerCase().includes('permission')) {
-                        showError(res.message || "Failed to register for event.");
-                    }
-                }
-            } catch (error) {
-                console.error("Registration error:", error);
-                // Don't show error toast for permission issues on fresh registrations
-            } finally {
-                setIsRegistering(false);
-            }
+            // Show confirmation dialog for individual events
+            setConfirmDialogData({
+                eventName: event.name,
+                eventId: event.id
+            });
+            setShowConfirmDialog(true);
             return;
         }
         
@@ -306,6 +299,38 @@ export default function EventDetailsContent({ event }: { event: Event }) {
             return;
         }
         notifyError(); // fallback
+    };
+
+    // Handle confirmation for individual event registration
+    const handleConfirmRegistration = async () => {
+        if (!confirmDialogData) return;
+        
+        setIsRegistering(true);
+        try {
+            const res = await soloRegister(confirmDialogData.eventId);
+            if (res.success) {
+                setIsRegistered(true);
+                showSuccess(`Registration successful for ${confirmDialogData.eventName}!`);
+            } else {
+                // Don't show error for permission issues on fresh registrations
+                if (res.message && !res.message.toLowerCase().includes('permission')) {
+                    showError(res.message || "Failed to register for event.");
+                }
+            }
+        } catch (error) {
+            console.error("Registration error:", error);
+            // Don't show error toast for permission issues on fresh registrations
+        } finally {
+            setIsRegistering(false);
+            setShowConfirmDialog(false);
+            setConfirmDialogData(null);
+        }
+    };
+
+    // Handle cancel confirmation
+    const handleCancelRegistration = () => {
+        setShowConfirmDialog(false);
+        setConfirmDialogData(null);
     };
 
     // Handle view team navigation
@@ -360,14 +385,14 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                     <div className="md:w-1/4 flex justify-center items-center">
                                         <div
                                             className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-blue-300/10
-                                        backdrop-blur-sm border border-white/20 flex items-center justify-center"
+                                        backdrop-blur-sm border border-white/20 flex items-center justify-center overflow-hidden"
                                         >
                                             <Image
                                                 src={event.logoUrl || ""}
                                                 alt={event.name}
-                                                width={112}
-                                                height={112}
-                                                className="object-contain"
+                                                width={100}
+                                                height={100}
+                                                className="object-cover rounded-full "
                                             />
                                         </div>
                                     </div>
@@ -455,9 +480,9 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                         </>
                                     ) : (
                                         <motion.button
-                                            className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
+                                            className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            whileHover={!isRegistering ? { scale: 1.05 } : {}}
+                                            whileTap={!isRegistering ? { scale: 0.95 } : {}}
                                             onClick={handleRegister}
                                             disabled={isRegistering}
                                             initial={{ opacity: 0, y: 20 }}
@@ -862,6 +887,19 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                     </div>
                 </div>
             </div>
+
+            {/* Confirmation Dialog for Individual Event Registration */}
+            <ConfirmationDialog
+                isOpen={showConfirmDialog}
+                title="Confirm Event Registration"
+                message={`Are you sure you want to register for "${confirmDialogData?.eventName}"?`}
+                confirmText="Register"
+                cancelText="Cancel"
+                onConfirm={handleConfirmRegistration}
+                onCancel={handleCancelRegistration}
+                variant="accept"
+                isLoading={isRegistering}
+            />
         </motion.section>
     );
 }
