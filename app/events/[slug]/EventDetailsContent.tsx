@@ -8,28 +8,7 @@ import {
     type TargetAndTransition,
 } from "framer-motion";
 import Image from "next/image";
-import {
-    CalendarClock,
-    Users,
-    MapPin,
-    ArrowLeft,
-    Calendar,
-    Clock,
-    DollarSign,
-    Trophy,
-    FileText,
-    Phone,
-    Mail,
-    User,
-    Tag,
-    Star,
-    Award,
-    CheckCircle,
-    ListCheck,
-    Monitor,
-    Timer,
-    Loader2,
-} from "lucide-react";
+import {CalendarClock, Users, MapPin, ArrowLeft, Calendar, Clock, DollarSign, Trophy, FileText, Phone, Mail, User, Tag, Star, Award, CheckCircle, ListCheck, Monitor, Timer, Loader2, CircleCheckBig, StarHalf, CircleSmall, Code2} from "lucide-react";
 
 import ToastCard from "@/components/ToastCard";
 import type { EventCardProps } from "@/components/EventCard";
@@ -345,7 +324,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
             initial="hidden"
             animate="show"
             variants={stagger}
-            className="min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white px-4 pb-24 pt-20 overflow-hidden"
+            className="min-h-screen bg-gradient-to-br from-accent-first via-accent-second to-accent-third text-white px-4 pb-24 pt-20 overflow-hidden "
         >
             {/* Toasts */}
             <AnimatePresence>
@@ -384,7 +363,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                 <div className="flex gap-5 ">
                                     <div className="md:w-1/4 flex justify-center items-center">
                                         <div
-                                            className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-blue-300/10
+                                            className="w-28 h-28 md:w-30 md:h-30 rounded-full bg-blue-300/10
                                         backdrop-blur-sm border border-white/20 flex items-center justify-center overflow-hidden"
                                         >
                                             <Image
@@ -392,31 +371,44 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                                 alt={event.name}
                                                 width={100}
                                                 height={100}
-                                                className="object-cover rounded-full "
+                                                className=" object-cover rounded-full "
                                             />
                                         </div>
                                     </div>
-                                    <div>
-                                        <h1 className="text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                                    <div className="flex flex-col md:flex-row justify-center items-center gap-2">
+                                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white   leading-tight">
                                             {event.name}
-                                            <span className="block text-3xl lg:text-4xl bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mt-2">
+                                            <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mt-2">
                                                 Challenge Awaits
                                             </span>
                                         </h1>
                                     </div>
                                 </div>
 
-                                <p className="text-xl text-gray-300 leading-relaxed max-w-2xl">
-                                    {
-                                        "Showcase your programming skills in this intense coding competition."
-                                    }
+                                <p className="sm:text-lg p-4 pb-0 text-gray-300 leading-relaxed max-w-2xl">
+                                    {event.tagline}
                                 </p>
                             </motion.div>
 
                             {/* CTA Button */}
-                            {!event.closed ? (
+                            {!event.closed && false ? (
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    {checkingRegistration ? (
+                                    {/* Special handling for Star Of Login event */}
+                                    {event.name === "Star Of Login" ? (
+                                        <motion.div
+                                            className="flex items-center gap-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-md px-6 py-4 text-lg font-semibold max-w-md"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.1, delay: 0.5 }}
+                                        >
+                                            <Trophy className="w-10 h-10 text-amber-400" />
+                                            <div className="text-left">
+                                                <span className="text-amber-300 text-sm font-normal">
+                                                    Winners & runners from all other events will be contacted directly for participation
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    ) : checkingRegistration ? (
                                         <motion.button
                                             className="bg-gray-600 text-white font-bold py-4 px-8 rounded-md text-lg opacity-50 cursor-not-allowed"
                                             disabled
@@ -453,16 +445,20 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                         </>
                                     ) : isRegistered ? (
                                         <>
+                                            {/* For Solo Events: Show "Registered" status */}
+                                            {event.teamMaxSize === 1 && (
+                                                <motion.div
+                                                    className="flex items-center justify-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.1, delay: 0.5 }}
+                                                >
+                                                    <CheckCircle className="w-5 h-5 text-green-400" />
+                                                    <span className="text-green-400 font-semibold">Registered</span>
+                                                </motion.div>
+                                            )}
                                             
-                                            <motion.div
-                                                className="flex items-center justify-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.1, delay: 0.5 }}
-                                            >
-                                                <CheckCircle className="w-5 h-5 text-green-400" />
-                                                <span className="text-green-400 font-semibold">Registered</span>
-                                            </motion.div>
+                                            {/* For Team Events: Show "View Team" button */}
                                             {event.teamMaxSize > 1 && (
                                                 <motion.button
                                                     className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
@@ -500,9 +496,28 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                         </motion.button>
                                     )}
                                 </div>
-                            ) : (
+                            ) : 
+                            (
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    {checkingRegistration ? (
+                                    
+                                    {true?(
+                                    <motion.div
+                                    className="flex items-center gap-3 bg-yellow-500/20 border border-yellow-500/20 rounded-md px-6 py-4 text-lg font-semibold max-w-md"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.1, delay: 0.5 }}
+                                >
+                                    
+                                    <div className="text-left">
+                                        <span className="text-yellow-300 font-medium font-bold block">Registration Starts Soon..</span>
+                                        <span className="text-yellow-200/80 text-sm font-normal">
+                                            Stay tuned!
+                                        </span>
+                                    </div>
+                                </motion.div>
+                                    
+                                    
+                                    ): checkingRegistration ? (
                                         <motion.button
                                             className="bg-gray-600 text-white font-bold py-4 px-8 rounded-md text-lg opacity-50 cursor-not-allowed"
                                             disabled
@@ -537,32 +552,37 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                                 View Invitations
                                             </motion.button>
                                         </>
-                                    ) : isRegistered ? (
-                                        <>
-                                            <motion.div
-                                                className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.1, delay: 0.5 }}
-                                            >
-                                                <CheckCircle className="w-5 h-5 text-green-400" />
-                                                <span className="text-green-400 font-semibold">Registered</span>
-                                            </motion.div>
-                                            {event.teamMaxSize > 1 && (
-                                                <motion.button
-                                                    className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    onClick={handleViewTeam}
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ duration: 0.1, delay: 0.5 }}
-                                                >
-                                                    <Users className="w-5 h-5 inline-block mr-2" />
-                                                    View Team
-                                                </motion.button>
-                                            )}
-                                        </>
+                                         ) : isRegistered ? (
+                                         <>
+                                             {/* For Solo Events: Show "Registered" status */}
+                                             {event.teamMaxSize === 1 && (
+                                                 <motion.div
+                                                     className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-md px-6 py-4 text-lg font-semibold"
+                                                     initial={{ opacity: 0, y: 20 }}
+                                                     animate={{ opacity: 1, y: 0 }}
+                                                     transition={{ duration: 0.1, delay: 0.5 }}
+                                                 >
+                                                     <CheckCircle className="w-5 h-5 text-green-400" />
+                                                     <span className="text-green-400 font-semibold">Registered</span>
+                                                 </motion.div>
+                                             )}
+                                             
+                                             {/* For Team Events: Show "View Team" button */}
+                                             {event.teamMaxSize > 1 && (
+                                                 <motion.button
+                                                     className="bg-gradient-to-r from-violet-800 to-purple-600 text-white font-bold py-4 px-8 rounded-md text-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105"
+                                                     whileHover={{ scale: 1.05 }}
+                                                     whileTap={{ scale: 0.95 }}
+                                                     onClick={handleViewTeam}
+                                                     initial={{ opacity: 0, y: 20 }}
+                                                     animate={{ opacity: 1, y: 0 }}
+                                                     transition={{ duration: 0.1, delay: 0.5 }}
+                                                 >
+                                                     <Users className="w-5 h-5 inline-block mr-2" />
+                                                     View Team
+                                                 </motion.button>
+                                             )}
+                                         </>
                                     ) : (
                                         <motion.div
                                             className="flex items-center gap-2 bg-red-500/20 border border-red-500/30 rounded-md px-6 py-4 text-lg font-semibold"
@@ -587,7 +607,7 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                         >
                             <div className="relative rounded-md overflow-hidden border border-white/20 shadow-2xl">
                                 <Image
-                                    src={event.images[0]?.url}
+                                    src={event.images[0]?.url || "https://images.unsplash.com/photo-1739184523594-564cb9b61126?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
                                     alt={event.name}
                                     width={800}
                                     height={384}
@@ -756,35 +776,35 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                             transition={{ duration: 0.6, delay: 0.2 }}
                             whileHover={{ y: -5 }}
                         >
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-4">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-4">
                                 <div
                                     className={`p-3 rounded-md bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}
                                 >
                                     <FileText
-                                        className={`w-7 h-7 text-cyan-400`}
+                                        className={`w-5 h-5 md:w-7 md:h-7 text-cyan-400`}
                                     />
                                 </div>
                                 About This Event
                             </h2>
-                            <p className="text-gray-300 leading-relaxed text-lg">
+                            <p className="text-gray-300 leading-relaxed">
                                 {event.description}
                             </p>
                         </motion.div>
 
                         {/*Rounds*/}
                         <motion.div
-                            className="bg-blue-300/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-blue-300/8 transition-all duration-500"
+                            className="bg-blue-300/5 backdrop-blur-sm rounded-md p-4 sm:p-6 md:p-8 border border-white/10 hover:bg-blue-300/8 transition-all duration-500"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
                             whileHover={{ y: -5 }}
                         >
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-4">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-4">
                                 <div
                                     className={`p-3 rounded-md  bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}
                                 >
                                     <ListCheck
-                                        className={`w-7 h-7 text-cyan-400`}
+                                        className={` w-5 h-5 md:w-7 md:h-7  text-cyan-400`}
                                     />
                                 </div>
                                 Rounds
@@ -840,18 +860,18 @@ export default function EventDetailsContent({ event }: { event: Event }) {
 
                         {/* Rules Section */}
                         <motion.div
-                            className="bg-blue-300/5 backdrop-blur-sm rounded-md p-8 border border-white/10 hover:bg-blue-300/8 transition-all duration-500"
+                            className="bg-blue-300/5 backdrop-blur-sm rounded-md p-4 sm:p-6 md:p-8 border border-white/10 hover:bg-blue-300/8 transition-all duration-500"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
                             whileHover={{ y: -5 }}
                         >
-                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-4">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-4">
                                 <div
                                     className={`p-3 rounded-md  bg-gradient-to-br from-violet-400/20 to-purple-950/10 border border-violet-400/30`}
                                 >
                                     <CheckCircle
-                                        className={`w-7 h-7 text-cyan-400`}
+                                        className={`w-5 h-5 md:w-7 md:h-7 text-cyan-400`}
                                     />
                                 </div>
                                 Rules & Guidelines
@@ -872,13 +892,13 @@ export default function EventDetailsContent({ event }: { event: Event }) {
                                                 }}
                                                 whileHover={{ x: 5 }}
                                             >
-                                                <div
+                                                {/* <div
                                                     className={`w-10 h-10 rounded-md bg-gradient-to-br from-violet-400/30 to-purple-950/10 text-cyan-400 flex items-center justify-center text-sm font-bold flex-shrink-0 border border-purple-400/30`}
                                                 >
                                                     {index + 1}
-                                                </div>
-                                                <span className="text-gray-300 leading-relaxed text-lg">
-                                                    {rule}
+                                                </div> */}
+                                                <span className="text-gray-300 leading-relaxed">
+                                                   <Code2 className={`w-4 h-4 md:w-7 md:h-7 text-cyan-400`} /> {rule}
                                                 </span>
                                             </motion.div>
                                         ))}

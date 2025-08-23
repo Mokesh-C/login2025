@@ -47,6 +47,12 @@ const schedule = [
 export default function Timeline() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [timelineH, setTimelineH] = useState(0)
+  const [hydrated, setHydrated] = useState(false)
+
+  // Track hydration
+  useLayoutEffect(() => {
+    setHydrated(true)
+  }, [])
 
   // Measure container height
   useLayoutEffect(() => {
@@ -68,7 +74,7 @@ export default function Timeline() {
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 })
 
   // Transform progress to bar height
-  const barHeight = useTransform(smoothProgress, v => v * timelineH)
+  const barHeight = useTransform(smoothProgress, v => timelineH ? v * timelineH : 0)
 
   let seq = -1
 
@@ -79,16 +85,20 @@ export default function Timeline() {
 
       {/* Progress fill + end-dot */}
       <div className="absolute top-0 left-6 sm:left-[12%] mob:left-1/2 mob:-translate-x-1/2 w-2 h-full pointer-events-none z-10 flex flex-col items-center">
-        <motion.div
-          className="w-full bg-gradient-to-b from-purple-400 via-violet-600 to-violet-400 rounded-full"
-          style={{ height: barHeight }}
-        />
-        <motion.div className="absolute left-1/2  -translate-x-1/2" style={{ top: barHeight }}>
-          <div className="relative flex  items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 via-violet-400 to-purple-950 opacity-80 animate-pulse" />
-            <div className="absolute w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-violet-950 border-4 border-purple-400 shadow-lg" />
-          </div>
-        </motion.div>
+        {hydrated && (
+          <>
+            <motion.div
+              className="w-full bg-gradient-to-b from-purple-400 via-violet-600 to-violet-400 rounded-full"
+              style={{ height: barHeight }}
+            />
+            <motion.div className="absolute left-1/2  -translate-x-1/2" style={{ top: barHeight }}>
+              <div className="relative flex  items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 via-violet-400 to-purple-950 opacity-80 animate-pulse" />
+                <div className="absolute w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-violet-950 border-4 border-purple-400 shadow-lg" />
+              </div>
+            </motion.div>
+          </>
+        )}
       </div>
 
       {/* START label */}
@@ -124,19 +134,20 @@ export default function Timeline() {
               return (
                 <section key={`${dayIdx}-${idx}`} className="relative flex min-h-[180px] items-center justify-center overflow-hidden">
                   {/* Step number */}
-                  <motion.div
-                    className={`
-                      absolute z-10 select-none pointer-events-none
-                      ${isNumberLeft ? 'hidden mob:block mob:left-[25%]' : 'hidden mob:block mob:right-[25%]'}`}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 0.09, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.1 * seq }}
-                    viewport={{ once: true, amount: 0.5 }}
-                  >
-                    <span className="text-[3rem] md:text-[6rem] font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-violet-400">
-                      {String(seq + 1).padStart(2, '0')}
-                    </span>
-                  </motion.div>
+                  {hydrated && (
+                    <motion.div
+                      className={`absolute z-10 select-none pointer-events-none
+                        ${isNumberLeft ? 'hidden mob:block mob:left-[25%]' : 'hidden mob:block mob:right-[25%]'}`}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 0.09, scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.1 * seq }}
+                      viewport={{ once: true, amount: 0.5 }}
+                    >
+                      <span className="text-[3rem] md:text-[6rem] font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-violet-400">
+                        {String(seq + 1).padStart(2, '0')}
+                      </span>
+                    </motion.div>
+                  )}
                   {/* Dot on the timeline line */}
                   <div className="absolute top-1/2 left-5 sm:left-[11.6%] mob:left-1/2 mob:-translate-x-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
                     <div className="relative flex items-center justify-center">
@@ -146,12 +157,9 @@ export default function Timeline() {
                   </div>
                   {/* Card */}
                   <motion.div
-                    className={`
-                      relative w-full max-w-md
-                      ml-[56px] mob:ml-0
+                    className={`relative w-full max-w-md ml-[56px] mob:ml-0
                       ${isCardLeft ? 'mob:mr-auto mob:pr-16 mob:text-right' : 'mob:ml-auto mob:pl-16 mob:text-left'}
-                      text-left
-                    `}
+                      text-left`}
                     initial={{ opacity: 0, x: isCardLeft ? -80 : 80 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.05 * seq, type: 'spring', stiffness: 100 }}
@@ -168,16 +176,9 @@ export default function Timeline() {
                         <Clock className="h-4 w-4" />
                         <span className="text-sm">{event.time}</span>
                       </div>
-                      {/* {event.venue && (
-                        <div className="flex items-center gap-2 text-gray-300">
-                          <MapPin className="h-4 w-4" />
-                          <span className="text-sm">{event.venue}</span>
-                        </div>
-                      )} */}
                     </div>
                   </motion.div>
                 </section>
-                
               )
             })}
           </React.Fragment>
@@ -185,7 +186,7 @@ export default function Timeline() {
         <section className="relative flex md:items-start items-center flex-col py-8">
               <h2 className="invisible">DAY</h2>
               <span className="mt-3 invisible">Program Ends</span>
-            </section>
+        </section>
       </div>
 
       {/* END label */}

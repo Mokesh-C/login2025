@@ -289,7 +289,7 @@ export default function EventPage() {
                       />
                     </div>
                     <div className="content absolute bottom-[5px] left-[5px] right-[5px] text-white">
-                      <div className="title text-[#f1683a] font-medium text-xs truncate">
+                      <div className="title text-[#f1683a] font-medium  text-xs truncate">
                         {event.name}
                       </div>
                       <div className="description text-[#f1683a] font-light text-xs truncate">

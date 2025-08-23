@@ -514,16 +514,20 @@ function CreateTeamPageContent() {
         const contacts = await (navigator as any).contacts.select(['tel'], { multiple: false });
         if (contacts && contacts.length > 0) {
           const mobile = contacts[0].tel[0];
+          // Clean mobile number: remove +, spaces, etc. and get only digits
+          const cleanMobile = mobile.replace(/[\s\-\(\)\+]/g, '');
+          // If 12 digits, remove first 2 (country code), remaining 10 = valid mobile
+          const finalMobile = cleanMobile.length === 12 ? cleanMobile.substring(2) : cleanMobile;
           // Handle different cases: team member mobile or invite mobile
           if (index === -1) {
             // Invite mobile case
-            setInviteMobile(mobile);
+            setInviteMobile(finalMobile);
             // Auto-validate the selected mobile
             setTimeout(() => {
-              validateMobile(mobile).then(error => {
+              validateMobile(finalMobile).then(error => {
                 setValidatedMobiles(prev => ({
                   ...prev,
-                  [mobile]: { 
+                  [finalMobile]: { 
                     isValid: !error, 
                     error, 
                     timestamp: Date.now() 
@@ -533,9 +537,9 @@ function CreateTeamPageContent() {
             }, 100);
           } else {
             // Team member mobile case
-            handleMobileChange(index, mobile);
+            handleMobileChange(index, finalMobile);
             // Auto-validate the selected mobile
-            setTimeout(() => handleMobileBlur(index, mobile), 100);
+            setTimeout(() => handleMobileBlur(index, finalMobile), 100);
           }
         }
       } else {
@@ -767,7 +771,7 @@ function CreateTeamPageContent() {
       // Step 1: Validate team data
       const validation = await validateTeamData();
       if (!validation.isValid) {
-        showError(`Please fix the following errors:\n${validation.errors.join('\n')}`);
+        showError(`\n${validation.errors.join('\n')}`);
         return;
       }
 
@@ -950,7 +954,7 @@ function CreateTeamPageContent() {
         <HeaderCard eventLogo={eventLogo} eventName={eventName} teamSizeDisplay={teamSizeDisplay} isRegistered={isRegistered} />
 
         {/* Main Content Card */}
-        <div className="w-full bg-blue-300/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-8">
+        <div className="w-full bg-blue-300/10 backdrop-blur-lg border border-white/10 rounded-md shadow-xl p-4 md:p-8 ">
           {!hasTeam ? (
             /* Pre-Registration Form */
             <form onSubmit={handleRegister} className="w-full space-y-6">
@@ -981,14 +985,14 @@ function CreateTeamPageContent() {
                 <label className="block text-white/80 mb-2 text-lg font-medium">
                   
                   <div className="flex items-center justify-between">
-                      <span >Team Member Mobiles</span>
+                      <span >Team Members </span>
                       <span className={`font-semibold ${
                         exceedsMaxSize() ? 'text-red-400' : 
                         isMinimumSizeAchieved() ? 'text-green-400' : 'text-yellow-400'
                       }`}>
-                        {getTotalTeamSize()}/{maxTeamSize} members
-                      </span>
-                    </div>
+                        {getTotalTeamSize()}/{maxTeamSize} Members
+                        </span>
+                      </div>
                 </label>
 
                 {/* Select from existing team members section */}
@@ -1006,7 +1010,7 @@ function CreateTeamPageContent() {
                     disabled={loading}
                   >
                     <Users className="w-4 h-4" />
-                    <span>Select from existing team members</span>
+                    <span>Select members from existing team</span>
                     <div className={`transition-all duration-300 ease-in-out transform ${
                       showExistingMembers ? 'rotate-180' : 'rotate-0'
                     }`}>
@@ -1082,7 +1086,7 @@ function CreateTeamPageContent() {
                     </div>
                   </div>
                 </div>
-                
+
                 {memberMobiles.length > 0 ? (
                   <div className="space-y-3 mt-4">
                     {memberMobiles.map((mobile, index) => (
@@ -1142,15 +1146,15 @@ function CreateTeamPageContent() {
                                 ? "Required" 
                                 : "Optional"
                             }
-                        </span>
-                        </div>
+                      </span>
+                    </div>
                         
                         {/* Error Message - Normal positioning for proper spacing */}
                         {mobileErrors[index] && (
                           <div className="mt-3 pl-1">
                             <p className="text-red-300 text-xs">{mobileErrors[index]}</p>
-                          </div>
-                        )}
+                  </div>
+                )}
                       </div>
                     ))}
                   </div>
